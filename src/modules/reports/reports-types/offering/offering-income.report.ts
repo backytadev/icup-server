@@ -13,6 +13,7 @@ import { OfferingIncomeCreationTypeNames } from '@/modules/offering/income/enums
 import { OfferingIncomeCreationCategoryNames } from '@/modules/offering/income/enums/offering-income-creation-category.enum';
 import { OfferingIncomeCreationSubTypeNames } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
+import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 
 interface ReportOptions {
   title?: string;
@@ -153,6 +154,71 @@ export const getOfferingIncomeReport = (
       },
 
       {
+        layout: 'summaryLayout',
+        table: {
+          headerRows: 1,
+          widths: [
+            100,
+            'auto',
+            'auto',
+            'auto',
+            'auto',
+            'auto',
+            'auto',
+            'auto',
+            '*',
+          ],
+          body: [
+            [
+              {
+                text: `Resultados de Sumatoria por Divisa:`,
+                colSpan: 3,
+                fontSize: 13,
+                bold: true,
+                italics: true,
+                margin: [0, 5, 0, 5],
+              },
+              {},
+              {},
+              {
+                text: `${data
+                  .filter((offering) => offering.currency === CurrencyType.PEN)
+                  .reduce((acc, offering) => acc + +offering?.amount, 0)
+                  .toFixed(2)} PEN   /`,
+                bold: true,
+                fontSize: 13,
+                italics: true,
+                margin: [-50, 5, 0, 5],
+              },
+              {
+                text: `${data
+                  .filter((offering) => offering.currency === CurrencyType.USD)
+                  .reduce((acc, offering) => acc + +offering?.amount, 0)
+                  .toFixed(2)} USD   /`,
+                bold: true,
+                fontSize: 13,
+                italics: true,
+                margin: [-5, 5, 0, 5],
+              },
+              {
+                text: `${data
+                  .filter((offering) => offering.currency === CurrencyType.EUR)
+                  .reduce((acc, offering) => acc + +offering?.amount, 0)
+                  .toFixed(2)} EUR`,
+                bold: true,
+                fontSize: 13,
+                italics: true,
+                margin: [-5, 5, 0, 5],
+              },
+              {},
+              {},
+              {},
+            ],
+          ],
+        },
+      },
+
+      {
         layout: 'noBorders',
         table: {
           headerRows: 1,
@@ -174,7 +240,8 @@ export const getOfferingIncomeReport = (
                 colSpan: 2,
                 fontSize: 13,
                 bold: true,
-                margin: [0, 10, 0, 0],
+                italics: true,
+                margin: [0, 15, 0, 0],
               },
               {},
               {
@@ -182,7 +249,8 @@ export const getOfferingIncomeReport = (
                 bold: true,
                 fontSize: 13,
                 colSpan: 1,
-                margin: [-50, 10, 0, 0],
+                italics: true,
+                margin: [-50, 15, 0, 0],
               },
               {},
               {},

@@ -45,6 +45,27 @@ const customTableLayouts: Record<string, CustomTableLayout> = {
       return i % 2 === 0 ? '#f3f3f3' : null;
     },
   },
+
+  summaryLayout: {
+    hLineWidth: function (i) {
+      return i === 1 ? 1 : 0;
+    },
+    vLineWidth: function () {
+      return 0;
+    },
+    hLineColor: function () {
+      return 'black';
+    },
+    paddingLeft: function () {
+      return 8;
+    },
+    paddingRight: function () {
+      return 8;
+    },
+    fillColor: function (i) {
+      return i === 0 ? '#dcdcdc' : null; // Verde para el header
+    },
+  },
 };
 
 @Injectable()
