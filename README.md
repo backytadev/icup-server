@@ -7,9 +7,9 @@
 
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
 
-# ICUP-API
+# ICUP-SERVER
 
-In this project, an API is developed to control the membership of a church, the following technologies are used:
+In this project, an API-RestFul and a backend for a membership and finance app are developed, the following technologies are used:, the following technologies are used:
 
 - NestJs
 - Docker
