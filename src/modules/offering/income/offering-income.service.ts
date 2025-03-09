@@ -3271,7 +3271,7 @@ export class OfferingIncomeService {
             type: type,
             subType: subType,
             category: category,
-            date: new Date(date),
+            date: date,
             currency: currency,
             familyGroup: familyGroup,
             recordStatus: RecordStatus.Active,
