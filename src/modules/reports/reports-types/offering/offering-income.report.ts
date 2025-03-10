@@ -9,11 +9,11 @@ import {
   MemberType,
   MemberTypeNames,
 } from '@/modules/offering/income/enums/member-type.enum';
+import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 import { OfferingIncomeCreationTypeNames } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
 import { OfferingIncomeCreationCategoryNames } from '@/modules/offering/income/enums/offering-income-creation-category.enum';
 import { OfferingIncomeCreationSubTypeNames } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
-import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 
 interface ReportOptions {
   title?: string;

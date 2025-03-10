@@ -3022,6 +3022,8 @@ export class OfferingIncomeService {
       ],
     });
 
+    console.log(offering.id, offering.familyGroup);
+
     if (!offering) {
       throw new NotFoundException(
         `Ingreso de Ofrenda con id: ${id} no fue encontrado`,
@@ -3196,6 +3198,8 @@ export class OfferingIncomeService {
         });
       }
 
+      console.log(memberValue);
+
       let existsOffering: OfferingIncome[];
 
       //* Sunday service
@@ -3271,7 +3275,7 @@ export class OfferingIncomeService {
             type: type,
             subType: subType,
             category: category,
-            date: date,
+            date: new Date(date),
             currency: currency,
             familyGroup: familyGroup,
             recordStatus: RecordStatus.Active,
@@ -3465,6 +3469,15 @@ export class OfferingIncomeService {
           memberType: !memberType ? null : memberType,
           amount: +amount,
           imageUrls: [...offering.imageUrls, ...imageUrls],
+          church: church,
+          familyGroup: familyGroup,
+          zone: zone,
+          disciple: memberType === MemberType.Disciple ? memberValue : null,
+          preacher: memberType === MemberType.Preacher ? memberValue : null,
+          supervisor: memberType === MemberType.Supervisor ? memberValue : null,
+          copastor: memberType === MemberType.Copastor ? memberValue : null,
+          pastor: memberType === MemberType.Pastor ? memberValue : null,
+          externalDonor: externalDonor,
           updatedAt: new Date(),
           updatedBy: user,
           recordStatus: recordStatus,

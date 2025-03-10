@@ -85,7 +85,7 @@ export enum OfferingExpenseSearchSubType {
   OtherRelatedExpenses = 'other_related_expenses',
 
   //* Other Expenses
-  FraternalSupport = 'fraternal_Support',
+  FraternalSupport = 'fraternal_support',
   EmergencyRepairs = 'emergency_repairs',
   HospitalityExpenses = 'hospitality_expenses',
   MissionDonations = 'mission_donations',

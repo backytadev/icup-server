@@ -6,7 +6,15 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, Between, FindOptionsOrderValue, In, Repository } from 'typeorm';
+import {
+  And,
+  Between,
+  FindOptionsOrderValue,
+  In,
+  IsNull,
+  Not,
+  Repository,
+} from 'typeorm';
 
 import { toZonedTime } from 'date-fns-tz';
 import { endOfMonth, startOfMonth } from 'date-fns';
@@ -21,6 +29,7 @@ import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.en
 import { OfferingIncomeSearchType } from '@/modules/offering/income/enums/offering-income-search-type.enum';
 import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
+import { OfferingIncomeCreationSubType } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 
 import { lastSundayOfferingsDataFormatter } from '@/modules/metrics/helpers/dashboard/last-sunday-offerings-data-formatter.helper';
 import { topOfferingsFamilyGroupsDataFormatter } from '@/modules/metrics/helpers/dashboard/top-offerings-family-groups-data-formatter.helper';
@@ -3412,12 +3421,6 @@ export class MetricsService {
       const [churchId, currency, yearValue] = term.split('&');
       const year = +yearValue;
 
-      // const currentYearStartDate = new Date(year, 0, 1);
-      // const currentYearEndDate = new Date(year, 11, 31);
-
-      // const previousYearStartDate = new Date(year - 1, 0, 1);
-      // const previousYearEndDate = new Date(year - 1, 11, 31);
-
       const currentStartMonthDate = new Date(`January 1, ${year}`);
       const currentEndMonthDate = new Date(`December 1, ${year}`);
 
@@ -3443,12 +3446,23 @@ export class MetricsService {
         //* Current year
         const currentYearOfferingIncome =
           await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              currency: currency,
-              date: Between(currentYearStartDate, currentYearEndDate),
-              recordStatus: RecordStatus.Active,
-            },
+            where: [
+              {
+                church: church,
+                subType: Not(OfferingIncomeCreationSubType.ChurchGround),
+
+                currency: currency,
+                date: Between(currentYearStartDate, currentYearEndDate),
+                recordStatus: RecordStatus.Active,
+              },
+              {
+                church: church,
+                subType: IsNull(),
+                currency: currency,
+                date: Between(currentYearStartDate, currentYearEndDate),
+                recordStatus: RecordStatus.Active,
+              },
+            ],
             order: {
               createdAt: order as FindOptionsOrderValue,
             },
@@ -3472,12 +3486,23 @@ export class MetricsService {
         //* Previous year
         const previousYearOfferingIncome =
           await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              currency: currency,
-              date: Between(previousYearStartDate, previousYearEndDate),
-              recordStatus: RecordStatus.Active,
-            },
+            where: [
+              {
+                church: church,
+                subType: Not(OfferingIncomeCreationSubType.ChurchGround),
+
+                currency: currency,
+                date: Between(previousYearStartDate, previousYearEndDate),
+                recordStatus: RecordStatus.Active,
+              },
+              {
+                church: church,
+                subType: IsNull(),
+                currency: currency,
+                date: Between(previousYearStartDate, previousYearEndDate),
+                recordStatus: RecordStatus.Active,
+              },
+            ],
             order: {
               createdAt: order as FindOptionsOrderValue,
             },

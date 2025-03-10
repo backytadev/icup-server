@@ -1,5 +1,6 @@
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 
+import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import { OfferingExpenseSearchTypeNames } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
@@ -113,6 +114,59 @@ export const getOfferingExpensesReport = (
             ]),
             ['', '', '', '', '', '', ''],
             ['', '', '', '', '', '', ''],
+          ],
+        },
+      },
+
+      {
+        layout: 'summaryLayout',
+        table: {
+          headerRows: 1,
+          widths: [100, 100, 130, 55, 70, 80, '*'],
+          body: [
+            [
+              {
+                text: `Resultados de Sumatoria por Divisa:`,
+                colSpan: 3,
+                fontSize: 13,
+                bold: true,
+                italics: true,
+                margin: [0, 5, 0, 5],
+              },
+              {},
+              {},
+              {
+                text: `${data
+                  .filter((offering) => offering.currency === CurrencyType.PEN)
+                  .reduce((acc, offering) => acc + +offering?.amount, 0)
+                  .toFixed(2)} PEN   /`,
+                bold: true,
+                fontSize: 13,
+                italics: true,
+                margin: [-50, 5, 0, 5],
+              },
+              {
+                text: `${data
+                  .filter((offering) => offering.currency === CurrencyType.USD)
+                  .reduce((acc, offering) => acc + +offering?.amount, 0)
+                  .toFixed(2)} USD   /`,
+                bold: true,
+                fontSize: 13,
+                italics: true,
+                margin: [-5, 5, 0, 5],
+              },
+              {
+                text: `${data
+                  .filter((offering) => offering.currency === CurrencyType.EUR)
+                  .reduce((acc, offering) => acc + +offering?.amount, 0)
+                  .toFixed(2)} EUR`,
+                bold: true,
+                fontSize: 13,
+                italics: true,
+                margin: [-5, 5, 0, 5],
+              },
+              {},
+            ],
           ],
         },
       },
