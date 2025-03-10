@@ -127,13 +127,12 @@ export const getOfferingExpensesReport = (
             [
               {
                 text: `Resultados de Sumatoria por Divisa:`,
-                colSpan: 3,
+                colSpan: 2,
                 fontSize: 13,
                 bold: true,
                 italics: true,
                 margin: [0, 5, 0, 5],
               },
-              {},
               {},
               {
                 text: `${data
@@ -143,7 +142,7 @@ export const getOfferingExpensesReport = (
                 bold: true,
                 fontSize: 13,
                 italics: true,
-                margin: [-50, 5, 0, 5],
+                margin: [0, 5, 0, 5],
               },
               {
                 text: `${data
@@ -153,7 +152,7 @@ export const getOfferingExpensesReport = (
                 bold: true,
                 fontSize: 13,
                 italics: true,
-                margin: [-5, 5, 0, 5],
+                margin: [-40, 5, 0, 5],
               },
               {
                 text: `${data
@@ -165,6 +164,7 @@ export const getOfferingExpensesReport = (
                 italics: true,
                 margin: [-5, 5, 0, 5],
               },
+              {},
               {},
             ],
           ],
