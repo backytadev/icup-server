@@ -3022,8 +3022,6 @@ export class OfferingIncomeService {
       ],
     });
 
-    console.log(offering.id, offering.familyGroup);
-
     if (!offering) {
       throw new NotFoundException(
         `Ingreso de Ofrenda con id: ${id} no fue encontrado`,
@@ -3134,23 +3132,32 @@ export class OfferingIncomeService {
 
     try {
       //? Validate if exists record already
-      const zone = await this.zoneRepository.findOne({
-        where: {
-          id: zoneId,
-        },
-      });
+      let zone: Zone;
+      if (zoneId) {
+        zone = await this.zoneRepository.findOne({
+          where: {
+            id: zoneId,
+          },
+        });
+      }
 
-      const familyGroup = await this.familyGroupRepository.findOne({
-        where: {
-          id: familyGroupId,
-        },
-      });
+      let familyGroup: FamilyGroup;
+      if (familyGroupId) {
+        familyGroup = await this.familyGroupRepository.findOne({
+          where: {
+            id: familyGroupId,
+          },
+        });
+      }
 
-      const church = await this.churchRepository.findOne({
-        where: {
-          id: churchId,
-        },
-      });
+      let church: Church;
+      if (!churchId) {
+        church = await this.churchRepository.findOne({
+          where: {
+            id: churchId,
+          },
+        });
+      }
 
       let memberValue: Pastor | Copastor | Supervisor | Preacher | Disciple;
       if (memberType === MemberType.Pastor) {
@@ -3197,8 +3204,6 @@ export class OfferingIncomeService {
           },
         });
       }
-
-      console.log(memberValue);
 
       let existsOffering: OfferingIncome[];
 
