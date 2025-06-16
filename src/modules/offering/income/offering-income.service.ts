@@ -989,13 +989,22 @@ export class OfferingIncomeService {
 
   //* FIND ALL (PAGINATED)
   async findAll(paginationDto: PaginationDto): Promise<any[]> {
-    const { limit, offset = 0, order = 'ASC', churchId } = paginationDto;
+    const {
+      limit,
+      offset = 0,
+      order = 'ASC',
+      churchId,
+      searchDate,
+    } = paginationDto;
 
     try {
       let church: Church;
       if (churchId) {
         church = await this.churchRepository.findOne({
-          where: { id: churchId, recordStatus: RecordStatus.Active },
+          where: {
+            id: churchId,
+            recordStatus: RecordStatus.Active,
+          },
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -1006,35 +1015,86 @@ export class OfferingIncomeService {
         }
       }
 
-      const offeringIncome = await this.offeringIncomeRepository.find({
-        where: { church: church, recordStatus: RecordStatus.Active },
-        take: limit,
-        skip: offset,
-        relations: [
-          'updatedBy',
-          'createdBy',
-          'church',
-          'pastor.member',
-          'copastor.member',
-          'supervisor.member',
-          'preacher.member',
-          'disciple.member',
-          'familyGroup.theirPreacher.member',
-          'zone.theirSupervisor.member',
-          'externalDonor',
-        ],
-        order: { createdAt: order as FindOptionsOrderValue },
-      });
+      if (searchDate) {
+        const [fromTimestamp, toTimestamp] = searchDate?.split('+').map(Number);
 
-      if (offeringIncome.length === 0) {
-        throw new NotFoundException(
-          `No existen registros disponibles para mostrar.`,
-        );
+        if (isNaN(fromTimestamp)) {
+          throw new NotFoundException('Formato de marca de tiempo invalido.');
+        }
+
+        const fromDate = new Date(fromTimestamp);
+        const toDate = toTimestamp ? new Date(toTimestamp) : fromDate;
+
+        const offeringIncome = await this.offeringIncomeRepository.find({
+          where: {
+            church: church,
+            date: Between(fromDate, toDate),
+            recordStatus: RecordStatus.Active,
+          },
+          take: limit,
+          skip: offset,
+          relations: [
+            'updatedBy',
+            'createdBy',
+            'church',
+            'pastor.member',
+            'copastor.member',
+            'supervisor.member',
+            'preacher.member',
+            'disciple.member',
+            'familyGroup.theirPreacher.member',
+            'zone.theirSupervisor.member',
+            'externalDonor',
+          ],
+          order: { createdAt: order as FindOptionsOrderValue },
+        });
+
+        if (offeringIncome.length === 0) {
+          throw new NotFoundException(
+            `No existen registros disponibles para mostrar.`,
+          );
+        }
+
+        return offeringIncomeDataFormatter({
+          offeringIncome: offeringIncome,
+        }) as any;
       }
 
-      return offeringIncomeDataFormatter({
-        offeringIncome: offeringIncome,
-      }) as any;
+      if (!searchDate) {
+        const offeringIncome = await this.offeringIncomeRepository.find({
+          where: {
+            church: church,
+
+            recordStatus: RecordStatus.Active,
+          },
+          take: limit,
+          skip: offset,
+          relations: [
+            'updatedBy',
+            'createdBy',
+            'church',
+            'pastor.member',
+            'copastor.member',
+            'supervisor.member',
+            'preacher.member',
+            'disciple.member',
+            'familyGroup.theirPreacher.member',
+            'zone.theirSupervisor.member',
+            'externalDonor',
+          ],
+          order: { createdAt: order as FindOptionsOrderValue },
+        });
+
+        if (offeringIncome.length === 0) {
+          throw new NotFoundException(
+            `No existen registros disponibles para mostrar.`,
+          );
+        }
+
+        return offeringIncomeDataFormatter({
+          offeringIncome: offeringIncome,
+        }) as any;
+      }
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

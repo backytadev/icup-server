@@ -26,6 +26,15 @@ export class PaginationDto {
   offset?: number;
 
   @ApiProperty({
+    example: '23876342347+33498735335',
+    required: false,
+    description: 'Optional date range filter',
+  })
+  @IsOptional()
+  @IsString()
+  searchDate?: string;
+
+  @ApiProperty({
     default: 'DESC',
     example: 'DESC',
     required: false,

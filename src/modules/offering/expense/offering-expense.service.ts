@@ -164,7 +164,13 @@ export class OfferingExpenseService {
 
   //* FIND ALL (PAGINATED)
   async findAll(paginationDto: PaginationDto): Promise<any[]> {
-    const { limit, offset = 0, order = 'ASC', churchId } = paginationDto;
+    const {
+      limit,
+      offset = 0,
+      order = 'ASC',
+      churchId,
+      searchDate,
+    } = paginationDto;
 
     try {
       let church: Church;
@@ -181,23 +187,59 @@ export class OfferingExpenseService {
         }
       }
 
-      const offeringExpenses = await this.offeringExpenseRepository.find({
-        where: { church: church, recordStatus: RecordStatus.Active },
-        take: limit,
-        skip: offset,
-        relations: ['updatedBy', 'createdBy', 'church'],
-        order: { createdAt: order as FindOptionsOrderValue },
-      });
+      if (searchDate) {
+        const [fromTimestamp, toTimestamp] = searchDate?.split('+').map(Number);
 
-      if (offeringExpenses.length === 0) {
-        throw new NotFoundException(
-          `No existen registros disponibles para mostrar.`,
-        );
+        if (isNaN(fromTimestamp)) {
+          throw new NotFoundException('Formato de marca de tiempo invalido.');
+        }
+
+        const fromDate = new Date(fromTimestamp);
+        const toDate = toTimestamp ? new Date(toTimestamp) : fromDate;
+
+        const offeringExpenses = await this.offeringExpenseRepository.find({
+          where: {
+            church: church,
+            date: Between(fromDate, toDate),
+            recordStatus: RecordStatus.Active,
+          },
+          take: limit,
+          skip: offset,
+          relations: ['updatedBy', 'createdBy', 'church'],
+          order: { createdAt: order as FindOptionsOrderValue },
+        });
+
+        if (offeringExpenses.length === 0) {
+          throw new NotFoundException(
+            `No existen registros disponibles para mostrar.`,
+          );
+        }
+
+        return formatDataOfferingExpense({
+          offeringExpenses: offeringExpenses,
+        }) as any;
       }
 
-      return formatDataOfferingExpense({
-        offeringExpenses: offeringExpenses,
-      }) as any;
+      if (!searchDate) {
+        const offeringExpenses = await this.offeringExpenseRepository.find({
+          where: { church: church, recordStatus: RecordStatus.Active },
+          take: limit,
+          skip: offset,
+
+          relations: ['updatedBy', 'createdBy', 'church'],
+          order: { createdAt: order as FindOptionsOrderValue },
+        });
+
+        if (offeringExpenses.length === 0) {
+          throw new NotFoundException(
+            `No existen registros disponibles para mostrar.`,
+          );
+        }
+
+        return formatDataOfferingExpense({
+          offeringExpenses: offeringExpenses,
+        }) as any;
+      }
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
