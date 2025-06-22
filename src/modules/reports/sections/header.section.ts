@@ -25,13 +25,13 @@ const logo: Content = {
   margin: [20, 15, 0, 20],
 };
 
-const currentDate: Content = {
-  text: DateFormatter.getDDMMYYYY(new Date()),
-  alignment: 'right',
-  bold: true,
-  margin: [-35, 40, 20, 35],
-  width: 150,
-};
+// const currentDate: Content = {
+//   text: DateFormatter.getDDMMYYYY(new Date()),
+//   alignment: 'right',
+//   bold: true,
+//   margin: [-35, 40, 20, 35],
+//   width: 150,
+// };
 
 interface HeaderSectionOptions {
   title?: string;
@@ -65,7 +65,15 @@ export const headerSection = (options: HeaderSectionOptions): Content => {
   } = options;
 
   const headerLogo: Content = showLogo ? logo : null;
-  const headerDate: Content = showDate ? currentDate : null;
+  const headerDate: Content = showDate
+    ? {
+        text: DateFormatter.getDDMMYYYY(new Date()),
+        alignment: 'right',
+        bold: true,
+        margin: [-35, 40, 20, 35],
+        width: 150,
+      }
+    : null;
 
   const headerSubtitle: Content = subTitle
     ? {
