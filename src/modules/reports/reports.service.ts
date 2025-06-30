@@ -1491,7 +1491,21 @@ export class ReportsService {
   //? OFFERING INCOME
   //* GENERAL OFFERING INCOME REPORT
   async getGeneralOfferingIncome(paginationDto: PaginationDto) {
-    const { order, churchId } = paginationDto;
+    const { order, churchId, searchDate } = paginationDto;
+
+    let newTerm: string = '';
+    if (searchDate) {
+      const [fromTimestamp, toTimestamp] = searchDate.split('+').map(Number);
+
+      if (isNaN(fromTimestamp)) {
+        throw new NotFoundException('Formato de marca de tiempo invalido.');
+      }
+
+      const formattedFromDate = format(fromTimestamp, 'dd/MM/yyyy');
+      const formattedToDate = format(toTimestamp, 'dd/MM/yyyy');
+
+      newTerm = `${formattedFromDate} - ${formattedToDate}`;
+    }
 
     try {
       const offeringIncome: OfferingIncome[] =
@@ -1507,6 +1521,7 @@ export class ReportsService {
         title: 'Reporte de Ingresos de Ofrenda',
         subTitle: 'Resultados de Búsqueda de Ingresos de Ofrenda',
         description: 'registros',
+        searchTerm: newTerm,
         churchName: churchId
           ? offeringIncome[0]?.church?.abbreviatedChurchName
           : undefined,
@@ -1746,7 +1761,21 @@ export class ReportsService {
   //? OFFERING EXPENSES
   //* GENERAL EXPENSES REPORT
   async getGeneralOfferingExpenses(paginationDto: PaginationDto) {
-    const { order, churchId } = paginationDto;
+    const { order, churchId, searchDate } = paginationDto;
+
+    let newTerm: string = '';
+    if (searchDate) {
+      const [fromTimestamp, toTimestamp] = searchDate.split('+').map(Number);
+
+      if (isNaN(fromTimestamp)) {
+        throw new NotFoundException('Formato de marca de tiempo invalido.');
+      }
+
+      const formattedFromDate = format(fromTimestamp, 'dd/MM/yyyy');
+      const formattedToDate = format(toTimestamp, 'dd/MM/yyyy');
+
+      newTerm = `${formattedFromDate} - ${formattedToDate}`;
+    }
 
     try {
       const offeringExpenses: OfferingExpense[] =
@@ -1762,6 +1791,7 @@ export class ReportsService {
         title: 'Reporte de Salidas de Ofrenda',
         subTitle: 'Resultados de Búsqueda de Salidas de Ofrenda',
         description: 'registros',
+        searchTerm: newTerm,
         churchName: churchId
           ? offeringExpenses[0]?.church?.abbreviatedChurchName
           : undefined,
@@ -2347,18 +2377,38 @@ export class ReportsService {
       }
 
       //* Offering Income by Family group
-      let offeringIncomeByFamilyGroupDataResult: OfferingIncomeByFamilyGroupDataResult[];
+      let offeringIncomeByFamilyGroupDataResult: OfferingIncomeByFamilyGroupDataResult[][];
       if (
         metricsTypesArray.includes(MetricSearchType.OfferingIncomeByFamilyGroup)
       ) {
-        offeringIncomeByFamilyGroupDataResult =
-          await this.metricsService.findByTerm(
-            `${churchId}&${startMonth}&${endMonth}&${year}`,
-            {
-              searchType: MetricSearchType.OfferingIncomeByFamilyGroup,
-              isSingleMonth: false,
-            },
-          );
+        const resultData = await this.metricsService.findByTerm(
+          `${churchId}&${startMonth}&${endMonth}&${year}`,
+          {
+            searchType: MetricSearchType.OfferingIncomeByFamilyGroup,
+            isSingleMonth: false,
+          },
+        );
+
+        //* Formatear el array
+        const groupByZone = (data: any[]): any[][] => {
+          const grouped: Record<string, any[]> = {};
+
+          for (const item of data) {
+            const zoneName = item.zone.zoneName;
+
+            if (!grouped[zoneName]) {
+              grouped[zoneName] = [];
+            }
+
+            grouped[zoneName].push(item);
+          }
+
+          return Object.values(grouped);
+        };
+
+        const resultGroup = groupByZone(resultData);
+
+        offeringIncomeByFamilyGroupDataResult = resultGroup;
       }
 
       //* Offering Income by Sunday School

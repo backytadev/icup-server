@@ -48,7 +48,7 @@ interface ReportOptions {
   endMonth: string;
   metricsTypesArray: string[];
   offeringIncomeBySundayServiceDataResult: OfferingIncomeBySundayServiceDataResult[];
-  offeringIncomeByFamilyGroupDataResult: OfferingIncomeByFamilyGroupDataResult[];
+  offeringIncomeByFamilyGroupDataResult: OfferingIncomeByFamilyGroupDataResult[][];
   offeringIncomeBySundaySchoolDataResult: OfferingIncomeBySundaySchoolDataResult[];
   offeringIncomeByUnitedServiceDataResult: OfferingIncomeByUnitedServiceDataResult[];
   offeringIncomeByFastingAndVigilDataResult: OfferingIncomeByFastingAndVigilAndEvangelismDataResult[];
@@ -251,147 +251,169 @@ export const getOfferingIncomeMetricsReport = (
 
       //* OfferingIncomeByFamilyGroup
       metricsTypesArray.includes(MetricSearchType.OfferingIncomeByFamilyGroup)
-        ? [
-            // Table Title
-            {
-              layout: 'noBorders',
-              table: {
-                headerRows: 1,
-                widths: ['*'],
-                body: [
-                  [
-                    {
-                      text: `Ofrendas por Grupo Familiar`,
-                      color: '#1d96d3',
-                      fontSize: 20,
-                      bold: true,
-                      alignment: 'center',
-                      margin: [0, -10, 0, 3],
-                    },
-                  ],
-                ],
-              },
-            },
-            // Table body (content)
-            {
-              pageBreak: 'after',
-              layout: 'customLayout01', // optional
-              table: {
-                headerRows: 1,
-                widths: [70, 70, 70, 70, '*', '*', '*', '*'],
-                body: [
-                  [
-                    {
-                      text: 'Iglesia',
-                      style: {
+        ? offeringIncomeByFamilyGroupDataResult.map(
+            (offeringIncomeByFamilyGroupData) => [
+              // Table Title
+              {
+                layout: 'noBorders',
+                table: {
+                  headerRows: 1,
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: `Ofrendas por Grupo Familiar`,
+                        color: '#1d96d3',
+                        fontSize: 20,
                         bold: true,
-                      },
-                    },
-                    {
-                      text: 'Rango',
-                      style: {
-                        bold: true,
-                      },
-                    },
-                    {
-                      text: 'Categoría',
-                      style: {
-                        bold: true,
-                      },
-                    },
-                    {
-                      text: 'Código',
-                      style: {
-                        bold: true,
-                      },
-                    },
-                    {
-                      text: 'Predicador',
-                      style: {
-                        bold: true,
-                      },
-                    },
-                    {
-                      text: 'Total Acu. (PEN)',
-                      style: {
-                        color: 'blue',
-                        bold: true,
-                      },
-                    },
-                    {
-                      text: 'Total Acu. (USD)',
-                      style: {
-                        color: 'purple',
-                        bold: true,
-                      },
-                    },
-                    {
-                      text: 'Total Acu. (EUR)',
-                      style: {
-                        color: 'green',
-                        bold: true,
-                      },
-                    },
-                  ],
-                  ...offeringIncomeByFamilyGroupDataResult.map((offering) => [
-                    offering?.church?.abbreviatedChurchName,
-                    `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
-                    OfferingIncomeCreationCategoryNames[offering?.category],
-                    offering?.familyGroup?.familyGroupCode,
-                    `${offering?.preacher?.firstNames} ${offering?.preacher?.lastNames}`,
-                    offering.accumulatedOfferingPEN.toFixed(2),
-                    offering.accumulatedOfferingUSD.toFixed(2),
-                    offering.accumulatedOfferingEUR.toFixed(2),
-                  ]),
-                  ['', '', '', '', '', '', '', ''],
-                  ['', '', '', '', '', '', '', ''],
-                  [
-                    '',
-                    '',
-                    '',
-                    '',
-                    {
-                      text: 'Totales',
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: 'red',
                         alignment: 'center',
+                        margin: [0, -10, 0, 3],
                       },
-                    },
-                    {
-                      text: `${offeringIncomeByFamilyGroupDataResult.reduce((acc, offering) => acc + offering?.accumulatedOfferingPEN, 0).toFixed(2)} PEN`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    {
-                      text: `${offeringIncomeByFamilyGroupDataResult.reduce((acc, offering) => acc + offering?.accumulatedOfferingUSD, 0).toFixed(2)} USD`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    {
-                      text: `${offeringIncomeByFamilyGroupDataResult.reduce((acc, offering) => acc + offering?.accumulatedOfferingEUR, 0).toFixed(2)} EUR`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
+                    ],
                   ],
-                ],
+                },
               },
-            },
-          ]
+              {
+                layout: 'noBorders',
+                table: {
+                  headerRows: 1,
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: `Zona: ${offeringIncomeByFamilyGroupData[0].zone.zoneName}`,
+                        color: '#1d96d3',
+                        fontSize: 16,
+                        bold: true,
+                        italics: true,
+                        alignment: 'center',
+                        margin: [0, 0, 0, 5],
+                      },
+                    ],
+                  ],
+                },
+              },
+              // Table body (content)
+              {
+                pageBreak: 'after',
+                layout: 'customLayout01', // optional
+                table: {
+                  headerRows: 1,
+                  widths: [70, 70, 70, 70, '*', '*', '*', '*'],
+                  body: [
+                    [
+                      {
+                        text: 'Iglesia',
+                        style: {
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Rango',
+                        style: {
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Categoría',
+                        style: {
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Código',
+                        style: {
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Predicador',
+                        style: {
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Total Acu. (PEN)',
+                        style: {
+                          color: 'blue',
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Total Acu. (USD)',
+                        style: {
+                          color: 'purple',
+                          bold: true,
+                        },
+                      },
+                      {
+                        text: 'Total Acu. (EUR)',
+                        style: {
+                          color: 'green',
+                          bold: true,
+                        },
+                      },
+                    ],
+                    ...offeringIncomeByFamilyGroupData.map((offering) => [
+                      offering?.church?.abbreviatedChurchName,
+                      `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
+                      OfferingIncomeCreationCategoryNames[offering?.category],
+                      offering?.familyGroup?.familyGroupCode,
+                      `${offering?.preacher?.firstNames} ${offering?.preacher?.lastNames}`,
+                      offering.accumulatedOfferingPEN.toFixed(2),
+                      offering.accumulatedOfferingUSD.toFixed(2),
+                      offering.accumulatedOfferingEUR.toFixed(2),
+                    ]),
+                    ['', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', ''],
+                    [
+                      '',
+                      '',
+                      '',
+                      '',
+                      {
+                        text: 'Totales',
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: 'red',
+                          alignment: 'center',
+                        },
+                      },
+                      {
+                        text: `${offeringIncomeByFamilyGroupData.reduce((acc, offering) => acc + offering?.accumulatedOfferingPEN, 0).toFixed(2)} PEN`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      {
+                        text: `${offeringIncomeByFamilyGroupData.reduce((acc, offering) => acc + offering?.accumulatedOfferingUSD, 0).toFixed(2)} USD`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      {
+                        text: `${offeringIncomeByFamilyGroupData.reduce((acc, offering) => acc + offering?.accumulatedOfferingEUR, 0).toFixed(2)} EUR`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                    ],
+                  ],
+                },
+              },
+            ],
+          )
         : null,
 
       //* OfferingIncomeBySundaySchool

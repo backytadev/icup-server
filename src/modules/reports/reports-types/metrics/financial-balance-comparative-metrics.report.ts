@@ -118,6 +118,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
     offeringPlaningEventsExpensesBySubTypeComparativeDataResult,
   } = options;
 
+  const monthValues = Object.values(monthNames);
+  const startIndex = monthValues.indexOf(monthNames[startMonth]);
+  const endIndex = monthValues.indexOf(monthNames[endMonth]);
+
   return {
     pageOrientation: 'landscape',
     header: headerSection({
@@ -336,406 +340,418 @@ export const getFinancialBalanceComparativeMetricsReport = (
             },
 
             //* Dolar Americano USD
-            {
-              layout: 'noBorders',
-              table: {
-                headerRows: 1,
-                widths: ['*'],
-                body: [
-                  [
-                    {
-                      text: `Comparativa Ingresos vs Egresos`,
-                      color: '#1d96d3',
-                      fontSize: 20,
-                      bold: true,
-                      alignment: 'center',
-                      margin: [0, -10, 0, 0],
-                    },
+            yearlyIncomeExpenseComparativeUsdDataResult.some(
+              (item) => item.totalIncome !== 0 || item.totalExpenses !== 0,
+            ) && [
+              {
+                layout: 'noBorders',
+                table: {
+                  headerRows: 1,
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: `Comparativa Ingresos vs Egresos`,
+                        color: '#1d96d3',
+                        fontSize: 20,
+                        bold: true,
+                        alignment: 'center',
+                        margin: [0, -10, 0, 0],
+                      },
+                    ],
                   ],
-                ],
+                },
               },
-            },
-            {
-              layout: 'noBorders',
-              table: {
-                headerRows: 1,
-                widths: ['*'],
-                body: [
-                  [
-                    {
-                      text: `Moneda: Dolar Americano (USD)`,
-                      color: '#1d96d3',
-                      fontSize: 16,
-                      bold: true,
-                      italics: true,
-                      alignment: 'center',
-                      margin: [0, 1, 0, 5],
-                    },
+              {
+                layout: 'noBorders',
+                table: {
+                  headerRows: 1,
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: `Moneda: Dolar Americano (USD)`,
+                        color: '#1d96d3',
+                        fontSize: 16,
+                        bold: true,
+                        italics: true,
+                        alignment: 'center',
+                        margin: [0, 1, 0, 5],
+                      },
+                    ],
                   ],
-                ],
+                },
               },
-            },
-            {
-              pageBreak: 'after',
-              layout: 'customLayout01', // optional
-              table: {
-                headerRows: 1,
-                widths: [100, 100, '*', '*', '*', '*'],
-                body: [
-                  [
-                    {
-                      text: 'Iglesia',
-                      style: {
-                        bold: true,
+              {
+                pageBreak: 'after',
+                layout: 'customLayout01', // optional
+                table: {
+                  headerRows: 1,
+                  widths: [100, 100, '*', '*', '*', '*'],
+                  body: [
+                    [
+                      {
+                        text: 'Iglesia',
+                        style: {
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: 'Mes / Año',
-                      style: {
-                        bold: true,
+                      {
+                        text: 'Mes / Año',
+                        style: {
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Saldo (Mes Anterior)`,
-                      style: {
-                        color: 'blue',
-                        bold: true,
+                      {
+                        text: `Saldo (Mes Anterior)`,
+                        style: {
+                          color: 'blue',
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Ingresos`,
-                      style: {
-                        color: 'green',
-                        bold: true,
+                      {
+                        text: `Ingresos`,
+                        style: {
+                          color: 'green',
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Gastos`,
-                      style: {
-                        color: 'red',
-                        bold: true,
+                      {
+                        text: `Gastos`,
+                        style: {
+                          color: 'red',
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Diferencia`,
-                      style: {
-                        color: 'purple',
-                        bold: true,
+                      {
+                        text: `Diferencia`,
+                        style: {
+                          color: 'purple',
+                          bold: true,
+                        },
                       },
-                    },
+                    ],
+                    ...yearlyIncomeExpenseComparativeUsdDataResult
+                      .filter(
+                        (item) =>
+                          Object.values(monthNames).indexOf(item.month) <=
+                          Object.values(monthNames).indexOf(
+                            monthNames[endMonth],
+                          ),
+                      )
+                      .map((item) => [
+                        item?.church?.abbreviatedChurchName ??
+                          church?.abbreviatedChurchName,
+                        `${item?.month} - ${year}`,
+                        `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                        `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                        `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                        `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                      ]),
+                    ['', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    [
+                      '',
+                      '',
+                      {
+                        text: 'Totales',
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          alignment: 'right',
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      {
+                        text: `${yearlyIncomeExpenseComparativeUsdDataResult
+                          .filter(
+                            (item) =>
+                              Object.values(monthNames).indexOf(item.month) <=
+                              Object.values(monthNames).indexOf(
+                                monthNames[endMonth],
+                              ),
+                          )
+                          .reduce(
+                            (acc, offering) => acc + offering?.totalIncome,
+                            0,
+                          )
+                          .toFixed(2)} USD`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      {
+                        text: `${yearlyIncomeExpenseComparativeUsdDataResult
+                          .filter(
+                            (item) =>
+                              Object.values(monthNames).indexOf(item.month) <=
+                              Object.values(monthNames).indexOf(
+                                monthNames[endMonth],
+                              ),
+                          )
+                          .reduce(
+                            (acc, offering) => acc + offering?.totalExpenses,
+                            0,
+                          )
+                          .toFixed(2)} USD`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      '-',
+                    ],
+                    [
+                      '',
+                      '',
+                      '',
+                      '',
+                      {
+                        text: `Saldo actual (${monthNames[endMonth]})`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          colSpan: 2,
+                          color: '#e89c37',
+                        },
+                      },
+                      {
+                        text: `${yearlyIncomeExpenseComparativeUsdDataResult
+                          .filter(
+                            (item) =>
+                              Object.values(monthNames).indexOf(item.month) <=
+                              Object.values(monthNames).indexOf(
+                                monthNames[endMonth],
+                              ),
+                          )
+                          .at(-1)
+                          .netResult.toFixed(2)} USD`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                    ],
                   ],
-                  ...yearlyIncomeExpenseComparativeUsdDataResult
-                    .filter(
-                      (item) =>
-                        Object.values(monthNames).indexOf(item.month) <=
-                        Object.values(monthNames).indexOf(monthNames[endMonth]),
-                    )
-                    .map((item) => [
-                      item?.church?.abbreviatedChurchName ??
-                        church?.abbreviatedChurchName,
-                      `${item?.month} - ${year}`,
-                      `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                      `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                      `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                      `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                    ]),
-                  ['', '', '', '', '', ''],
-                  ['', '', '', '', '', ''],
-                  [
-                    '',
-                    '',
-                    {
-                      text: 'Totales',
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        alignment: 'right',
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    {
-                      text: `${yearlyIncomeExpenseComparativeUsdDataResult
-                        .filter(
-                          (item) =>
-                            Object.values(monthNames).indexOf(item.month) <=
-                            Object.values(monthNames).indexOf(
-                              monthNames[endMonth],
-                            ),
-                        )
-                        .reduce(
-                          (acc, offering) => acc + offering?.totalIncome,
-                          0,
-                        )
-                        .toFixed(2)} USD`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    {
-                      text: `${yearlyIncomeExpenseComparativeUsdDataResult
-                        .filter(
-                          (item) =>
-                            Object.values(monthNames).indexOf(item.month) <=
-                            Object.values(monthNames).indexOf(
-                              monthNames[endMonth],
-                            ),
-                        )
-                        .reduce(
-                          (acc, offering) => acc + offering?.totalExpenses,
-                          0,
-                        )
-                        .toFixed(2)} USD`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    '-',
-                  ],
-                  [
-                    '',
-                    '',
-                    '',
-                    '',
-                    {
-                      text: `Saldo actual (${monthNames[endMonth]})`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        colSpan: 2,
-                        color: '#e89c37',
-                      },
-                    },
-                    {
-                      text: `${yearlyIncomeExpenseComparativeUsdDataResult
-                        .filter(
-                          (item) =>
-                            Object.values(monthNames).indexOf(item.month) <=
-                            Object.values(monthNames).indexOf(
-                              monthNames[endMonth],
-                            ),
-                        )
-                        .at(-1)
-                        .netResult.toFixed(2)} USD`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                  ],
-                ],
+                },
               },
-            },
+            ],
 
             //* Euro Europeo EUR
-            {
-              layout: 'noBorders',
-              table: {
-                headerRows: 1,
-                widths: ['*'],
-                body: [
-                  [
-                    {
-                      text: `Comparativa Ingresos vs Egresos`,
-                      color: '#1d96d3',
-                      fontSize: 20,
-                      bold: true,
-                      alignment: 'center',
-                      margin: [0, -10, 0, 0],
-                    },
+            yearlyIncomeExpenseComparativeEurDataResult.some(
+              (item) => item.totalIncome !== 0 || item.totalExpenses !== 0,
+            ) && [
+              {
+                layout: 'noBorders',
+                table: {
+                  headerRows: 1,
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: `Comparativa Ingresos vs Egresos`,
+                        color: '#1d96d3',
+                        fontSize: 20,
+                        bold: true,
+                        alignment: 'center',
+                        margin: [0, -10, 0, 0],
+                      },
+                    ],
                   ],
-                ],
+                },
               },
-            },
-            {
-              layout: 'noBorders',
-              table: {
-                headerRows: 1,
-                widths: ['*'],
-                body: [
-                  [
-                    {
-                      text: `Moneda: Euro Europeo (EUR)`,
-                      color: '#1d96d3',
-                      fontSize: 16,
-                      bold: true,
-                      italics: true,
-                      alignment: 'center',
-                      margin: [0, 1, 0, 5],
-                    },
+              {
+                layout: 'noBorders',
+                table: {
+                  headerRows: 1,
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: `Moneda: Euro Europeo (EUR)`,
+                        color: '#1d96d3',
+                        fontSize: 16,
+                        bold: true,
+                        italics: true,
+                        alignment: 'center',
+                        margin: [0, 1, 0, 5],
+                      },
+                    ],
                   ],
-                ],
+                },
               },
-            },
-            {
-              pageBreak: 'after',
-              layout: 'customLayout01', // optional
-              table: {
-                headerRows: 1,
-                widths: [100, 100, '*', '*', '*', '*'],
-                body: [
-                  [
-                    {
-                      text: 'Iglesia',
-                      style: {
-                        bold: true,
+              {
+                pageBreak: 'after',
+                layout: 'customLayout01', // optional
+                table: {
+                  headerRows: 1,
+                  widths: [100, 100, '*', '*', '*', '*'],
+                  body: [
+                    [
+                      {
+                        text: 'Iglesia',
+                        style: {
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: 'Mes / Año',
-                      style: {
-                        bold: true,
+                      {
+                        text: 'Mes / Año',
+                        style: {
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Saldo (Mes Anterior)`,
-                      style: {
-                        color: 'blue',
-                        bold: true,
+                      {
+                        text: `Saldo (Mes Anterior)`,
+                        style: {
+                          color: 'blue',
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Ingresos`,
-                      style: {
-                        color: 'green',
-                        bold: true,
+                      {
+                        text: `Ingresos`,
+                        style: {
+                          color: 'green',
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Gastos`,
-                      style: {
-                        color: 'red',
-                        bold: true,
+                      {
+                        text: `Gastos`,
+                        style: {
+                          color: 'red',
+                          bold: true,
+                        },
                       },
-                    },
-                    {
-                      text: `Diferencia`,
-                      style: {
-                        color: 'purple',
-                        bold: true,
+                      {
+                        text: `Diferencia`,
+                        style: {
+                          color: 'purple',
+                          bold: true,
+                        },
                       },
-                    },
+                    ],
+                    ...yearlyIncomeExpenseComparativeEurDataResult
+                      .filter(
+                        (item) =>
+                          Object.values(monthNames).indexOf(item.month) <=
+                          Object.values(monthNames).indexOf(
+                            monthNames[endMonth],
+                          ),
+                      )
+                      .map((item) => [
+                        item?.church?.abbreviatedChurchName ??
+                          church?.abbreviatedChurchName,
+                        `${item?.month} - ${year}`,
+                        `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                        `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                        `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                        `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                      ]),
+                    ['', '', '', '', '', ''],
+                    ['', '', '', '', '', ''],
+                    [
+                      '',
+                      '',
+                      {
+                        text: 'Totales',
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          alignment: 'right',
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      {
+                        text: `${yearlyIncomeExpenseComparativeEurDataResult
+                          .filter(
+                            (item) =>
+                              Object.values(monthNames).indexOf(item.month) <=
+                              Object.values(monthNames).indexOf(
+                                monthNames[endMonth],
+                              ),
+                          )
+                          .reduce(
+                            (acc, offering) => acc + offering?.totalIncome,
+                            0,
+                          )
+                          .toFixed(2)} EUR`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      {
+                        text: `${yearlyIncomeExpenseComparativeEurDataResult
+                          .filter(
+                            (item) =>
+                              Object.values(monthNames).indexOf(item.month) <=
+                              Object.values(monthNames).indexOf(
+                                monthNames[endMonth],
+                              ),
+                          )
+                          .reduce(
+                            (acc, offering) => acc + offering?.totalExpenses,
+                            0,
+                          )
+                          .toFixed(2)} EUR`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                      '',
+                    ],
+                    [
+                      '',
+                      '',
+                      '',
+                      '',
+                      {
+                        text: `Saldo actual (${monthNames[endMonth]})`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          colSpan: 2,
+                          color: '#e89c37',
+                        },
+                      },
+                      {
+                        text: `${yearlyIncomeExpenseComparativeEurDataResult
+                          .filter(
+                            (item) =>
+                              Object.values(monthNames).indexOf(item.month) <=
+                              Object.values(monthNames).indexOf(
+                                monthNames[endMonth],
+                              ),
+                          )
+                          .at(-1)
+                          .netResult.toFixed(2)} EUR`,
+                        style: {
+                          bold: true,
+                          fontSize: 13,
+                          italics: true,
+                          color: '#475569',
+                        },
+                      },
+                    ],
                   ],
-                  ...yearlyIncomeExpenseComparativeEurDataResult
-                    .filter(
-                      (item) =>
-                        Object.values(monthNames).indexOf(item.month) <=
-                        Object.values(monthNames).indexOf(monthNames[endMonth]),
-                    )
-                    .map((item) => [
-                      item?.church?.abbreviatedChurchName ??
-                        church?.abbreviatedChurchName,
-                      `${item?.month} - ${year}`,
-                      `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                      `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                      `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                      `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                    ]),
-                  ['', '', '', '', '', ''],
-                  ['', '', '', '', '', ''],
-                  [
-                    '',
-                    '',
-                    {
-                      text: 'Totales',
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        alignment: 'right',
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    {
-                      text: `${yearlyIncomeExpenseComparativeEurDataResult
-                        .filter(
-                          (item) =>
-                            Object.values(monthNames).indexOf(item.month) <=
-                            Object.values(monthNames).indexOf(
-                              monthNames[endMonth],
-                            ),
-                        )
-                        .reduce(
-                          (acc, offering) => acc + offering?.totalIncome,
-                          0,
-                        )
-                        .toFixed(2)} EUR`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    {
-                      text: `${yearlyIncomeExpenseComparativeEurDataResult
-                        .filter(
-                          (item) =>
-                            Object.values(monthNames).indexOf(item.month) <=
-                            Object.values(monthNames).indexOf(
-                              monthNames[endMonth],
-                            ),
-                        )
-                        .reduce(
-                          (acc, offering) => acc + offering?.totalExpenses,
-                          0,
-                        )
-                        .toFixed(2)} EUR`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                    '',
-                  ],
-                  [
-                    '',
-                    '',
-                    '',
-                    '',
-                    {
-                      text: `Saldo actual (${monthNames[endMonth]})`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        colSpan: 2,
-                        color: '#e89c37',
-                      },
-                    },
-                    {
-                      text: `${yearlyIncomeExpenseComparativeEurDataResult
-                        .filter(
-                          (item) =>
-                            Object.values(monthNames).indexOf(item.month) <=
-                            Object.values(monthNames).indexOf(
-                              monthNames[endMonth],
-                            ),
-                        )
-                        .at(-1)
-                        .netResult.toFixed(2)} EUR`,
-                      style: {
-                        bold: true,
-                        fontSize: 13,
-                        italics: true,
-                        color: '#475569',
-                      },
-                    },
-                  ],
-                ],
+                },
               },
-            },
+            ],
           ]
         : null,
 
@@ -928,9 +944,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* Sunday Service
             offeringIncomeComparativeBySundayServiceDataResult.length > 0 &&
             offeringIncomeComparativeBySundayServiceDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -1066,13 +1083,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeBySundayServiceDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -1103,15 +1119,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySundayServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -1127,15 +1143,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySundayServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -1151,15 +1167,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySundayServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -1182,11 +1198,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Family Group
             offeringIncomeComparativeByFamilyGroupDataResult.length > 0 &&
-            offeringIncomeComparativeByFamilyGroupDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByFamilyGroupDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -1322,13 +1337,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByFamilyGroupDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -1359,15 +1373,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByFamilyGroupDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -1383,15 +1397,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByFamilyGroupDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -1407,15 +1421,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByFamilyGroupDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -1438,11 +1452,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Sunday School
             offeringIncomeComparativeBySundaySchoolDataResult.length > 0 &&
-            offeringIncomeComparativeBySundaySchoolDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeBySundaySchoolDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -1578,13 +1591,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeBySundaySchoolDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -1615,15 +1627,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySundaySchoolDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -1639,15 +1651,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySundaySchoolDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -1663,15 +1675,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySundaySchoolDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -1694,11 +1706,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Youth Service
             offeringIncomeComparativeByYouthServiceDataResult.length > 0 &&
-            offeringIncomeComparativeByYouthServiceDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByYouthServiceDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -1834,13 +1845,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByYouthServiceDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -1871,15 +1881,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByYouthServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -1895,15 +1905,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByYouthServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -1919,15 +1929,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByYouthServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -1950,11 +1960,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Church Ground
             offeringIncomeComparativeByChurchGroundDataResult.length > 0 &&
-            offeringIncomeComparativeByChurchGroundDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByChurchGroundDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -2090,13 +2099,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByChurchGroundDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -2127,15 +2135,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByChurchGroundDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -2151,15 +2159,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByChurchGroundDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -2175,15 +2183,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByChurchGroundDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -2206,11 +2214,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Activities
             offeringIncomeComparativeByActivitiesDataResult.length > 0 &&
-            offeringIncomeComparativeByActivitiesDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByActivitiesDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -2346,13 +2353,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByActivitiesDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -2383,15 +2389,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByActivitiesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -2407,15 +2413,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByActivitiesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -2431,15 +2437,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByActivitiesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -2463,9 +2469,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* General Fasting
             offeringIncomeComparativeByGeneralFastingDataResult.length > 0 &&
             offeringIncomeComparativeByGeneralFastingDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -2602,13 +2609,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByGeneralFastingDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -2639,15 +2645,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByGeneralFastingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -2663,15 +2669,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByGeneralFastingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -2687,15 +2693,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByGeneralFastingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -2718,11 +2724,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Zonal Fasting
             offeringIncomeComparativeByZonalFastingDataResult.length > 0 &&
-            offeringIncomeComparativeByZonalFastingDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByZonalFastingDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -2858,13 +2863,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByZonalFastingDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -2895,15 +2899,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByZonalFastingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -2919,15 +2923,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByZonalFastingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -2943,15 +2947,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByZonalFastingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -2974,11 +2978,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* General Vigil
             offeringIncomeComparativeByGeneralVigilDataResult.length > 0 &&
-            offeringIncomeComparativeByGeneralVigilDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByGeneralVigilDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -3114,13 +3117,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByGeneralVigilDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -3151,15 +3153,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByGeneralVigilDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -3175,15 +3177,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByGeneralVigilDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -3199,15 +3201,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByGeneralVigilDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -3230,11 +3232,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Zonal Vigil
             offeringIncomeComparativeByZonalVigilDataResult.length > 0 &&
-            offeringIncomeComparativeByZonalVigilDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringIncomeComparativeByZonalVigilDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -3369,13 +3370,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByZonalVigilDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -3406,15 +3406,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByZonalVigilDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -3430,15 +3430,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByZonalVigilDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -3454,15 +3454,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByZonalVigilDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -3486,9 +3486,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* United Service
             offeringIncomeComparativeByUnitedServiceDataResult.length > 0 &&
             offeringIncomeComparativeByUnitedServiceDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -3625,13 +3626,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByUnitedServiceDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -3662,15 +3662,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByUnitedServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -3686,15 +3686,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByUnitedServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -3710,15 +3710,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByUnitedServiceDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -3742,9 +3742,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* Special Offering
             offeringIncomeComparativeBySpecialOfferingDataResult.length > 0 &&
             offeringIncomeComparativeBySpecialOfferingDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -3881,13 +3882,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeBySpecialOfferingDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -3918,15 +3918,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySpecialOfferingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -3942,15 +3942,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySpecialOfferingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -3966,15 +3966,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeBySpecialOfferingDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -3998,9 +3998,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* Income Adjustment
             offeringIncomeComparativeByIncomeAdjustmentDataResult.length > 0 &&
             offeringIncomeComparativeByIncomeAdjustmentDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -4137,13 +4138,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringIncomeComparativeByIncomeAdjustmentDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -4174,15 +4174,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByIncomeAdjustmentDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -4198,15 +4198,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByIncomeAdjustmentDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -4222,15 +4222,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringIncomeComparativeByIncomeAdjustmentDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -4433,11 +4433,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
         ? [
             //* Operational Expenses
             offeringOperationalExpensesComparativeDataResult.length > 0 &&
-            offeringOperationalExpensesComparativeDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringOperationalExpensesComparativeDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -4567,13 +4566,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringOperationalExpensesComparativeDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -4599,15 +4597,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringOperationalExpensesComparativeDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -4623,15 +4621,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringOperationalExpensesComparativeDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -4647,15 +4645,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringOperationalExpensesComparativeDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -4680,9 +4678,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             offeringExpensesComparativeByMaintenanceAndRepairDataResult.length >
               0 &&
             offeringExpensesComparativeByMaintenanceAndRepairDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -4813,13 +4812,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeByMaintenanceAndRepairDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -4845,15 +4843,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByMaintenanceAndRepairDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -4869,15 +4867,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByMaintenanceAndRepairDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -4893,15 +4891,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByMaintenanceAndRepairDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -4924,11 +4922,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Decoration
             offeringExpensesComparativeByDecorationDataResult.length > 0 &&
-            offeringExpensesComparativeByDecorationDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringExpensesComparativeByDecorationDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -5058,13 +5055,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeByDecorationDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -5090,15 +5086,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByDecorationDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -5114,15 +5110,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByDecorationDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -5138,15 +5134,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByDecorationDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -5171,9 +5167,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             offeringExpensesComparativeByEquipmentAndTechnologyDataResult.length >
               0 &&
             offeringExpensesComparativeByEquipmentAndTechnologyDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -5304,13 +5301,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeByEquipmentAndTechnologyDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -5336,15 +5332,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByEquipmentAndTechnologyDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -5360,15 +5356,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByEquipmentAndTechnologyDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -5384,15 +5380,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByEquipmentAndTechnologyDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -5415,11 +5411,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
 
             //* Supplies
             offeringExpensesComparativeBySuppliesDataResult.length > 0 &&
-            offeringExpensesComparativeBySuppliesDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
-            ).length > 0
+            offeringExpensesComparativeBySuppliesDataResult.filter((item) => {
+              const itemIndex = monthValues.indexOf(item.month);
+              return itemIndex >= startIndex && itemIndex <= endIndex;
+            }).length > 0
               ? [
                   {
                     layout: 'noBorders',
@@ -5549,13 +5544,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeBySuppliesDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -5581,15 +5575,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeBySuppliesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -5605,15 +5599,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeBySuppliesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -5629,15 +5623,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeBySuppliesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -5661,9 +5655,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* Planing Events
             offeringExpensesComparativeByPlaningEventsDataResult.length > 0 &&
             offeringExpensesComparativeByPlaningEventsDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -5794,13 +5789,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeByPlaningEventsDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -5826,15 +5820,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByPlaningEventsDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -5850,15 +5844,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByPlaningEventsDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -5874,15 +5868,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByPlaningEventsDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -5906,9 +5900,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* Other Expenses
             offeringExpensesComparativeByOtherExpensesDataResult.length > 0 &&
             offeringExpensesComparativeByOtherExpensesDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -6039,13 +6034,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeByOtherExpensesDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -6071,15 +6065,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByOtherExpensesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -6095,15 +6089,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByOtherExpensesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -6119,15 +6113,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByOtherExpensesDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,
@@ -6152,9 +6146,10 @@ export const getFinancialBalanceComparativeMetricsReport = (
             offeringExpensesComparativeByExpenseAdjustmentDataResult.length >
               0 &&
             offeringExpensesComparativeByExpenseAdjustmentDataResult.filter(
-              (item) =>
-                Object.values(monthNames).indexOf(item.month) <=
-                Object.values(monthNames).indexOf(monthNames[endMonth]),
+              (item) => {
+                const itemIndex = monthValues.indexOf(item.month);
+                return itemIndex >= startIndex && itemIndex <= endIndex;
+              },
             ).length > 0
               ? [
                   {
@@ -6285,13 +6280,12 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                         ],
                         ...offeringExpensesComparativeByExpenseAdjustmentDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
+                          .filter((item) => {
+                            const itemIndex = monthValues.indexOf(item.month);
+                            return (
+                              itemIndex >= startIndex && itemIndex <= endIndex
+                            );
+                          })
                           .map((item) => [
                             item?.church?.abbreviatedChurchName,
                             item?.month,
@@ -6317,15 +6311,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByExpenseAdjustmentDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingPEN,
@@ -6341,15 +6335,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByExpenseAdjustmentDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingUSD,
@@ -6365,15 +6359,15 @@ export const getFinancialBalanceComparativeMetricsReport = (
                           },
                           {
                             text: `${offeringExpensesComparativeByExpenseAdjustmentDataResult
-                              .filter(
-                                (item) =>
-                                  Object.values(monthNames).indexOf(
-                                    item.month,
-                                  ) <=
-                                  Object.values(monthNames).indexOf(
-                                    monthNames[endMonth],
-                                  ),
-                              )
+                              .filter((item) => {
+                                const itemIndex = monthValues.indexOf(
+                                  item.month,
+                                );
+                                return (
+                                  itemIndex >= startIndex &&
+                                  itemIndex <= endIndex
+                                );
+                              })
                               .reduce(
                                 (acc, offering) =>
                                   acc + offering?.accumulatedOfferingEUR,

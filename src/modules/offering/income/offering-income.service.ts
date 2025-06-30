@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   In,
   Not,
-  ILike,
+  Raw,
   IsNull,
   Between,
   Repository,
@@ -1398,7 +1398,12 @@ export class OfferingIncomeService {
         const zones = await this.zoneRepository.find({
           where: {
             theirChurch: church,
-            zoneName: ILike(`%${term}%`),
+            // zoneName: ILike(`%${term}%`),
+            zoneName: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
           },
           relations: ['familyGroups'],
         });
@@ -1475,7 +1480,12 @@ export class OfferingIncomeService {
         const zones = await this.zoneRepository.find({
           where: {
             theirChurch: church,
-            zoneName: ILike(`%${zone}%`),
+            // zoneName: ILike(`%${zone}%`),
+            zoneName: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${zone.toLowerCase()}%` },
+            ),
           },
           relations: ['familyGroups'],
         });
@@ -1545,7 +1555,12 @@ export class OfferingIncomeService {
         const familyGroups = await this.familyGroupRepository.find({
           where: {
             theirChurch: church,
-            familyGroupCode: ILike(`%${term}%`),
+            // familyGroupCode: ILike(`%${term}%`),
+            familyGroupCode: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
           },
         });
 
@@ -1617,7 +1632,12 @@ export class OfferingIncomeService {
         const familyGroups = await this.familyGroupRepository.find({
           where: {
             theirChurch: church,
-            familyGroupCode: ILike(`%${code}%`),
+            // familyGroupCode: ILike(`%${code}%`),
+            familyGroupCode: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${code.toLowerCase()}%` },
+            ),
           },
         });
 
@@ -1685,7 +1705,12 @@ export class OfferingIncomeService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
             },
           },
           relations: ['theirFamilyGroup'],
@@ -1751,7 +1776,12 @@ export class OfferingIncomeService {
           where: {
             theirChurch: church,
             member: {
-              lastNames: ILike(`%${lastNames}%`),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
           },
           relations: ['theirFamilyGroup'],
@@ -1818,8 +1848,18 @@ export class OfferingIncomeService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
-              lastNames: ILike(`%${lastNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
           },
           relations: ['theirFamilyGroup'],
@@ -1885,7 +1925,12 @@ export class OfferingIncomeService {
         const zones = await this.zoneRepository.find({
           where: {
             theirChurch: church,
-            zoneName: ILike(`%${term}%`),
+            // zoneName: ILike(`%${term}%`),
+            zoneName: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
           },
         });
 
@@ -1956,7 +2001,12 @@ export class OfferingIncomeService {
         const zones = await this.zoneRepository.find({
           where: {
             theirChurch: church,
-            zoneName: ILike(`%${zone}%`),
+            // zoneName: ILike(`%${zone}%`),
+            zoneName: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${zone.toLowerCase()}%` },
+            ),
           },
         });
 
@@ -2025,7 +2075,12 @@ export class OfferingIncomeService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
             },
           },
           relations: ['theirZone'],
@@ -2094,7 +2149,12 @@ export class OfferingIncomeService {
           where: {
             theirChurch: church,
             member: {
-              lastNames: ILike(`%${lastNames}%`),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
           },
           relations: ['theirZone'],
@@ -2164,8 +2224,18 @@ export class OfferingIncomeService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
-              lastNames: ILike(`%${lastNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
           },
           relations: ['theirZone'],
@@ -2243,7 +2313,12 @@ export class OfferingIncomeService {
               memberType: memberType,
               externalDonor: firstNames
                 ? {
-                    firstNames: ILike(`%${firstNames}%`),
+                    // firstNames: ILike(`%${firstNames}%`),
+                    firstNames: Raw(
+                      (alias) =>
+                        `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                      { searchTerm: `%${firstNames.toLowerCase()}%` },
+                    ),
                   }
                 : undefined,
               recordStatus: RecordStatus.Active,
@@ -2276,7 +2351,12 @@ export class OfferingIncomeService {
               pastor: firstNames
                 ? {
                     member: {
-                      firstNames: ILike(`%${firstNames}%`),
+                      // firstNames: ILike(`%${firstNames}%`),
+                      firstNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${firstNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2310,7 +2390,12 @@ export class OfferingIncomeService {
               copastor: firstNames
                 ? {
                     member: {
-                      firstNames: ILike(`%${firstNames}%`),
+                      // firstNames: ILike(`%${firstNames}%`),
+                      firstNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${firstNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2344,7 +2429,12 @@ export class OfferingIncomeService {
               supervisor: firstNames
                 ? {
                     member: {
-                      firstNames: ILike(`%${firstNames}%`),
+                      // firstNames: ILike(`%${firstNames}%`),
+                      firstNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${firstNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2378,7 +2468,12 @@ export class OfferingIncomeService {
               preacher: firstNames
                 ? {
                     member: {
-                      firstNames: ILike(`%${firstNames}%`),
+                      // firstNames: ILike(`%${firstNames}%`),
+                      firstNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${firstNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2412,7 +2507,12 @@ export class OfferingIncomeService {
               disciple: firstNames
                 ? {
                     member: {
-                      firstNames: ILike(`%${firstNames}%`),
+                      // firstNames: ILike(`%${firstNames}%`),
+                      firstNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${firstNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2481,7 +2581,12 @@ export class OfferingIncomeService {
               memberType: memberType,
               externalDonor: lastNames
                 ? {
-                    lastNames: ILike(`%${lastNames}%`),
+                    // lastNames: ILike(`%${lastNames}%`),
+                    lastNames: Raw(
+                      (alias) =>
+                        `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                      { searchTerm: `%${lastNames.toLowerCase()}%` },
+                    ),
                   }
                 : undefined,
               recordStatus: RecordStatus.Active,
@@ -2514,7 +2619,12 @@ export class OfferingIncomeService {
               pastor: lastNames
                 ? {
                     member: {
-                      lastNames: ILike(`%${lastNames}%`),
+                      // lastNames: ILike(`%${lastNames}%`),
+                      lastNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${lastNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2548,7 +2658,12 @@ export class OfferingIncomeService {
               copastor: lastNames
                 ? {
                     member: {
-                      lastNames: ILike(`%${lastNames}%`),
+                      // lastNames: ILike(`%${lastNames}%`),
+                      lastNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${lastNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2582,7 +2697,12 @@ export class OfferingIncomeService {
               supervisor: lastNames
                 ? {
                     member: {
-                      lastNames: ILike(`%${lastNames}%`),
+                      // lastNames: ILike(`%${lastNames}%`),
+                      lastNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${lastNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2616,7 +2736,12 @@ export class OfferingIncomeService {
               preacher: lastNames
                 ? {
                     member: {
-                      lastNames: ILike(`%${lastNames}%`),
+                      // lastNames: ILike(`%${lastNames}%`),
+                      lastNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${lastNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2650,7 +2775,12 @@ export class OfferingIncomeService {
               disciple: lastNames
                 ? {
                     member: {
-                      lastNames: ILike(`%${lastNames}%`),
+                      // lastNames: ILike(`%${lastNames}%`),
+                      lastNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${lastNames.toLowerCase()}%` },
+                      ),
                     },
                   }
                 : undefined,
@@ -2722,8 +2852,18 @@ export class OfferingIncomeService {
               externalDonor:
                 firstNames && lastNames
                   ? {
-                      firstNames: ILike(`%${firstNames}%`),
-                      lastNames: ILike(`%${lastNames}%`),
+                      // firstNames: ILike(`%${firstNames}%`),
+                      firstNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${firstNames.toLowerCase()}%` },
+                      ),
+                      // lastNames: ILike(`%${lastNames}%`),
+                      lastNames: Raw(
+                        (alias) =>
+                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                        { searchTerm: `%${lastNames.toLowerCase()}%` },
+                      ),
                     }
                   : undefined,
               recordStatus: RecordStatus.Active,
@@ -2757,8 +2897,18 @@ export class OfferingIncomeService {
                 firstNames && lastNames
                   ? {
                       member: {
-                        firstNames: ILike(`%${firstNames}%`),
-                        lastNames: ILike(`%${lastNames}%`),
+                        // firstNames: ILike(`%${firstNames}%`),
+                        firstNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${firstNames.toLowerCase()}%` },
+                        ),
+                        // lastNames: ILike(`%${lastNames}%`),
+                        lastNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${lastNames.toLowerCase()}%` },
+                        ),
                       },
                     }
                   : undefined,
@@ -2793,8 +2943,18 @@ export class OfferingIncomeService {
                 firstNames && lastNames
                   ? {
                       member: {
-                        firstNames: ILike(`%${firstNames}%`),
-                        lastNames: ILike(`%${lastNames}%`),
+                        // firstNames: ILike(`%${firstNames}%`),
+                        firstNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${firstNames.toLowerCase()}%` },
+                        ),
+                        // lastNames: ILike(`%${lastNames}%`),
+                        lastNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${lastNames.toLowerCase()}%` },
+                        ),
                       },
                     }
                   : undefined,
@@ -2829,8 +2989,18 @@ export class OfferingIncomeService {
                 firstNames && lastNames
                   ? {
                       member: {
-                        firstNames: ILike(`%${firstNames}%`),
-                        lastNames: ILike(`%${lastNames}%`),
+                        // firstNames: ILike(`%${firstNames}%`),
+                        firstNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${firstNames.toLowerCase()}%` },
+                        ),
+                        // lastNames: ILike(`%${lastNames}%`),
+                        lastNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${lastNames.toLowerCase()}%` },
+                        ),
                       },
                     }
                   : undefined,
@@ -2865,8 +3035,18 @@ export class OfferingIncomeService {
                 firstNames && lastNames
                   ? {
                       member: {
-                        firstNames: ILike(`%${firstNames}%`),
-                        lastNames: ILike(`%${lastNames}%`),
+                        // firstNames: ILike(`%${firstNames}%`),
+                        firstNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${firstNames.toLowerCase()}%` },
+                        ),
+                        // lastNames: ILike(`%${lastNames}%`),
+                        lastNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${lastNames.toLowerCase()}%` },
+                        ),
                       },
                     }
                   : undefined,
@@ -2901,8 +3081,18 @@ export class OfferingIncomeService {
                 firstNames && lastNames
                   ? {
                       member: {
-                        firstNames: ILike(`%${firstNames}%`),
-                        lastNames: ILike(`%${lastNames}%`),
+                        // firstNames: ILike(`%${firstNames}%`),
+                        firstNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${firstNames.toLowerCase()}%` },
+                        ),
+                        // lastNames: ILike(`%${lastNames}%`),
+                        lastNames: Raw(
+                          (alias) =>
+                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                          { searchTerm: `%${lastNames.toLowerCase()}%` },
+                        ),
                       },
                     }
                   : undefined,

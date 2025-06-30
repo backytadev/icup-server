@@ -30,6 +30,11 @@ interface FamilyGroup {
   familyGroupCode: string;
 }
 
+interface Zone {
+  id: string;
+  zoneName: string;
+}
+
 export interface OfferingIncomeByFamilyGroupDataResult {
   date: Date;
   category: string;
@@ -39,6 +44,7 @@ export interface OfferingIncomeByFamilyGroupDataResult {
   familyGroup: FamilyGroup;
   supervisor: Supervisor;
   preacher: Preacher;
+  zone: Zone;
   church: Church;
   disciples: number;
   allOfferings: { offering: number; currency: string; date: string | Date }[];
@@ -81,6 +87,10 @@ export const offeringIncomeByFamilyGroupFormatter = ({
             id: offering?.familyGroup?.id,
             familyGroupName: offering?.familyGroup?.familyGroupName,
             familyGroupCode: offering?.familyGroup?.familyGroupCode,
+          },
+          zone: {
+            id: offering?.familyGroup?.theirZone?.id,
+            zoneName: offering?.familyGroup?.theirZone.zoneName,
           },
           preacher: {
             id: offering?.familyGroup?.theirPreacher?.id,

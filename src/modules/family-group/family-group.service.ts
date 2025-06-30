@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsOrderValue, ILike, In, Repository } from 'typeorm';
+import { FindOptionsOrderValue, ILike, In, Raw, Repository } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { DashboardSearchType } from '@/common/enums/dashboard-search-type.enum';
@@ -387,7 +387,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -448,7 +453,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -508,7 +518,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -568,7 +583,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -629,7 +649,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              lastNames: ILike(`%${lastNames}%`),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -690,7 +715,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              lastNames: ILike(`%${lastNames}%`),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -750,7 +780,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              lastNames: ILike(`%${lastNames}%`),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -810,7 +845,12 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              lastNames: ILike(`%${lastNames}%`),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -872,8 +912,18 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
-              lastNames: ILike(`%${lastNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -935,8 +985,18 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
-              lastNames: ILike(`%${lastNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -997,8 +1057,18 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
-              lastNames: ILike(`%${lastNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -1059,8 +1129,18 @@ export class FamilyGroupService {
           where: {
             theirChurch: church,
             member: {
-              firstNames: ILike(`%${firstNames}%`),
-              lastNames: ILike(`%${lastNames}%`),
+              // firstNames: ILike(`%${firstNames}%`),
+              firstNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${firstNames.toLowerCase()}%` },
+              ),
+              // lastNames: ILike(`%${lastNames}%`),
+              lastNames: Raw(
+                (alias) =>
+                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+                { searchTerm: `%${lastNames.toLowerCase()}%` },
+              ),
             },
             recordStatus: RecordStatus.Active,
           },
@@ -1113,7 +1193,12 @@ export class FamilyGroupService {
         const familyGroups = await this.familyGroupRepository.find({
           where: {
             theirChurch: church,
-            familyGroupCode: ILike(`%${term}%`),
+            // familyGroupCode: ILike(`%${term}%`),
+            familyGroupCode: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
             recordStatus: RecordStatus.Active,
           },
           take: limit,
@@ -1154,7 +1239,12 @@ export class FamilyGroupService {
         const familyGroups = await this.familyGroupRepository.find({
           where: {
             theirChurch: church,
-            familyGroupName: ILike(`%${term}%`),
+            // familyGroupName: ILike(`%${term}%`),
+            familyGroupName: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
             recordStatus: RecordStatus.Active,
           },
           take: limit,
@@ -1195,7 +1285,12 @@ export class FamilyGroupService {
         const zones = await this.zoneRepository.find({
           where: {
             theirChurch: church,
-            zoneName: ILike(`%${term}%`),
+            // zoneName: ILike(`%${term}%`),
+            zoneName: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
             recordStatus: RecordStatus.Active,
           },
           order: { createdAt: order as FindOptionsOrderValue },
@@ -1247,7 +1342,12 @@ export class FamilyGroupService {
         const familyGroups = await this.familyGroupRepository.find({
           where: {
             theirChurch: church,
-            country: ILike(`%${term}%`),
+            // country: ILike(`%${term}%`),
+            country: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${term.toLowerCase()}%` },
+            ),
             recordStatus: RecordStatus.Active,
           },
           take: limit,
