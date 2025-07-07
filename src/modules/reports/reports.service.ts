@@ -492,7 +492,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By Birth Date
       if (searchType === SearchType.BirthDate) {
@@ -661,7 +667,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By Birth Date
       if (searchType === SearchType.BirthDate) {
@@ -830,7 +842,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By birth Date
       if (searchType === SearchType.BirthDate) {
@@ -999,7 +1017,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By Birth Date
       if (searchType === SearchType.BirthDate) {
@@ -1168,7 +1192,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By Birth Date
       if (searchType === SearchType.BirthDate) {
@@ -1336,7 +1366,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By Record Status
       if (searchType === SearchType.RecordStatus) {
@@ -1442,7 +1478,13 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      if (term.includes('-')) {
+        const firstNames = term.split('-')[0].replace(/\+/g, ' ');
+        const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+        newTerm = `${firstNames} ${lastNames}`;
+      } else {
+        newTerm = term.replace(/\+/g, ' ');
+      }
 
       //* By Record Status
       if (searchType === SearchType.RecordStatus) {

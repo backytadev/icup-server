@@ -908,27 +908,23 @@ export class FamilyGroupService {
       const lastNames = term.split('-')[1].replace(/\+/g, ' ');
 
       try {
-        const preachers = await this.preacherRepository.find({
-          where: {
-            theirChurch: church,
-            member: {
-              // firstNames: ILike(`%${firstNames}%`),
-              firstNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${firstNames.toLowerCase()}%` },
-              ),
-              // lastNames: ILike(`%${lastNames}%`),
-              lastNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${lastNames.toLowerCase()}%` },
-              ),
-            },
-            recordStatus: RecordStatus.Active,
-          },
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
+        const preachers = await this.preacherRepository
+          .createQueryBuilder('preacher')
+          .leftJoin('preacher.member', 'member')
+          .where('preacher.theirChurch = :churchId', { churchId: church.id })
+          .andWhere('preacher.recordStatus = :status', {
+            status: RecordStatus.Active,
+          })
+          .andWhere(
+            'unaccent(lower(member.firstNames)) ILIKE unaccent(lower(:first))',
+            { first: `%${firstNames.toLowerCase()}%` },
+          )
+          .andWhere(
+            'unaccent(lower(member.lastNames)) ILIKE unaccent(lower(:last))',
+            { last: `%${lastNames.toLowerCase()}%` },
+          )
+          .orderBy('preacher.createdAt', order as 'ASC' | 'DESC')
+          .getMany();
 
         const preachersId = preachers.map((preacher) => preacher?.id);
 
@@ -981,27 +977,23 @@ export class FamilyGroupService {
       const lastNames = term.split('-')[1].replace(/\+/g, ' ');
 
       try {
-        const supervisors = await this.supervisorRepository.find({
-          where: {
-            theirChurch: church,
-            member: {
-              // firstNames: ILike(`%${firstNames}%`),
-              firstNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${firstNames.toLowerCase()}%` },
-              ),
-              // lastNames: ILike(`%${lastNames}%`),
-              lastNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${lastNames.toLowerCase()}%` },
-              ),
-            },
-            recordStatus: RecordStatus.Active,
-          },
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
+        const supervisors = await this.supervisorRepository
+          .createQueryBuilder('supervisor')
+          .leftJoin('supervisor.member', 'member')
+          .where('supervisor.theirChurch = :churchId', { churchId: church.id })
+          .andWhere('supervisor.recordStatus = :status', {
+            status: RecordStatus.Active,
+          })
+          .andWhere(
+            'unaccent(lower(member.firstNames)) ILIKE unaccent(lower(:first))',
+            { first: `%${firstNames.toLowerCase()}%` },
+          )
+          .andWhere(
+            'unaccent(lower(member.lastNames)) ILIKE unaccent(lower(:last))',
+            { last: `%${lastNames.toLowerCase()}%` },
+          )
+          .orderBy('supervisor.createdAt', order as 'ASC' | 'DESC')
+          .getMany();
 
         const supervisorsId = supervisors.map((supervisor) => supervisor?.id);
 
@@ -1053,27 +1045,23 @@ export class FamilyGroupService {
       const lastNames = term.split('-')[1].replace(/\+/g, ' ');
 
       try {
-        const copastors = await this.copastorRepository.find({
-          where: {
-            theirChurch: church,
-            member: {
-              // firstNames: ILike(`%${firstNames}%`),
-              firstNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${firstNames.toLowerCase()}%` },
-              ),
-              // lastNames: ILike(`%${lastNames}%`),
-              lastNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${lastNames.toLowerCase()}%` },
-              ),
-            },
-            recordStatus: RecordStatus.Active,
-          },
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
+        const copastors = await this.copastorRepository
+          .createQueryBuilder('copastor')
+          .leftJoin('copastor.member', 'member')
+          .where('copastor.theirChurch = :churchId', { churchId: church.id })
+          .andWhere('copastor.recordStatus = :status', {
+            status: RecordStatus.Active,
+          })
+          .andWhere(
+            'unaccent(lower(member.firstNames)) ILIKE unaccent(lower(:first))',
+            { first: `%${firstNames.toLowerCase()}%` },
+          )
+          .andWhere(
+            'unaccent(lower(member.lastNames)) ILIKE unaccent(lower(:last))',
+            { last: `%${lastNames.toLowerCase()}%` },
+          )
+          .orderBy('copastor.createdAt', order as 'ASC' | 'DESC')
+          .getMany();
 
         const copastorsId = copastors.map((copastor) => copastor?.id);
 
@@ -1125,27 +1113,23 @@ export class FamilyGroupService {
       const lastNames = term.split('-')[1].replace(/\+/g, ' ');
 
       try {
-        const pastors = await this.pastorRepository.find({
-          where: {
-            theirChurch: church,
-            member: {
-              // firstNames: ILike(`%${firstNames}%`),
-              firstNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${firstNames.toLowerCase()}%` },
-              ),
-              // lastNames: ILike(`%${lastNames}%`),
-              lastNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${lastNames.toLowerCase()}%` },
-              ),
-            },
-            recordStatus: RecordStatus.Active,
-          },
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
+        const pastors = await this.pastorRepository
+          .createQueryBuilder('pastor')
+          .leftJoin('pastor.member', 'member')
+          .where('pastor.theirChurch = :churchId', { churchId: church.id })
+          .andWhere('pastor.recordStatus = :status', {
+            status: RecordStatus.Active,
+          })
+          .andWhere(
+            'unaccent(lower(member.firstNames)) ILIKE unaccent(lower(:first))',
+            { first: `%${firstNames.toLowerCase()}%` },
+          )
+          .andWhere(
+            'unaccent(lower(member.lastNames)) ILIKE unaccent(lower(:last))',
+            { last: `%${lastNames.toLowerCase()}%` },
+          )
+          .orderBy('pastor.createdAt', order as 'ASC' | 'DESC')
+          .getMany();
 
         const pastorsId = pastors.map((pastor) => pastor?.id);
 

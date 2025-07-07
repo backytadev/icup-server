@@ -342,129 +342,97 @@ export const getFinancialBalanceComparativeMetricsReport = (
             //* Dolar Americano USD
             yearlyIncomeExpenseComparativeUsdDataResult.some(
               (item) => item.totalIncome !== 0 || item.totalExpenses !== 0,
-            ) && [
-              {
-                layout: 'noBorders',
-                table: {
-                  headerRows: 1,
-                  widths: ['*'],
-                  body: [
-                    [
-                      {
-                        text: `Comparativa Ingresos vs Egresos`,
-                        color: '#1d96d3',
-                        fontSize: 20,
-                        bold: true,
-                        alignment: 'center',
-                        margin: [0, -10, 0, 0],
-                      },
-                    ],
-                  ],
-                },
-              },
-              {
-                layout: 'noBorders',
-                table: {
-                  headerRows: 1,
-                  widths: ['*'],
-                  body: [
-                    [
-                      {
-                        text: `Moneda: Dolar Americano (USD)`,
-                        color: '#1d96d3',
-                        fontSize: 16,
-                        bold: true,
-                        italics: true,
-                        alignment: 'center',
-                        margin: [0, 1, 0, 5],
-                      },
-                    ],
-                  ],
-                },
-              },
-              {
-                pageBreak: 'after',
-                layout: 'customLayout01', // optional
-                table: {
-                  headerRows: 1,
-                  widths: [100, 100, '*', '*', '*', '*'],
-                  body: [
-                    [
-                      {
-                        text: 'Iglesia',
-                        style: {
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: 'Mes / Año',
-                        style: {
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Saldo (Mes Anterior)`,
-                        style: {
-                          color: 'blue',
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Ingresos`,
-                        style: {
-                          color: 'green',
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Gastos`,
-                        style: {
-                          color: 'red',
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Diferencia`,
-                        style: {
-                          color: 'purple',
-                          bold: true,
-                        },
-                      },
-                    ],
-                    ...yearlyIncomeExpenseComparativeUsdDataResult
-                      .filter(
-                        (item) =>
-                          Object.values(monthNames).indexOf(item.month) <=
-                          Object.values(monthNames).indexOf(
-                            monthNames[endMonth],
-                          ),
-                      )
-                      .map((item) => [
-                        item?.church?.abbreviatedChurchName ??
-                          church?.abbreviatedChurchName,
-                        `${item?.month} - ${year}`,
-                        `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                        `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                        `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                        `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
-                      ]),
-                    ['', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    [
-                      '',
-                      '',
-                      {
-                        text: 'Totales',
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          alignment: 'right',
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                      {
-                        text: `${yearlyIncomeExpenseComparativeUsdDataResult
+            )
+              ? [
+                  {
+                    layout: 'noBorders',
+                    table: {
+                      headerRows: 1,
+                      widths: ['*'],
+                      body: [
+                        [
+                          {
+                            text: `Comparativa Ingresos vs Egresos`,
+                            color: '#1d96d3',
+                            fontSize: 20,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, -10, 0, 0],
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                  {
+                    layout: 'noBorders',
+                    table: {
+                      headerRows: 1,
+                      widths: ['*'],
+                      body: [
+                        [
+                          {
+                            text: `Moneda: Dolar Americano (USD)`,
+                            color: '#1d96d3',
+                            fontSize: 16,
+                            bold: true,
+                            italics: true,
+                            alignment: 'center',
+                            margin: [0, 1, 0, 5],
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                  {
+                    pageBreak: 'after',
+                    layout: 'customLayout01', // optional
+                    table: {
+                      headerRows: 1,
+                      widths: [100, 100, '*', '*', '*', '*'],
+                      body: [
+                        [
+                          {
+                            text: 'Iglesia',
+                            style: {
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: 'Mes / Año',
+                            style: {
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Saldo (Mes Anterior)`,
+                            style: {
+                              color: 'blue',
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Ingresos`,
+                            style: {
+                              color: 'green',
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Gastos`,
+                            style: {
+                              color: 'red',
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Diferencia`,
+                            style: {
+                              color: 'purple',
+                              bold: true,
+                            },
+                          },
+                        ],
+                        ...yearlyIncomeExpenseComparativeUsdDataResult
                           .filter(
                             (item) =>
                               Object.values(monthNames).indexOf(item.month) <=
@@ -472,206 +440,215 @@ export const getFinancialBalanceComparativeMetricsReport = (
                                 monthNames[endMonth],
                               ),
                           )
-                          .reduce(
-                            (acc, offering) => acc + offering?.totalIncome,
-                            0,
-                          )
-                          .toFixed(2)} USD`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                      {
-                        text: `${yearlyIncomeExpenseComparativeUsdDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
-                          .reduce(
-                            (acc, offering) => acc + offering?.totalExpenses,
-                            0,
-                          )
-                          .toFixed(2)} USD`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                      '-',
-                    ],
-                    [
-                      '',
-                      '',
-                      '',
-                      '',
-                      {
-                        text: `Saldo actual (${monthNames[endMonth]})`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          colSpan: 2,
-                          color: '#e89c37',
-                        },
-                      },
-                      {
-                        text: `${yearlyIncomeExpenseComparativeUsdDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
-                          .at(-1)
-                          .netResult.toFixed(2)} USD`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                    ],
-                  ],
-                },
-              },
-            ],
+                          .map((item) => [
+                            item?.church?.abbreviatedChurchName ??
+                              church?.abbreviatedChurchName,
+                            `${item?.month} - ${year}`,
+                            `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                            `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                            `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                            `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'USD'}`,
+                          ]),
+                        ['', '', '', '', '', ''],
+                        ['', '', '', '', '', ''],
+                        [
+                          '',
+                          '',
+                          {
+                            text: 'Totales',
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              alignment: 'right',
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                          {
+                            text: `${yearlyIncomeExpenseComparativeUsdDataResult
+                              .filter(
+                                (item) =>
+                                  Object.values(monthNames).indexOf(
+                                    item.month,
+                                  ) <=
+                                  Object.values(monthNames).indexOf(
+                                    monthNames[endMonth],
+                                  ),
+                              )
+                              .reduce(
+                                (acc, offering) => acc + offering?.totalIncome,
+                                0,
+                              )
+                              .toFixed(2)} USD`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                          {
+                            text: `${yearlyIncomeExpenseComparativeUsdDataResult
+                              .filter(
+                                (item) =>
+                                  Object.values(monthNames).indexOf(
+                                    item.month,
+                                  ) <=
+                                  Object.values(monthNames).indexOf(
+                                    monthNames[endMonth],
+                                  ),
+                              )
+                              .reduce(
+                                (acc, offering) =>
+                                  acc + offering?.totalExpenses,
+                                0,
+                              )
+                              .toFixed(2)} USD`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                          '-',
+                        ],
+                        [
+                          '',
+                          '',
+                          '',
+                          '',
+                          {
+                            text: `Saldo actual (${monthNames[endMonth]})`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              colSpan: 2,
+                              color: '#e89c37',
+                            },
+                          },
+                          {
+                            text: `${yearlyIncomeExpenseComparativeUsdDataResult
+                              .filter(
+                                (item) =>
+                                  Object.values(monthNames).indexOf(
+                                    item.month,
+                                  ) <=
+                                  Object.values(monthNames).indexOf(
+                                    monthNames[endMonth],
+                                  ),
+                              )
+                              .at(-1)
+                              .netResult.toFixed(2)} USD`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                ]
+              : null,
 
             //* Euro Europeo EUR
             yearlyIncomeExpenseComparativeEurDataResult.some(
               (item) => item.totalIncome !== 0 || item.totalExpenses !== 0,
-            ) && [
-              {
-                layout: 'noBorders',
-                table: {
-                  headerRows: 1,
-                  widths: ['*'],
-                  body: [
-                    [
-                      {
-                        text: `Comparativa Ingresos vs Egresos`,
-                        color: '#1d96d3',
-                        fontSize: 20,
-                        bold: true,
-                        alignment: 'center',
-                        margin: [0, -10, 0, 0],
-                      },
-                    ],
-                  ],
-                },
-              },
-              {
-                layout: 'noBorders',
-                table: {
-                  headerRows: 1,
-                  widths: ['*'],
-                  body: [
-                    [
-                      {
-                        text: `Moneda: Euro Europeo (EUR)`,
-                        color: '#1d96d3',
-                        fontSize: 16,
-                        bold: true,
-                        italics: true,
-                        alignment: 'center',
-                        margin: [0, 1, 0, 5],
-                      },
-                    ],
-                  ],
-                },
-              },
-              {
-                pageBreak: 'after',
-                layout: 'customLayout01', // optional
-                table: {
-                  headerRows: 1,
-                  widths: [100, 100, '*', '*', '*', '*'],
-                  body: [
-                    [
-                      {
-                        text: 'Iglesia',
-                        style: {
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: 'Mes / Año',
-                        style: {
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Saldo (Mes Anterior)`,
-                        style: {
-                          color: 'blue',
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Ingresos`,
-                        style: {
-                          color: 'green',
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Gastos`,
-                        style: {
-                          color: 'red',
-                          bold: true,
-                        },
-                      },
-                      {
-                        text: `Diferencia`,
-                        style: {
-                          color: 'purple',
-                          bold: true,
-                        },
-                      },
-                    ],
-                    ...yearlyIncomeExpenseComparativeEurDataResult
-                      .filter(
-                        (item) =>
-                          Object.values(monthNames).indexOf(item.month) <=
-                          Object.values(monthNames).indexOf(
-                            monthNames[endMonth],
-                          ),
-                      )
-                      .map((item) => [
-                        item?.church?.abbreviatedChurchName ??
-                          church?.abbreviatedChurchName,
-                        `${item?.month} - ${year}`,
-                        `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                        `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                        `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                        `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
-                      ]),
-                    ['', '', '', '', '', ''],
-                    ['', '', '', '', '', ''],
-                    [
-                      '',
-                      '',
-                      {
-                        text: 'Totales',
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          alignment: 'right',
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                      {
-                        text: `${yearlyIncomeExpenseComparativeEurDataResult
+            )
+              ? [
+                  {
+                    layout: 'noBorders',
+                    table: {
+                      headerRows: 1,
+                      widths: ['*'],
+                      body: [
+                        [
+                          {
+                            text: `Comparativa Ingresos vs Egresos`,
+                            color: '#1d96d3',
+                            fontSize: 20,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, -10, 0, 0],
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                  {
+                    layout: 'noBorders',
+                    table: {
+                      headerRows: 1,
+                      widths: ['*'],
+                      body: [
+                        [
+                          {
+                            text: `Moneda: Euro Europeo (EUR)`,
+                            color: '#1d96d3',
+                            fontSize: 16,
+                            bold: true,
+                            italics: true,
+                            alignment: 'center',
+                            margin: [0, 1, 0, 5],
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                  {
+                    pageBreak: 'after',
+                    layout: 'customLayout01', // optional
+                    table: {
+                      headerRows: 1,
+                      widths: [100, 100, '*', '*', '*', '*'],
+                      body: [
+                        [
+                          {
+                            text: 'Iglesia',
+                            style: {
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: 'Mes / Año',
+                            style: {
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Saldo (Mes Anterior)`,
+                            style: {
+                              color: 'blue',
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Ingresos`,
+                            style: {
+                              color: 'green',
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Gastos`,
+                            style: {
+                              color: 'red',
+                              bold: true,
+                            },
+                          },
+                          {
+                            text: `Diferencia`,
+                            style: {
+                              color: 'purple',
+                              bold: true,
+                            },
+                          },
+                        ],
+                        ...yearlyIncomeExpenseComparativeEurDataResult
                           .filter(
                             (item) =>
                               Object.values(monthNames).indexOf(item.month) <=
@@ -679,79 +656,120 @@ export const getFinancialBalanceComparativeMetricsReport = (
                                 monthNames[endMonth],
                               ),
                           )
-                          .reduce(
-                            (acc, offering) => acc + offering?.totalIncome,
-                            0,
-                          )
-                          .toFixed(2)} EUR`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                      {
-                        text: `${yearlyIncomeExpenseComparativeEurDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
-                          .reduce(
-                            (acc, offering) => acc + offering?.totalExpenses,
-                            0,
-                          )
-                          .toFixed(2)} EUR`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                      '',
-                    ],
-                    [
-                      '',
-                      '',
-                      '',
-                      '',
-                      {
-                        text: `Saldo actual (${monthNames[endMonth]})`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          colSpan: 2,
-                          color: '#e89c37',
-                        },
-                      },
-                      {
-                        text: `${yearlyIncomeExpenseComparativeEurDataResult
-                          .filter(
-                            (item) =>
-                              Object.values(monthNames).indexOf(item.month) <=
-                              Object.values(monthNames).indexOf(
-                                monthNames[endMonth],
-                              ),
-                          )
-                          .at(-1)
-                          .netResult.toFixed(2)} EUR`,
-                        style: {
-                          bold: true,
-                          fontSize: 13,
-                          italics: true,
-                          color: '#475569',
-                        },
-                      },
-                    ],
-                  ],
-                },
-              },
-            ],
+                          .map((item) => [
+                            item?.church?.abbreviatedChurchName ??
+                              church?.abbreviatedChurchName,
+                            `${item?.month} - ${year}`,
+                            `${item?.netResultPrevious.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                            `${item?.totalIncome.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                            `${item?.totalExpenses.toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                            `${(+item?.netResultPrevious + item?.totalIncome - item?.totalExpenses).toFixed(2)} ${item?.currency !== 'S/D' ? item?.currency : 'EUR'}`,
+                          ]),
+                        ['', '', '', '', '', ''],
+                        ['', '', '', '', '', ''],
+                        [
+                          '',
+                          '',
+                          {
+                            text: 'Totales',
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              alignment: 'right',
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                          {
+                            text: `${yearlyIncomeExpenseComparativeEurDataResult
+                              .filter(
+                                (item) =>
+                                  Object.values(monthNames).indexOf(
+                                    item.month,
+                                  ) <=
+                                  Object.values(monthNames).indexOf(
+                                    monthNames[endMonth],
+                                  ),
+                              )
+                              .reduce(
+                                (acc, offering) => acc + offering?.totalIncome,
+                                0,
+                              )
+                              .toFixed(2)} EUR`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                          {
+                            text: `${yearlyIncomeExpenseComparativeEurDataResult
+                              .filter(
+                                (item) =>
+                                  Object.values(monthNames).indexOf(
+                                    item.month,
+                                  ) <=
+                                  Object.values(monthNames).indexOf(
+                                    monthNames[endMonth],
+                                  ),
+                              )
+                              .reduce(
+                                (acc, offering) =>
+                                  acc + offering?.totalExpenses,
+                                0,
+                              )
+                              .toFixed(2)} EUR`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                          '',
+                        ],
+                        [
+                          '',
+                          '',
+                          '',
+                          '',
+                          {
+                            text: `Saldo actual (${monthNames[endMonth]})`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              colSpan: 2,
+                              color: '#e89c37',
+                            },
+                          },
+                          {
+                            text: `${yearlyIncomeExpenseComparativeEurDataResult
+                              .filter(
+                                (item) =>
+                                  Object.values(monthNames).indexOf(
+                                    item.month,
+                                  ) <=
+                                  Object.values(monthNames).indexOf(
+                                    monthNames[endMonth],
+                                  ),
+                              )
+                              .at(-1)
+                              .netResult.toFixed(2)} EUR`,
+                            style: {
+                              bold: true,
+                              fontSize: 13,
+                              italics: true,
+                              color: '#475569',
+                            },
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                ]
+              : null,
           ]
         : null,
 

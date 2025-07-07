@@ -164,6 +164,13 @@ export enum SearchSubType {
   CleaningMaterials = 'cleaning_materials',
   PackagingMaterials = 'packaging_and_storage_materials',
   SundaySchoolMaterials = 'sunday_school_educational_materials',
+  RenovationMaterials = 'renovation_materials',
+  PaintingSupplies = 'painting_supplies',
+  ElectricalSupplies = 'electrical_supplies',
+  ConstructionTools = 'construction_tools',
+  AudioVisualSupplies = 'audio_visual_supplies',
+  SafetyEquipment = 'safety_equipment',
+  FirstAidSupplies = 'first_aid_supplies',
 
   //* Planing Events Expenses
   AdvertisingAndEventPromotion = 'advertising_and_event_promotion',
@@ -383,6 +390,13 @@ export const SearchSubTypeNames: Record<SearchSubType, string> = {
   [SearchSubType.CleaningMaterials]: 'Materiales de limpieza',
   [SearchSubType.PackagingMaterials]: 'Materiales de almacenamiento',
   [SearchSubType.SundaySchoolMaterials]: 'Material educativo (Esc. Dom.)',
+  [SearchSubType.RenovationMaterials]: 'Repuestos en general',
+  [SearchSubType.PaintingSupplies]: 'Utensilios y materiales de pintura',
+  [SearchSubType.ElectricalSupplies]: 'Materiales de electricidad',
+  [SearchSubType.ConstructionTools]: 'Herramientas de construcción',
+  [SearchSubType.AudioVisualSupplies]: 'Utensilios de audio y video ',
+  [SearchSubType.SafetyEquipment]: 'Utensilios de seguridad.',
+  [SearchSubType.FirstAidSupplies]: 'Insumos y utensilios de primeros auxilios',
 
   // Planing Events Expenses
   [SearchSubType.AdvertisingAndEventPromotion]:

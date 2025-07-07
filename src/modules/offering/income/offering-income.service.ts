@@ -1844,26 +1844,20 @@ export class OfferingIncomeService {
       const lastNames = term.split('-')[1].replace(/\+/g, ' ');
 
       try {
-        const preachers = await this.preacherRepository.find({
-          where: {
-            theirChurch: church,
-            member: {
-              // firstNames: ILike(`%${firstNames}%`),
-              firstNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${firstNames.toLowerCase()}%` },
-              ),
-              // lastNames: ILike(`%${lastNames}%`),
-              lastNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${lastNames.toLowerCase()}%` },
-              ),
-            },
-          },
-          relations: ['theirFamilyGroup'],
-        });
+        const preachers = await this.preacherRepository
+          .createQueryBuilder('preacher')
+          .leftJoinAndSelect('preacher.member', 'member')
+          .leftJoinAndSelect('preacher.theirFamilyGroup', 'familyGroup')
+          .where('preacher.theirChurch = :churchId', { churchId: church.id })
+          .andWhere(
+            'unaccent(lower(member.firstNames)) ILIKE unaccent(lower(:first))',
+            { first: `%${firstNames.toLowerCase()}%` },
+          )
+          .andWhere(
+            'unaccent(lower(member.lastNames)) ILIKE unaccent(lower(:last))',
+            { last: `%${lastNames.toLowerCase()}%` },
+          )
+          .getMany();
 
         const familyGroupsId = preachers.map(
           (preacher) => preacher?.theirFamilyGroup?.id,
@@ -2220,26 +2214,20 @@ export class OfferingIncomeService {
       const lastNames = term.split('-')[1].replace(/\+/g, ' ');
 
       try {
-        const supervisors = await this.supervisorRepository.find({
-          where: {
-            theirChurch: church,
-            member: {
-              // firstNames: ILike(`%${firstNames}%`),
-              firstNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${firstNames.toLowerCase()}%` },
-              ),
-              // lastNames: ILike(`%${lastNames}%`),
-              lastNames: Raw(
-                (alias) =>
-                  `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                { searchTerm: `%${lastNames.toLowerCase()}%` },
-              ),
-            },
-          },
-          relations: ['theirZone'],
-        });
+        const supervisors = await this.supervisorRepository
+          .createQueryBuilder('supervisor')
+          .leftJoinAndSelect('supervisor.member', 'member')
+          .leftJoinAndSelect('supervisor.theirZone', 'zone')
+          .where('supervisor.theirChurch = :churchId', { churchId: church.id })
+          .andWhere(
+            'unaccent(lower(member.firstNames)) ILIKE unaccent(lower(:first))',
+            { first: `%${firstNames.toLowerCase()}%` },
+          )
+          .andWhere(
+            'unaccent(lower(member.lastNames)) ILIKE unaccent(lower(:last))',
+            { last: `%${lastNames.toLowerCase()}%` },
+          )
+          .getMany();
 
         const zonesId = supervisors.map(
           (supervisor) => supervisor?.theirZone?.id,
@@ -2844,277 +2832,273 @@ export class OfferingIncomeService {
         let offeringIncome: OfferingIncome[];
 
         if (memberType === MemberType.ExternalDonor) {
-          offeringIncome = await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              subType: searchType,
-              memberType: memberType,
-              externalDonor:
-                firstNames && lastNames
-                  ? {
-                      // firstNames: ILike(`%${firstNames}%`),
-                      firstNames: Raw(
-                        (alias) =>
-                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                        { searchTerm: `%${firstNames.toLowerCase()}%` },
-                      ),
-                      // lastNames: ILike(`%${lastNames}%`),
-                      lastNames: Raw(
-                        (alias) =>
-                          `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                        { searchTerm: `%${lastNames.toLowerCase()}%` },
-                      ),
-                    }
-                  : undefined,
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: [
-              'updatedBy',
-              'createdBy',
-              'church',
-              'familyGroup.theirPreacher.member',
-              'zone.theirSupervisor.member',
-              'pastor.member',
-              'copastor.member',
-              'supervisor.member',
-              'preacher.member',
-              'disciple.member',
-              'externalDonor',
-            ],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
+          offeringIncome = await this.offeringIncomeRepository
+            .createQueryBuilder('offering')
+            .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
+            .leftJoinAndSelect('offering.createdBy', 'createdBy')
+            .leftJoinAndSelect('offering.church', 'church')
+            .leftJoinAndSelect('offering.familyGroup', 'familyGroup')
+            .leftJoinAndSelect('familyGroup.theirPreacher', 'fgPreacher')
+            .leftJoinAndSelect('fgPreacher.member', 'fgPreacherMember')
+            .leftJoinAndSelect('offering.zone', 'zone')
+            .leftJoinAndSelect('zone.theirSupervisor', 'zoneSupervisor')
+            .leftJoinAndSelect('zoneSupervisor.member', 'zoneSupervisorMember')
+            .leftJoinAndSelect('offering.pastor', 'pastor')
+            .leftJoinAndSelect('pastor.member', 'pastorMember')
+            .leftJoinAndSelect('offering.copastor', 'copastor')
+            .leftJoinAndSelect('copastor.member', 'copastorMember')
+            .leftJoinAndSelect('offering.supervisor', 'supervisor')
+            .leftJoinAndSelect('supervisor.member', 'supervisorMember')
+            .leftJoinAndSelect('offering.preacher', 'preacher')
+            .leftJoinAndSelect('preacher.member', 'preacherMember')
+            .leftJoinAndSelect('offering.disciple', 'disciple')
+            .leftJoinAndSelect('disciple.member', 'discipleMember')
+            .leftJoinAndSelect('offering.externalDonor', 'externalDonor')
+            .where('offering.church = :churchId', { churchId: church.id })
+            .andWhere('offering.subType = :subType', { subType: searchType })
+            .andWhere('offering.memberType = :memberType', { memberType })
+            .andWhere('offering.recordStatus = :status', {
+              status: RecordStatus.Active,
+            })
+            .andWhere(
+              firstNames && lastNames
+                ? `unaccent(lower(externalDonor.firstNames)) ILIKE unaccent(lower(:first)) 
+         AND unaccent(lower(externalDonor.lastNames)) ILIKE unaccent(lower(:last))`
+                : '1=1',
+              {
+                first: `%${firstNames?.toLowerCase() ?? ''}%`,
+                last: `%${lastNames?.toLowerCase() ?? ''}%`,
+              },
+            )
+            .orderBy('offering.createdAt', order as 'ASC' | 'DESC')
+            .take(limit)
+            .skip(offset)
+            .getMany();
         }
 
         if (memberType === MemberType.Pastor) {
-          offeringIncome = await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              subType: searchType,
-              memberType: memberType,
-              pastor:
-                firstNames && lastNames
-                  ? {
-                      member: {
-                        // firstNames: ILike(`%${firstNames}%`),
-                        firstNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${firstNames.toLowerCase()}%` },
-                        ),
-                        // lastNames: ILike(`%${lastNames}%`),
-                        lastNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${lastNames.toLowerCase()}%` },
-                        ),
-                      },
-                    }
-                  : undefined,
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: [
-              'updatedBy',
-              'createdBy',
-              'church',
-              'familyGroup.theirPreacher.member',
-              'zone.theirSupervisor.member',
-              'pastor.member',
-              'copastor.member',
-              'supervisor.member',
-              'preacher.member',
-              'disciple.member',
-              'externalDonor',
-            ],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
+          offeringIncome = await this.offeringIncomeRepository
+            .createQueryBuilder('offering')
+            .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
+            .leftJoinAndSelect('offering.createdBy', 'createdBy')
+            .leftJoinAndSelect('offering.church', 'church')
+            .leftJoinAndSelect('offering.familyGroup', 'familyGroup')
+            .leftJoinAndSelect('familyGroup.theirPreacher', 'fgPreacher')
+            .leftJoinAndSelect('fgPreacher.member', 'fgPreacherMember')
+            .leftJoinAndSelect('offering.zone', 'zone')
+            .leftJoinAndSelect('zone.theirSupervisor', 'zoneSupervisor')
+            .leftJoinAndSelect('zoneSupervisor.member', 'zoneSupervisorMember')
+            .leftJoinAndSelect('offering.pastor', 'pastor')
+            .leftJoinAndSelect('pastor.member', 'pastorMember')
+            .leftJoinAndSelect('offering.copastor', 'copastor')
+            .leftJoinAndSelect('copastor.member', 'copastorMember')
+            .leftJoinAndSelect('offering.supervisor', 'supervisor')
+            .leftJoinAndSelect('supervisor.member', 'supervisorMember')
+            .leftJoinAndSelect('offering.preacher', 'preacher')
+            .leftJoinAndSelect('preacher.member', 'preacherMember')
+            .leftJoinAndSelect('offering.disciple', 'disciple')
+            .leftJoinAndSelect('disciple.member', 'discipleMember')
+            .leftJoinAndSelect('offering.externalDonor', 'externalDonor')
+            .where('offering.church = :churchId', { churchId: church.id })
+            .andWhere('offering.subType = :subType', { subType: searchType })
+            .andWhere('offering.memberType = :memberType', { memberType })
+            .andWhere('offering.recordStatus = :status', {
+              status: RecordStatus.Active,
+            })
+            .andWhere(
+              firstNames && lastNames
+                ? `unaccent(lower(pastor.firstNames)) ILIKE unaccent(lower(:first)) 
+         AND unaccent(lower(pastor.lastNames)) ILIKE unaccent(lower(:last))`
+                : '1=1',
+              {
+                first: `%${firstNames?.toLowerCase() ?? ''}%`,
+                last: `%${lastNames?.toLowerCase() ?? ''}%`,
+              },
+            )
+            .orderBy('offering.createdAt', order as 'ASC' | 'DESC')
+            .take(limit)
+            .skip(offset)
+            .getMany();
         }
 
         if (memberType === MemberType.Copastor) {
-          offeringIncome = await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              subType: searchType,
-              memberType: memberType,
-              copastor:
-                firstNames && lastNames
-                  ? {
-                      member: {
-                        // firstNames: ILike(`%${firstNames}%`),
-                        firstNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${firstNames.toLowerCase()}%` },
-                        ),
-                        // lastNames: ILike(`%${lastNames}%`),
-                        lastNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${lastNames.toLowerCase()}%` },
-                        ),
-                      },
-                    }
-                  : undefined,
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: [
-              'updatedBy',
-              'createdBy',
-              'church',
-              'familyGroup.theirPreacher.member',
-              'zone.theirSupervisor.member',
-              'pastor.member',
-              'copastor.member',
-              'supervisor.member',
-              'preacher.member',
-              'disciple.member',
-              'externalDonor',
-            ],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
+          offeringIncome = await this.offeringIncomeRepository
+            .createQueryBuilder('offering')
+            .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
+            .leftJoinAndSelect('offering.createdBy', 'createdBy')
+            .leftJoinAndSelect('offering.church', 'church')
+            .leftJoinAndSelect('offering.familyGroup', 'familyGroup')
+            .leftJoinAndSelect('familyGroup.theirPreacher', 'fgPreacher')
+            .leftJoinAndSelect('fgPreacher.member', 'fgPreacherMember')
+            .leftJoinAndSelect('offering.zone', 'zone')
+            .leftJoinAndSelect('zone.theirSupervisor', 'zoneSupervisor')
+            .leftJoinAndSelect('zoneSupervisor.member', 'zoneSupervisorMember')
+            .leftJoinAndSelect('offering.pastor', 'pastor')
+            .leftJoinAndSelect('pastor.member', 'pastorMember')
+            .leftJoinAndSelect('offering.copastor', 'copastor')
+            .leftJoinAndSelect('copastor.member', 'copastorMember')
+            .leftJoinAndSelect('offering.supervisor', 'supervisor')
+            .leftJoinAndSelect('supervisor.member', 'supervisorMember')
+            .leftJoinAndSelect('offering.preacher', 'preacher')
+            .leftJoinAndSelect('preacher.member', 'preacherMember')
+            .leftJoinAndSelect('offering.disciple', 'disciple')
+            .leftJoinAndSelect('disciple.member', 'discipleMember')
+            .leftJoinAndSelect('offering.externalDonor', 'externalDonor')
+            .where('offering.church = :churchId', { churchId: church.id })
+            .andWhere('offering.subType = :subType', { subType: searchType })
+            .andWhere('offering.memberType = :memberType', { memberType })
+            .andWhere('offering.recordStatus = :status', {
+              status: RecordStatus.Active,
+            })
+            .andWhere(
+              firstNames && lastNames
+                ? `unaccent(lower(copastor.firstNames)) ILIKE unaccent(lower(:first)) 
+         AND unaccent(lower(copastor.lastNames)) ILIKE unaccent(lower(:last))`
+                : '1=1',
+              {
+                first: `%${firstNames?.toLowerCase() ?? ''}%`,
+                last: `%${lastNames?.toLowerCase() ?? ''}%`,
+              },
+            )
+            .orderBy('offering.createdAt', order as 'ASC' | 'DESC')
+            .take(limit)
+            .skip(offset)
+            .getMany();
         }
 
         if (memberType === MemberType.Supervisor) {
-          offeringIncome = await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              subType: searchType,
-              memberType: memberType,
-              supervisor:
-                firstNames && lastNames
-                  ? {
-                      member: {
-                        // firstNames: ILike(`%${firstNames}%`),
-                        firstNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${firstNames.toLowerCase()}%` },
-                        ),
-                        // lastNames: ILike(`%${lastNames}%`),
-                        lastNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${lastNames.toLowerCase()}%` },
-                        ),
-                      },
-                    }
-                  : undefined,
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: [
-              'updatedBy',
-              'createdBy',
-              'church',
-              'familyGroup.theirPreacher.member',
-              'zone.theirSupervisor.member',
-              'pastor.member',
-              'copastor.member',
-              'supervisor.member',
-              'preacher.member',
-              'disciple.member',
-              'externalDonor',
-            ],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
+          offeringIncome = await this.offeringIncomeRepository
+            .createQueryBuilder('offering')
+            .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
+            .leftJoinAndSelect('offering.createdBy', 'createdBy')
+            .leftJoinAndSelect('offering.church', 'church')
+            .leftJoinAndSelect('offering.familyGroup', 'familyGroup')
+            .leftJoinAndSelect('familyGroup.theirPreacher', 'fgPreacher')
+            .leftJoinAndSelect('fgPreacher.member', 'fgPreacherMember')
+            .leftJoinAndSelect('offering.zone', 'zone')
+            .leftJoinAndSelect('zone.theirSupervisor', 'zoneSupervisor')
+            .leftJoinAndSelect('zoneSupervisor.member', 'zoneSupervisorMember')
+            .leftJoinAndSelect('offering.pastor', 'pastor')
+            .leftJoinAndSelect('pastor.member', 'pastorMember')
+            .leftJoinAndSelect('offering.copastor', 'copastor')
+            .leftJoinAndSelect('copastor.member', 'copastorMember')
+            .leftJoinAndSelect('offering.supervisor', 'supervisor')
+            .leftJoinAndSelect('supervisor.member', 'supervisorMember')
+            .leftJoinAndSelect('offering.preacher', 'preacher')
+            .leftJoinAndSelect('preacher.member', 'preacherMember')
+            .leftJoinAndSelect('offering.disciple', 'disciple')
+            .leftJoinAndSelect('disciple.member', 'discipleMember')
+            .leftJoinAndSelect('offering.externalDonor', 'externalDonor')
+            .where('offering.church = :churchId', { churchId: church.id })
+            .andWhere('offering.subType = :subType', { subType: searchType })
+            .andWhere('offering.memberType = :memberType', { memberType })
+            .andWhere('offering.recordStatus = :status', {
+              status: RecordStatus.Active,
+            })
+            .andWhere(
+              firstNames && lastNames
+                ? `unaccent(lower(supervisor.firstNames)) ILIKE unaccent(lower(:first)) 
+         AND unaccent(lower(supervisor.lastNames)) ILIKE unaccent(lower(:last))`
+                : '1=1',
+              {
+                first: `%${firstNames?.toLowerCase() ?? ''}%`,
+                last: `%${lastNames?.toLowerCase() ?? ''}%`,
+              },
+            )
+            .orderBy('offering.createdAt', order as 'ASC' | 'DESC')
+            .take(limit)
+            .skip(offset)
+            .getMany();
         }
 
         if (memberType === MemberType.Preacher) {
-          offeringIncome = await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              subType: searchType,
-              memberType: memberType,
-              preacher:
-                firstNames && lastNames
-                  ? {
-                      member: {
-                        // firstNames: ILike(`%${firstNames}%`),
-                        firstNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${firstNames.toLowerCase()}%` },
-                        ),
-                        // lastNames: ILike(`%${lastNames}%`),
-                        lastNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${lastNames.toLowerCase()}%` },
-                        ),
-                      },
-                    }
-                  : undefined,
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: [
-              'updatedBy',
-              'createdBy',
-              'church',
-              'familyGroup.theirPreacher.member',
-              'zone.theirSupervisor.member',
-              'pastor.member',
-              'copastor.member',
-              'supervisor.member',
-              'preacher.member',
-              'disciple.member',
-              'externalDonor',
-            ],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
+          offeringIncome = await this.offeringIncomeRepository
+            .createQueryBuilder('offering')
+            .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
+            .leftJoinAndSelect('offering.createdBy', 'createdBy')
+            .leftJoinAndSelect('offering.church', 'church')
+            .leftJoinAndSelect('offering.familyGroup', 'familyGroup')
+            .leftJoinAndSelect('familyGroup.theirPreacher', 'fgPreacher')
+            .leftJoinAndSelect('fgPreacher.member', 'fgPreacherMember')
+            .leftJoinAndSelect('offering.zone', 'zone')
+            .leftJoinAndSelect('zone.theirSupervisor', 'zoneSupervisor')
+            .leftJoinAndSelect('zoneSupervisor.member', 'zoneSupervisorMember')
+            .leftJoinAndSelect('offering.pastor', 'pastor')
+            .leftJoinAndSelect('pastor.member', 'pastorMember')
+            .leftJoinAndSelect('offering.copastor', 'copastor')
+            .leftJoinAndSelect('copastor.member', 'copastorMember')
+            .leftJoinAndSelect('offering.supervisor', 'supervisor')
+            .leftJoinAndSelect('supervisor.member', 'supervisorMember')
+            .leftJoinAndSelect('offering.preacher', 'preacher')
+            .leftJoinAndSelect('preacher.member', 'preacherMember')
+            .leftJoinAndSelect('offering.disciple', 'disciple')
+            .leftJoinAndSelect('disciple.member', 'discipleMember')
+            .leftJoinAndSelect('offering.externalDonor', 'externalDonor')
+            .where('offering.church = :churchId', { churchId: church.id })
+            .andWhere('offering.subType = :subType', { subType: searchType })
+            .andWhere('offering.memberType = :memberType', { memberType })
+            .andWhere('offering.recordStatus = :status', {
+              status: RecordStatus.Active,
+            })
+            .andWhere(
+              firstNames && lastNames
+                ? `unaccent(lower(preacher.firstNames)) ILIKE unaccent(lower(:first)) 
+         AND unaccent(lower(preacher.lastNames)) ILIKE unaccent(lower(:last))`
+                : '1=1',
+              {
+                first: `%${firstNames?.toLowerCase() ?? ''}%`,
+                last: `%${lastNames?.toLowerCase() ?? ''}%`,
+              },
+            )
+            .orderBy('offering.createdAt', order as 'ASC' | 'DESC')
+            .take(limit)
+            .skip(offset)
+            .getMany();
         }
 
         if (memberType === MemberType.Disciple) {
-          offeringIncome = await this.offeringIncomeRepository.find({
-            where: {
-              church: church,
-              subType: searchType,
-              memberType: memberType,
-              disciple:
-                firstNames && lastNames
-                  ? {
-                      member: {
-                        // firstNames: ILike(`%${firstNames}%`),
-                        firstNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${firstNames.toLowerCase()}%` },
-                        ),
-                        // lastNames: ILike(`%${lastNames}%`),
-                        lastNames: Raw(
-                          (alias) =>
-                            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-                          { searchTerm: `%${lastNames.toLowerCase()}%` },
-                        ),
-                      },
-                    }
-                  : undefined,
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: [
-              'updatedBy',
-              'createdBy',
-              'church',
-              'familyGroup.theirPreacher.member',
-              'zone.theirSupervisor.member',
-              'pastor.member',
-              'copastor.member',
-              'supervisor.member',
-              'preacher.member',
-              'disciple.member',
-              'externalDonor',
-            ],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
+          offeringIncome = await this.offeringIncomeRepository
+            .createQueryBuilder('offering')
+            .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
+            .leftJoinAndSelect('offering.createdBy', 'createdBy')
+            .leftJoinAndSelect('offering.church', 'church')
+            .leftJoinAndSelect('offering.familyGroup', 'familyGroup')
+            .leftJoinAndSelect('familyGroup.theirPreacher', 'fgPreacher')
+            .leftJoinAndSelect('fgPreacher.member', 'fgPreacherMember')
+            .leftJoinAndSelect('offering.zone', 'zone')
+            .leftJoinAndSelect('zone.theirSupervisor', 'zoneSupervisor')
+            .leftJoinAndSelect('zoneSupervisor.member', 'zoneSupervisorMember')
+            .leftJoinAndSelect('offering.pastor', 'pastor')
+            .leftJoinAndSelect('pastor.member', 'pastorMember')
+            .leftJoinAndSelect('offering.copastor', 'copastor')
+            .leftJoinAndSelect('copastor.member', 'copastorMember')
+            .leftJoinAndSelect('offering.supervisor', 'supervisor')
+            .leftJoinAndSelect('supervisor.member', 'supervisorMember')
+            .leftJoinAndSelect('offering.preacher', 'preacher')
+            .leftJoinAndSelect('preacher.member', 'preacherMember')
+            .leftJoinAndSelect('offering.disciple', 'disciple')
+            .leftJoinAndSelect('disciple.member', 'discipleMember')
+            .leftJoinAndSelect('offering.externalDonor', 'externalDonor')
+            .where('offering.church = :churchId', { churchId: church.id })
+            .andWhere('offering.subType = :subType', { subType: searchType })
+            .andWhere('offering.memberType = :memberType', { memberType })
+            .andWhere('offering.recordStatus = :status', {
+              status: RecordStatus.Active,
+            })
+            .andWhere(
+              firstNames && lastNames
+                ? `unaccent(lower(disciple.firstNames)) ILIKE unaccent(lower(:first)) 
+         AND unaccent(lower(disciple.lastNames)) ILIKE unaccent(lower(:last))`
+                : '1=1',
+              {
+                first: `%${firstNames?.toLowerCase() ?? ''}%`,
+                last: `%${lastNames?.toLowerCase() ?? ''}%`,
+              },
+            )
+            .orderBy('offering.createdAt', order as 'ASC' | 'DESC')
+            .take(limit)
+            .skip(offset)
+            .getMany();
         }
 
         if (offeringIncome.length === 0) {
