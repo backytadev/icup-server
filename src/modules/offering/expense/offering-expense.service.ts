@@ -486,7 +486,8 @@ export class OfferingExpenseService {
     inactivateOfferingExpenseDto: InactivateOfferingDto,
     user: User,
   ): Promise<void> {
-    const { offeringInactivationReason } = inactivateOfferingExpenseDto;
+    const { offeringInactivationReason, offeringInactivationDescription } =
+      inactivateOfferingExpenseDto;
 
     if (!isUUID(id)) {
       throw new BadRequestException(`UUID no valido.`);
@@ -504,7 +505,7 @@ export class OfferingExpenseService {
     }
 
     const existingComments = offeringExpense.comments || '';
-    const newComments: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
+    const newComments: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nDescripción de inactivación: ${offeringInactivationDescription}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
     const updatedComments = existingComments
       ? `${existingComments}\n\n${newComments}`
       : `${newComments}`;

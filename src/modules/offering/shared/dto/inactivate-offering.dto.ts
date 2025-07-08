@@ -8,13 +8,22 @@ export class InactivateOfferingDto {
   @ApiProperty({
     enum: OfferingInactivationReason,
     example: OfferingInactivationReason.FamilyGroupSelectionError,
-    required: false,
+    required: true,
     description:
       'The reason for the deactivation of the record, indicating the specific cause for the inactivation.',
   })
   @IsNotEmpty()
   @IsEnum(OfferingInactivationReason)
   offeringInactivationReason: string;
+
+  @ApiProperty({
+    example: 'Se eliminó el registro por error de selección del grupo familiar',
+    required: true,
+    description: 'The description for the deactivation of the record.',
+  })
+  @IsNotEmpty()
+  @IsString()
+  offeringInactivationDescription: string;
 
   @ApiProperty({
     example: '3.89',
