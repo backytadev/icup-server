@@ -3741,7 +3741,7 @@ export class OfferingIncomeService {
   ): Promise<void> {
     const {
       offeringInactivationReason,
-      offeringInactivationDescription,
+      offeringInactivationDescription = '',
       exchangeRate,
       exchangeCurrencyTypes,
     } = inactivateOfferingIncomeDto;
@@ -4000,7 +4000,8 @@ export class OfferingIncomeService {
           exchangeCurrencyTypes === ExchangeCurrencyTypes.EURtoPEN) &&
         CurrencyType.PEN
       }`;
-      const removalInfoComments: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nDescripción de inactivación: ${offeringInactivationDescription}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
+      const removalInfoCommentsWithDescription: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nDescripción de inactivación: ${offeringInactivationDescription}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
+      const removalInfoComments: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
 
       const updatedComments =
         exchangeRate && exchangeCurrencyTypes && existingComments
@@ -4008,8 +4009,8 @@ export class OfferingIncomeService {
           : exchangeRate && exchangeCurrencyTypes && !existingComments
             ? `${exchangeRateComments}\n\n${removalInfoComments}`
             : !exchangeRate && !exchangeCurrencyTypes && existingComments
-              ? `${existingComments}\n\n${removalInfoComments}`
-              : `${removalInfoComments}`;
+              ? `${existingComments}\n\n${removalInfoCommentsWithDescription}`
+              : `${removalInfoCommentsWithDescription}`;
 
       const deletedOfferingIncome = await this.offeringIncomeRepository.preload(
         {

@@ -18,12 +18,12 @@ export class InactivateOfferingDto {
 
   @ApiProperty({
     example: 'Se eliminó el registro por error de selección del grupo familiar',
-    required: true,
+    required: false,
     description: 'The description for the deactivation of the record.',
   })
-  @IsNotEmpty()
   @IsString()
-  offeringInactivationDescription: string;
+  @IsOptional()
+  offeringInactivationDescription?: string;
 
   @ApiProperty({
     example: '3.89',
