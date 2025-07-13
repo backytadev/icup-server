@@ -173,6 +173,74 @@ export class CloudinaryService {
     }
   }
 
+  // * New standalone methods for internal use
+  async uploadPdfAsWebp({
+    pdfDoc,
+    fileType,
+    offeringType,
+    offeringSubType,
+  }: {
+    pdfDoc: PDFKit.PDFDocument;
+    fileType: string;
+    offeringType: string;
+    offeringSubType: string;
+  }): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+
+      pdfDoc.on('data', (chunk) => chunks.push(chunk));
+      pdfDoc.on('end', () => {
+        const pdfBuffer = Buffer.concat(chunks);
+
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: offeringSubType
+              ? `${fileType}/${offeringType}/${offeringSubType}`
+              : `${fileType}/${offeringType}`,
+            resource_type: 'image',
+            format: 'webp',
+            pages: 1,
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else if (result?.secure_url) {
+              resolve(result.secure_url);
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          },
+        );
+
+        streamifier.createReadStream(pdfBuffer).pipe(uploadStream);
+      });
+
+      pdfDoc.on('error', reject);
+      pdfDoc.end();
+    });
+  }
+
+  async deleteDirectFileFromCloudinary(
+    publicId: string,
+    path: string,
+  ): Promise<void> {
+    try {
+      const result = await cloudinary.uploader.destroy(`${path}${publicId}`);
+
+      if (result.result !== 'ok') {
+        throw new Error(
+          `Fallo borrar la imagen, Cloudinary respuesta: ${result.result}`,
+        );
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.handleCloudServiceExceptions(error);
+    }
+  }
+
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleCloudServiceExceptions(error: any): never {

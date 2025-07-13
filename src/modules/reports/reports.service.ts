@@ -4,6 +4,8 @@ import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -154,7 +156,9 @@ export class ReportsService {
     private readonly zoneService: ZoneService,
     private readonly familyGroupService: FamilyGroupService,
 
+    @Inject(forwardRef(() => OfferingIncomeService))
     private readonly offeringIncomeService: OfferingIncomeService,
+
     private readonly offeringExpenseService: OfferingExpenseService,
 
     private readonly userService: UserService,

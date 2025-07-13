@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { CloudinaryService } from '@/modules/cloudinary/cloudinary.service';
 import { CloudinaryProvider } from '@/modules/cloudinary/providers/cloudinary.provider';
@@ -8,7 +8,10 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
 
 @Module({
   providers: [CloudinaryProvider, CloudinaryService],
-  imports: [OfferingIncomeModule, OfferingExpenseModule],
+  imports: [
+    forwardRef(() => OfferingIncomeModule),
+    forwardRef(() => OfferingExpenseModule),
+  ],
   exports: [CloudinaryProvider, CloudinaryService],
 })
 export class CloudinaryModule {}

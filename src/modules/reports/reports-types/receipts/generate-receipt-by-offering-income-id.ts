@@ -239,11 +239,20 @@ export const generateReceiptByOfferingIncomeId = (
       {
         text: 'Observaciones:',
         style: 'label',
-      },
+        colSpan: 2,
+        margin: [0, 5, 0, 0],
+      } as any,
+      {} as any,
+    ]);
+
+    body.push([
       {
-        text: `${comments}`,
+        text: comments,
         style: 'value',
-      },
+        colSpan: 2,
+        margin: [0, 0, 0, 5],
+      } as any,
+      {} as any,
     ]);
   }
 
@@ -613,7 +622,9 @@ export const generateReceiptByOfferingIncomeId = (
         alignment: 'center',
         margin: [0, 5],
       },
-      ticketImageUrl && ticketImageUrl.length > 0 && generationType !== 'update'
+      ticketImageUrl &&
+      ticketImageUrl.length > 0 &&
+      generationType !== 'without-qr'
         ? {
             table: {
               widths: ['auto', '*'],

@@ -505,7 +505,7 @@ export class OfferingExpenseService {
     }
 
     const existingComments = offeringExpense.comments || '';
-    const newComments: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nDescripción de inactivación: ${offeringInactivationDescription}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
+    const newComments: string = `Detalles de la inactivación:\n📅Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\n📁 Motivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\n📄 Descripción de inactivación: ${offeringInactivationDescription}\n👤 Usuario responsable: ${user.firstNames} ${user.lastNames}`;
     const updatedComments = existingComments
       ? `${existingComments}\n\n${newComments}`
       : `${newComments}`;

@@ -118,11 +118,11 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async generateReceipt(
     @Res() response: Response,
-    @Param('id', ParseUUIDPipe) studentId: string,
+    @Param('id', ParseUUIDPipe) recordId: string,
     @Query() queryParams: { generationType: string },
   ) {
     const pdfDoc = await this.reportsService.generateReceiptByOfferingIncomeId(
-      studentId,
+      recordId,
       queryParams,
     );
 

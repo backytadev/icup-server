@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { ReportsService } from '@/modules/reports/reports.service';
 import { ReportsController } from '@/modules/reports/reports.controller';
@@ -16,8 +16,8 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 import { PrinterModule } from '@/modules/printer/printer.module';
 import { MetricsModule } from '@/modules/metrics/metrics.module';
 
-import { UserModule } from '@/modules/user/user.module';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { UserModule } from '@/modules/user/user.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 
@@ -26,21 +26,21 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
   providers: [ReportsService],
   imports: [
     AuthModule,
-    ZoneModule,
     UserModule,
-    ChurchModule,
     MemberModule,
-    PastorModule,
     PrinterModule,
     MetricsModule,
-    CopastorModule,
-    PreacherModule,
-    DiscipleModule,
-    SupervisorModule,
     FamilyGroupModule,
-    OfferingIncomeModule,
     OfferingExpenseModule,
+    forwardRef(() => ZoneModule),
+    forwardRef(() => ChurchModule),
+    forwardRef(() => PastorModule),
+    forwardRef(() => CopastorModule),
+    forwardRef(() => PreacherModule),
+    forwardRef(() => DiscipleModule),
+    forwardRef(() => SupervisorModule),
+    forwardRef(() => OfferingIncomeModule),
   ],
-  exports: [],
+  exports: [ReportsService],
 })
 export class ReportsModule {}

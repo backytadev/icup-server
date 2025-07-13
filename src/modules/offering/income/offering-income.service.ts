@@ -54,6 +54,11 @@ import { OfferingIncomeSearchSubType } from '@/modules/offering/income/enums/off
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
+
+import {
+  extractPath,
+  extractPublicId,
+} from '@/modules/cloudinary/helpers/extract-data-secure-url.helper';
 import { dateFormatterToDDMMYYYY } from '@/common/helpers/date-formatter-to-ddmmyyy.helper';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
@@ -66,6 +71,8 @@ import { UpdateOfferingIncomeDto } from '@/modules/offering/income/dto/update-of
 
 import { offeringIncomeDataFormatter } from '@/modules/offering/income/helpers/offering-income-data-formatter.helper';
 
+import { ReportsService } from '@/modules/reports/reports.service';
+
 import { Zone } from '@/modules/zone/entities/zone.entity';
 import { User } from '@/modules/user/entities/user.entity';
 import { Church } from '@/modules/church/entities/church.entity';
@@ -76,6 +83,8 @@ import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
+import { CloudinaryService } from '@/modules/cloudinary/cloudinary.service';
+import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
 
 @Injectable()
 export class OfferingIncomeService {
@@ -111,6 +120,9 @@ export class OfferingIncomeService {
 
     @InjectRepository(OfferingIncome)
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
+
+    private readonly reportsService: ReportsService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   //* CREATE OFFERING INCOME
@@ -3385,7 +3397,7 @@ export class OfferingIncomeService {
       }
 
       let church: Church;
-      if (!churchId) {
+      if (churchId) {
         church = await this.churchRepository.findOne({
           where: {
             id: churchId,
@@ -3840,7 +3852,9 @@ export class OfferingIncomeService {
         if (
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.ZonalFasting ||
-          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalEvangelism
         ) {
           offeringDestiny = await this.offeringIncomeRepository.findOne({
             where: {
@@ -3867,6 +3881,8 @@ export class OfferingIncomeService {
             OfferingIncomeCreationSubType.GeneralFasting ||
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.GeneralVigil ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.GeneralEvangelism ||
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.UnitedService ||
           offeringIncome.subType ===
@@ -3922,14 +3938,23 @@ export class OfferingIncomeService {
           });
         }
 
-        // TODO : testear esto, porque puede afectar al correlativo de las boletas y a la misma boleta
         //* If it exists, the transformed amount is added to the existing record.
         if (offeringDestiny) {
           const currentComments = offeringDestiny.comments || '';
-          const newComments = `💲 Monto anterior: ${offeringDestiny.amount} ${offeringDestiny.currency}\n💲 Monto añadido: ${(offeringIncome.amount * +exchangeRate).toFixed(2)} ${offeringDestiny.currency} (${offeringIncome.amount} ${offeringIncome.currency})\n💰Tipo de cambio (precio): ${exchangeRate}`;
+          const newComments = `Información de Conversión\n💲 Monto anterior: ${offeringDestiny.amount} ${offeringDestiny.currency}\n💰Tipo de cambio (precio): ${exchangeRate}\n💰 Tipo de cambio(moneda): ${ExchangeCurrencyTypesNames[exchangeCurrencyTypes]}\n💲 Monto añadido: ${(offeringIncome.amount * +exchangeRate).toFixed(2)} ${offeringDestiny.currency} (${offeringIncome.amount} ${offeringIncome.currency})`;
           const updatedComments = currentComments
             ? `${currentComments}\n\n${newComments}`
             : `${newComments}`;
+
+          // * First, remove any previously attached images from the record (one or more)
+          await Promise.all(
+            offeringDestiny.imageUrls.map((secureUrl) => {
+              return this.cloudinaryService.deleteDirectFileFromCloudinary(
+                extractPublicId(secureUrl),
+                extractPath(secureUrl),
+              );
+            }),
+          );
 
           const updatedOffering = await this.offeringIncomeRepository.preload({
             id: offeringDestiny.id,
@@ -3940,25 +3965,65 @@ export class OfferingIncomeService {
                 offeringIncome.amount * +exchangeRate
               ).toFixed(2),
             ),
+            imageUrls: [],
             updatedAt: new Date(),
             updatedBy: user,
           });
 
-          await this.offeringIncomeRepository.save(updatedOffering);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(updatedOffering);
+
+          // * Generate a new PDF receipt with the provided data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          // * Upload the generated receipt to Cloudinary
+          const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
+            pdfDoc,
+            fileType: OfferingFileType.Income,
+            offeringType: offeringIncome.type,
+            offeringSubType: offeringIncome.subType,
+          });
+
+          //* Actualizar el registro con el nuevo url de la imagen
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [imageUrl],
+          });
+
+          await this.offeringIncomeRepository.save(updateOffering);
         }
 
         //* If there is no record to add the change to, it is created.
         if (!offeringDestiny) {
-          const newComments = `💲 Monto convertido: ${(+offeringIncome.amount * +exchangeRate).toFixed(2)} ${
+          const prefix = this.getPrefixBySubType(
+            offeringIncome.type === OfferingIncomeCreationType.IncomeAdjustment
+              ? offeringIncome.type
+              : offeringIncome.subType,
+          );
+
+          if (!prefix) {
+            throw new Error('Invalid subType for receipt generation');
+          }
+
+          //* Generate the new receipt code; the previous record retains its code for identification
+          const receiptCode = await this.generateNextReceipt(prefix);
+
+          //* Comments of change amount and currency for the new record
+          const newComments = `Información de Conversión\n💲 Monto anterior: ${offeringIncome.amount} ${offeringIncome?.currency}💰Tipo de cambio (precio): ${exchangeRate}\n💲 Monto convertido: ${(+offeringIncome.amount * +exchangeRate).toFixed(2)} ${
             exchangeCurrencyTypes === ExchangeCurrencyTypes.USDtoPEN ||
             exchangeCurrencyTypes === ExchangeCurrencyTypes.EURtoPEN
               ? CurrencyType.PEN
               : exchangeCurrencyTypes === ExchangeCurrencyTypes.PENtoEUR
                 ? CurrencyType.EUR
                 : CurrencyType.USD
-          } (${offeringIncome.amount} ${offeringIncome?.currency})\n💰Tipo de cambio (precio): ${exchangeRate}`;
+          } (${offeringIncome.amount} ${offeringIncome?.currency})`;
 
-          offeringDestiny = this.offeringIncomeRepository.create({
+          //* Creation
+          const newOffering = this.offeringIncomeRepository.create({
             type: offeringIncome.type,
             subType: offeringIncome.subType,
             category: offeringIncome.category,
@@ -3983,25 +4048,54 @@ export class OfferingIncomeService {
             zone: offeringIncome.zone,
             memberType: offeringIncome.memberType,
             shift: offeringIncome.shift,
-            imageUrls: offeringIncome.imageUrls,
+            receiptCode: receiptCode,
+            imageUrls: [],
             familyGroup: offeringIncome.familyGroup,
             createdAt: new Date(),
             createdBy: user,
           });
 
-          await this.offeringIncomeRepository.save(offeringDestiny);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(newOffering);
+
+          //* Generate the new receipt in PDF format with the data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          //* Upload the generated receipt to Cloudinary
+          const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
+            pdfDoc,
+            fileType: OfferingFileType.Income,
+            offeringType: offeringIncome.type,
+            offeringSubType: offeringIncome.subType,
+          });
+
+          //* Update the record with the new image URL
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [imageUrl],
+          });
+
+          await this.offeringIncomeRepository.save(updateOffering);
         }
       }
 
       //* Update and set in Inactive and info comments on Offering Income
       const existingComments = offeringIncome.comments || '';
-      const exchangeRateComments = `Tipo de cambio(precio): ${exchangeRate}\nTipo de cambio(moneda): ${ExchangeCurrencyTypesNames[exchangeCurrencyTypes]}\nTotal monto cambiado: ${(offeringIncome.amount * +exchangeRate).toFixed(2)} ${
-        (exchangeCurrencyTypes === ExchangeCurrencyTypes.USDtoPEN ||
-          exchangeCurrencyTypes === ExchangeCurrencyTypes.EURtoPEN) &&
-        CurrencyType.PEN
-      }`;
-      const removalInfoCommentsWithDescription: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nDescripción de inactivación: ${offeringInactivationDescription}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
-      const removalInfoComments: string = `Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\nMotivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\nUsuario responsable: ${user.firstNames} ${user.lastNames}`;
+      const exchangeRateComments = `Información de Inactivación\nDetalles de transformación\n📄 Observación: Este registro fue utilizado para convertir un monto a otra moneda. Los valores a continuación corresponden al monto transferido al voucher de destino.\n💱 Tipo de cambio(precio): ${exchangeRate}\n💰 Tipo de cambio(moneda): ${ExchangeCurrencyTypesNames[exchangeCurrencyTypes]}\n💲 Total monto cambiado: ${(offeringIncome.amount * +exchangeRate).toFixed(2)} ${
+        exchangeCurrencyTypes === ExchangeCurrencyTypes.USDtoPEN ||
+        exchangeCurrencyTypes === ExchangeCurrencyTypes.EURtoPEN
+          ? CurrencyType.PEN
+          : exchangeCurrencyTypes === ExchangeCurrencyTypes.PENtoEUR
+            ? CurrencyType.EUR
+            : CurrencyType.USD
+      } (${offeringIncome.amount} ${offeringIncome?.currency})`;
+
+      const removalInfoCommentsWithDescription: string = `Detalles de la inactivación\n📅 Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\n📁 Motivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\n📄 Descripción de inactivación: ${offeringInactivationDescription}\n👤 Usuario responsable: ${user.firstNames} ${user.lastNames}`;
+      const removalInfoComments: string = `Detalles de la inactivación:\n📅 Fecha de inactivación: ${format(new Date(), 'dd/MM/yyyy')}\n📁 Motivo de inactivación: ${OfferingInactivationReasonNames[offeringInactivationReason as OfferingInactivationReason]}\n👤 Usuario responsable: ${user.firstNames} ${user.lastNames}`;
 
       const updatedComments =
         exchangeRate && exchangeCurrencyTypes && existingComments
@@ -4012,18 +4106,56 @@ export class OfferingIncomeService {
               ? `${existingComments}\n\n${removalInfoCommentsWithDescription}`
               : `${removalInfoCommentsWithDescription}`;
 
+      //! Delete (inactivate) the previous record and update its receipt
+      //* First, delete the previous images from the record (one or more)
+      await Promise.all(
+        offeringIncome.imageUrls.map((secureUrl) => {
+          return this.cloudinaryService.deleteDirectFileFromCloudinary(
+            extractPublicId(secureUrl),
+            extractPath(secureUrl),
+          );
+        }),
+      );
+
+      // * Generate the new one and place it in its position
       const deletedOfferingIncome = await this.offeringIncomeRepository.preload(
         {
           id: offeringIncome.id,
           comments: updatedComments,
           inactivationReason: offeringInactivationReason,
+          imageUrls: [],
           updatedAt: new Date(),
           updatedBy: user,
           recordStatus: RecordStatus.Inactive,
         },
       );
 
-      await this.offeringIncomeRepository.save(deletedOfferingIncome);
+      const savedDeletedOffering = await this.offeringIncomeRepository.save(
+        deletedOfferingIncome,
+      );
+
+      //* Generate the new receipt in PDF format with the data
+      const pdfDoc =
+        await this.reportsService.generateReceiptByOfferingIncomeId(
+          savedDeletedOffering.id,
+          { generationType: 'without-qr' },
+        );
+
+      //* Upload the generated receipt to Cloudinary
+      const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
+        pdfDoc,
+        fileType: OfferingFileType.Income,
+        offeringType: offeringIncome.type,
+        offeringSubType: offeringIncome.subType,
+      });
+
+      //* Update the record to set the new image
+      const updateOffering = await this.offeringIncomeRepository.preload({
+        id: savedDeletedOffering.id,
+        imageUrls: [imageUrl],
+      });
+
+      await this.offeringIncomeRepository.save(updateOffering);
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -4047,7 +4179,7 @@ export class OfferingIncomeService {
     );
   }
 
-  //? Método para obtener el prefijo de acuerdo al subTipo
+  //? Method to get the prefix based on the subType
   private getPrefixBySubType(subType: string): string | null {
     const mapping = {
       sunday_service: 'CD',
@@ -4069,7 +4201,7 @@ export class OfferingIncomeService {
     return mapping[subType] || null;
   }
 
-  //? Método para generar el siguiente código de recibo
+  //? Method to generate the next receipt code
   private async generateNextReceipt(prefix: string): Promise<string> {
     const lastRecord = await this.offeringIncomeRepository
       .createQueryBuilder('offeringIncome')

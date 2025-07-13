@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { MetricsService } from '@/modules/metrics/metrics.service';
 import { MetricsController } from '@/modules/metrics/metrics.controller';
@@ -21,16 +21,16 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
   controllers: [MetricsController],
   imports: [
     AuthModule,
-    ZoneModule,
-    ChurchModule,
-    PastorModule,
-    CopastorModule,
-    DiscipleModule,
-    PreacherModule,
-    SupervisorModule,
     FamilyGroupModule,
-    OfferingIncomeModule,
     OfferingExpenseModule,
+    forwardRef(() => ZoneModule),
+    forwardRef(() => ChurchModule),
+    forwardRef(() => PastorModule),
+    forwardRef(() => CopastorModule),
+    forwardRef(() => DiscipleModule),
+    forwardRef(() => PreacherModule),
+    forwardRef(() => SupervisorModule),
+    forwardRef(() => OfferingIncomeModule),
   ],
   exports: [MetricsService],
 })

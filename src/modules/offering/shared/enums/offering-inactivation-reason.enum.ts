@@ -18,7 +18,7 @@ export const OfferingInactivationReasonNames: Record<
   OfferingInactivationReason,
   string
 > = {
-  currency_exchange: '💲💲 Cambio de divisa',
+  currency_exchange: '💲 Cambio de divisa',
   type_selection_error: '❌ Error en selección de tipo',
   sub_type_selection_error: '❌ Error en selección de sub-tipo',
   shift_selection_error: '❌ Error en selección de turno',

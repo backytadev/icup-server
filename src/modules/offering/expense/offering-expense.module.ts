@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
@@ -13,7 +13,7 @@ import { ChurchModule } from '@/modules/church/church.module';
   providers: [OfferingExpenseService],
   imports: [
     TypeOrmModule.forFeature([OfferingExpense]),
-    ChurchModule,
+    forwardRef(() => ChurchModule),
     AuthModule,
   ],
   exports: [TypeOrmModule, OfferingExpenseService],
