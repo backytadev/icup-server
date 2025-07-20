@@ -319,7 +319,12 @@ export class SupervisorService {
             theirZone: isNullZone ? IsNull() : null,
           },
           order: { createdAt: order as FindOptionsOrderValue },
-          relations: ['member'],
+          relations: [
+            'member',
+            'theirCopastor.member',
+            'theirPastor.member',
+            'theirChurch',
+          ],
         });
 
         if (supervisors.length === 0) {

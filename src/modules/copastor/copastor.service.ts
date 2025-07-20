@@ -216,7 +216,7 @@ export class CopastorService {
         const copastors = await this.copastorRepository.find({
           where: { theirChurch: church, recordStatus: RecordStatus.Active },
           order: { createdAt: order as FindOptionsOrderValue },
-          relations: ['member'],
+          relations: ['member', 'theirPastor.member', 'theirChurch'],
         });
 
         if (copastors.length === 0) {

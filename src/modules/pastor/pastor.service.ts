@@ -170,7 +170,7 @@ export class PastorService {
         const pastors = await this.pastorRepository.find({
           where: { recordStatus: RecordStatus.Active },
           order: { createdAt: order as FindOptionsOrderValue },
-          relations: ['member'],
+          relations: ['member', 'theirChurch'],
         });
 
         if (pastors.length === 0) {
