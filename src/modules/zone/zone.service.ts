@@ -1779,6 +1779,12 @@ export class ZoneService {
         );
       }
 
+      //* Validation old Supervisor
+      const oldSupervisor = await this.supervisorRepository.findOne({
+        where: { id: zone.theirSupervisor?.id },
+        relations: ['theirChurch', 'theirPastor', 'theirCopastor', 'theirZone'],
+      });
+
       let savedZone: Zone;
       try {
         const updatedZone = await this.zoneRepository.preload({
@@ -1801,7 +1807,16 @@ export class ZoneService {
           recordStatus: recordStatus,
         });
 
-        //* Set relationship in preacher according their zone
+        //! Delete old Supervisor
+        if (oldSupervisor) {
+          await this.supervisorRepository.update(oldSupervisor?.id, {
+            theirZone: null,
+            updatedAt: new Date(),
+            updatedBy: user,
+          });
+        }
+
+        //* Set relationship in supervisor according their zone
         newSupervisor.theirZone = updatedZone;
         await this.supervisorRepository.save(newSupervisor);
 
@@ -1824,7 +1839,7 @@ export class ZoneService {
       try {
         //* Update and set new relationships in Preacher
         const preachersBySupervisor = allPreachers.filter(
-          (preacher) => preacher?.theirSupervisor?.id === newSupervisor?.id,
+          (preacher) => preacher?.theirSupervisor?.id === oldSupervisor?.id,
         );
 
         await Promise.all(
@@ -1844,7 +1859,7 @@ export class ZoneService {
         //* Update and set new relationships in Family group
         const familyGroupsByCopastor = allFamilyGroups.filter(
           (familyGroup) =>
-            familyGroup?.theirSupervisor?.id === newSupervisor?.id,
+            familyGroup?.theirSupervisor?.id === oldSupervisor?.id,
         );
 
         await Promise.all(
@@ -1864,7 +1879,7 @@ export class ZoneService {
 
         //* Update and set new relationships in Disciple
         const disciplesByCopastor = allDisciples.filter(
-          (disciple) => disciple?.theirSupervisor?.id === newSupervisor?.id,
+          (disciple) => disciple?.theirSupervisor?.id === oldSupervisor?.id,
         );
 
         await Promise.all(
