@@ -73,9 +73,9 @@ export const generateReceiptByOfferingIncomeId = (
     zoneName,
     zoneDistrict,
     preacherFullName,
-    supervisorFullName,
+    // supervisorFullName,
     copastorFullName,
-    pastorFullName,
+    // pastorFullName,
     memberType,
     memberFullName,
     externalDonorFullName,
@@ -333,25 +333,25 @@ export const generateReceiptByOfferingIncomeId = (
   }
 
   //* Add condition for supervisor
-  if (
-    subType === OfferingIncomeCreationSubType.FamilyGroup ||
-    subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil ||
-    subType === OfferingIncomeCreationSubType.ZonalEvangelism
-  ) {
-    relationshipDetails.push([
-      {
-        text: 'Supervisor:',
-        margin: [5, 0, 5, 2],
-        style: 'labelDetails',
-      },
-      {
-        text: `${supervisorFullName}`,
-        margin: [5, 0, 5, 2],
-        style: 'valueDetails',
-      },
-    ]);
-  }
+  // /* if (
+  //   subType === OfferingIncomeCreationSubType.FamilyGroup ||
+  //   subType === OfferingIncomeCreationSubType.ZonalFasting ||
+  //   subType === OfferingIncomeCreationSubType.ZonalVigil ||
+  //   subType === OfferingIncomeCreationSubType.ZonalEvangelism
+  // ) {
+  //   relationshipDetails.push([
+  //     {
+  //       text: 'Supervisor:',
+  //       margin: [5, 0, 5, 2],
+  //       style: 'labelDetails',
+  //     },
+  //     {
+  //       text: `${supervisorFullName}`,
+  //       margin: [5, 0, 5, 2],
+  //       style: 'valueDetails',
+  //     },
+  //   ]);
+  // } */
 
   //* Add condition for co-pastor
   if (
@@ -375,25 +375,25 @@ export const generateReceiptByOfferingIncomeId = (
   }
 
   //* Add condition for pastor
-  if (
-    subType === OfferingIncomeCreationSubType.FamilyGroup ||
-    subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil ||
-    subType === OfferingIncomeCreationSubType.ZonalEvangelism
-  ) {
-    relationshipDetails.push([
-      {
-        text: 'Pastor:',
-        margin: [5, 0, 5, 2],
-        style: 'labelDetails',
-      },
-      {
-        text: `${pastorFullName}`,
-        margin: [5, 0, 5, 2],
-        style: 'valueDetails',
-      },
-    ]);
-  }
+  // if (
+  //   subType === OfferingIncomeCreationSubType.FamilyGroup ||
+  //   subType === OfferingIncomeCreationSubType.ZonalFasting ||
+  //   subType === OfferingIncomeCreationSubType.ZonalVigil ||
+  //   subType === OfferingIncomeCreationSubType.ZonalEvangelism
+  // ) {
+  //   relationshipDetails.push([
+  //     {
+  //       text: 'Pastor:',
+  //       margin: [5, 0, 5, 2],
+  //       style: 'labelDetails',
+  //     },
+  //     {
+  //       text: `${pastorFullName}`,
+  //       margin: [5, 0, 5, 2],
+  //       style: 'valueDetails',
+  //     },
+  //   ]);
+  // }
 
   //! Record Details
   const recordDetails = [];

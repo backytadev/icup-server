@@ -13,6 +13,7 @@ import * as streamifier from 'streamifier';
 import { v2 as cloudinary } from 'cloudinary';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { sanitizeFileName } from '@/common/helpers/sanitize-file-name';
 import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
 
 import { User } from '@/modules/user/entities/user.entity';
@@ -45,6 +46,7 @@ export class CloudinaryService {
 
       const uploadStream = cloudinary.uploader.upload_stream(
         {
+          public_id: sanitizeFileName(file.originalname),
           folder: offeringSubType
             ? `${fileType}/${offeringType}/${offeringSubType}`
             : `${fileType}/${offeringType}`,
@@ -173,14 +175,16 @@ export class CloudinaryService {
     }
   }
 
-  // * New standalone methods for internal use
+  //* Standalone methods for internal use
   async uploadPdfAsWebp({
+    fileName,
     pdfDoc,
     fileType,
     offeringType,
     offeringSubType,
   }: {
     pdfDoc: PDFKit.PDFDocument;
+    fileName?: string;
     fileType: string;
     offeringType: string;
     offeringSubType: string;
@@ -194,6 +198,7 @@ export class CloudinaryService {
 
         const uploadStream = cloudinary.uploader.upload_stream(
           {
+            public_id: fileName,
             folder: offeringSubType
               ? `${fileType}/${offeringType}/${offeringSubType}`
               : `${fileType}/${offeringType}`,

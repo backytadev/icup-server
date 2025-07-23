@@ -247,6 +247,7 @@ export class OfferingIncomeService {
           );
         }
 
+        //* Create offering
         try {
           const newOfferingIncome = this.offeringIncomeRepository.create({
             ...createOfferingIncomeDto,
@@ -269,7 +270,34 @@ export class OfferingIncomeService {
             createdBy: user,
           });
 
-          return await this.offeringIncomeRepository.save(newOfferingIncome);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(newOfferingIncome);
+
+          //* Generate a new PDF receipt with the provided data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          //* Upload the generated receipt to Cloudinary
+          const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp(
+            {
+              pdfDoc,
+              fileName: receiptCode,
+              fileType: OfferingFileType.Income,
+              offeringType: type,
+              offeringSubType: subType,
+            },
+          );
+
+          //* Update record with the uploaded image URL
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [uploadedImageUrl],
+          });
+
+          return await this.offeringIncomeRepository.save(updateOffering);
         } catch (error) {
           this.handleDBExceptions(error);
         }
@@ -333,6 +361,7 @@ export class OfferingIncomeService {
           );
         }
 
+        //* Create offering
         try {
           const newOfferingIncome = this.offeringIncomeRepository.create({
             ...createOfferingIncomeDto,
@@ -355,7 +384,34 @@ export class OfferingIncomeService {
             createdBy: user,
           });
 
-          return await this.offeringIncomeRepository.save(newOfferingIncome);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(newOfferingIncome);
+
+          //* Generate a new PDF receipt with the provided data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          //* Upload the generated receipt to Cloudinary
+          const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp(
+            {
+              pdfDoc,
+              fileName: receiptCode,
+              fileType: OfferingFileType.Income,
+              offeringType: type,
+              offeringSubType: subType,
+            },
+          );
+
+          //* Update record with the uploaded image URL
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [uploadedImageUrl],
+          });
+
+          return await this.offeringIncomeRepository.save(updateOffering);
         } catch (error) {
           this.handleDBExceptions(error);
         }
@@ -700,7 +756,33 @@ export class OfferingIncomeService {
               createdBy: user,
             });
 
-            return await this.offeringIncomeRepository.save(newOfferingIncome);
+            const savedOffering =
+              await this.offeringIncomeRepository.save(newOfferingIncome);
+
+            //* Generate a new PDF receipt with the provided data
+            const pdfDoc =
+              await this.reportsService.generateReceiptByOfferingIncomeId(
+                savedOffering.id,
+                { generationType: 'without-qr' },
+              );
+
+            //* Upload the generated receipt to Cloudinary
+            const uploadedImageUrl =
+              await this.cloudinaryService.uploadPdfAsWebp({
+                pdfDoc,
+                fileName: receiptCode,
+                fileType: OfferingFileType.Income,
+                offeringType: type,
+                offeringSubType: subType,
+              });
+
+            //* Update record with the uploaded image URL
+            const updateOffering = await this.offeringIncomeRepository.preload({
+              id: savedOffering.id,
+              imageUrls: [uploadedImageUrl],
+            });
+
+            return await this.offeringIncomeRepository.save(updateOffering);
           } catch (error) {
             this.handleDBExceptions(error);
           }
@@ -739,7 +821,34 @@ export class OfferingIncomeService {
             createdBy: user,
           });
 
-          return await this.offeringIncomeRepository.save(newOfferingIncome);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(newOfferingIncome);
+
+          //* Generate a new PDF receipt with the provided data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          //* Upload the generated receipt to Cloudinary
+          const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp(
+            {
+              pdfDoc,
+              fileName: receiptCode,
+              fileType: OfferingFileType.Income,
+              offeringType: type,
+              offeringSubType: subType,
+            },
+          );
+
+          //* Update record with the uploaded image URL
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [uploadedImageUrl],
+          });
+
+          return await this.offeringIncomeRepository.save(updateOffering);
         } catch (error) {
           this.handleDBExceptions(error);
         }
@@ -842,7 +951,34 @@ export class OfferingIncomeService {
             createdBy: user,
           });
 
-          return await this.offeringIncomeRepository.save(newOfferingIncome);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(newOfferingIncome);
+
+          //* Generate a new PDF receipt with the provided data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          //* Upload the generated receipt to Cloudinary
+          const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp(
+            {
+              pdfDoc,
+              fileName: receiptCode,
+              fileType: OfferingFileType.Income,
+              offeringType: type,
+              offeringSubType: subType,
+            },
+          );
+
+          //* Update record with the uploaded image URL
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [uploadedImageUrl],
+          });
+
+          return await this.offeringIncomeRepository.save(updateOffering);
         } catch (error) {
           this.handleDBExceptions(error);
         }
@@ -920,7 +1056,34 @@ export class OfferingIncomeService {
             createdBy: user,
           });
 
-          return await this.offeringIncomeRepository.save(newOfferingIncome);
+          const savedOffering =
+            await this.offeringIncomeRepository.save(newOfferingIncome);
+
+          //* Generate a new PDF receipt with the provided data
+          const pdfDoc =
+            await this.reportsService.generateReceiptByOfferingIncomeId(
+              savedOffering.id,
+              { generationType: 'without-qr' },
+            );
+
+          //* Upload the generated receipt to Cloudinary
+          const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp(
+            {
+              pdfDoc,
+              fileName: receiptCode,
+              fileType: OfferingFileType.Income,
+              offeringType: type,
+              offeringSubType: subType,
+            },
+          );
+
+          //* Update record with the uploaded image URL
+          const updateOffering = await this.offeringIncomeRepository.preload({
+            id: savedOffering.id,
+            imageUrls: [uploadedImageUrl],
+          });
+
+          return await this.offeringIncomeRepository.save(updateOffering);
         } catch (error) {
           this.handleDBExceptions(error);
         }
@@ -992,7 +1155,32 @@ export class OfferingIncomeService {
           createdBy: user,
         });
 
-        return await this.offeringIncomeRepository.save(newOfferingIncome);
+        const savedOffering =
+          await this.offeringIncomeRepository.save(newOfferingIncome);
+
+        //* Generate a new PDF receipt with the provided data
+        const pdfDoc =
+          await this.reportsService.generateReceiptByOfferingIncomeId(
+            savedOffering.id,
+            { generationType: 'without-qr' },
+          );
+
+        //* Upload the generated receipt to Cloudinary
+        const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp({
+          pdfDoc,
+          fileName: receiptCode,
+          fileType: OfferingFileType.Income,
+          offeringType: type,
+          offeringSubType: subType,
+        });
+
+        //* Update record with the uploaded image URL
+        const updateOffering = await this.offeringIncomeRepository.preload({
+          id: savedOffering.id,
+          imageUrls: [uploadedImageUrl],
+        });
+
+        return await this.offeringIncomeRepository.save(updateOffering);
       } catch (error) {
         this.handleDBExceptions(error);
       }
@@ -3735,7 +3923,33 @@ export class OfferingIncomeService {
         },
       );
 
-      return await this.offeringIncomeRepository.save(updatedOfferingIncome);
+      const savedOffering = await this.offeringIncomeRepository.save(
+        updatedOfferingIncome,
+      );
+
+      //* Generate a new PDF receipt with the provided data
+      const pdfDoc =
+        await this.reportsService.generateReceiptByOfferingIncomeId(
+          savedOffering.id,
+          { generationType: 'without-qr' },
+        );
+
+      //* Upload the generated receipt to Cloudinary
+      const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp({
+        pdfDoc,
+        fileName: updatedOfferingIncome.receiptCode,
+        fileType: OfferingFileType.Income,
+        offeringType: type,
+        offeringSubType: subType,
+      });
+
+      //* Update record with the uploaded image URL
+      const updateOffering = await this.offeringIncomeRepository.preload({
+        id: savedOffering.id,
+        imageUrls: [uploadedImageUrl],
+      });
+
+      return await this.offeringIncomeRepository.save(updateOffering);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -3938,7 +4152,7 @@ export class OfferingIncomeService {
           });
         }
 
-        //* If it exists, the transformed amount is added to the existing record.
+        //? If it exists, the transformed amount is added to the existing record.
         if (offeringDestiny) {
           const currentComments = offeringDestiny.comments || '';
           const newComments = `Información de Conversión\n💲 Monto anterior: ${offeringDestiny.amount} ${offeringDestiny.currency}\n💰Tipo de cambio (precio): ${exchangeRate}\n💰 Tipo de cambio(moneda): ${ExchangeCurrencyTypesNames[exchangeCurrencyTypes]}\n💲 Monto añadido: ${(offeringIncome.amount * +exchangeRate).toFixed(2)} ${offeringDestiny.currency} (${offeringIncome.amount} ${offeringIncome.currency})`;
@@ -3983,6 +4197,7 @@ export class OfferingIncomeService {
           // * Upload the generated receipt to Cloudinary
           const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
             pdfDoc,
+            fileName: savedOffering.receiptCode,
             fileType: OfferingFileType.Income,
             offeringType: offeringIncome.type,
             offeringSubType: offeringIncome.subType,
@@ -4013,7 +4228,7 @@ export class OfferingIncomeService {
           const receiptCode = await this.generateNextReceipt(prefix);
 
           //* Comments of change amount and currency for the new record
-          const newComments = `Información de Conversión\n💲 Monto anterior: ${offeringIncome.amount} ${offeringIncome?.currency}💰Tipo de cambio (precio): ${exchangeRate}\n💲 Monto convertido: ${(+offeringIncome.amount * +exchangeRate).toFixed(2)} ${
+          const newComments = `Información de Conversión\n💲 Monto anterior: ${offeringIncome.amount} ${offeringIncome?.currency}\n💰Tipo de cambio (precio): ${exchangeRate}\n💲 Monto convertido: ${(+offeringIncome.amount * +exchangeRate).toFixed(2)} ${
             exchangeCurrencyTypes === ExchangeCurrencyTypes.USDtoPEN ||
             exchangeCurrencyTypes === ExchangeCurrencyTypes.EURtoPEN
               ? CurrencyType.PEN
@@ -4068,6 +4283,7 @@ export class OfferingIncomeService {
           //* Upload the generated receipt to Cloudinary
           const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
             pdfDoc,
+            fileName: savedOffering.receiptCode,
             fileType: OfferingFileType.Income,
             offeringType: offeringIncome.type,
             offeringSubType: offeringIncome.subType,
@@ -4144,6 +4360,7 @@ export class OfferingIncomeService {
       //* Upload the generated receipt to Cloudinary
       const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
         pdfDoc,
+        fileName: savedDeletedOffering.receiptCode,
         fileType: OfferingFileType.Income,
         offeringType: offeringIncome.type,
         offeringSubType: offeringIncome.subType,
