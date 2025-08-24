@@ -10,6 +10,10 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+import {
+  RelationType,
+  RelationTypeNames,
+} from '@/common/enums/relation-type.enum';
 import { Gender } from '@/common/enums/gender.enum';
 import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
@@ -183,6 +187,19 @@ export class CreatePastorDto {
   })
   @IsOptional()
   recordStatus?: string;
+
+  @ApiProperty({
+    example: RelationType.OnlyRelatedHierarchicalCover,
+  })
+  @IsEnum(RelationType, {
+    message: `El tipo de relación debe ser uno de lo siguientes valores: ${Object.values(
+      RelationTypeNames,
+    )
+      .map((item) => item)
+      .join(', ')} `,
+  })
+  @IsOptional()
+  relationType?: string;
 
   //* Relations
   @ApiProperty({

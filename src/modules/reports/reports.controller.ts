@@ -35,6 +35,7 @@ import { ZoneSearchType } from '@/modules/zone/enums/zone-search-type.enum';
 import { ChurchSearchType } from '@/modules/church/enums/church-search-type.enum';
 import { PastorSearchType } from '@/modules/pastor/enums/pastor-search-type.enum';
 import { ZoneSearchSubType } from '@/modules/zone/enums/zone-search-sub-type.enum';
+import { MinistrySearchType } from '@/modules/ministry/enums/ministry-search-type.enum';
 import { PreacherSearchType } from '@/modules/preacher/enums/preacher-search-type.enum';
 import { CopastorSearchType } from '@/modules/copastor/enums/copastor-search-type.enum';
 import { DiscipleSearchType } from '@/modules/disciple/enums/disciple-search-type.enum';
@@ -193,6 +194,70 @@ export class ReportsController {
     response.setHeader(
       'Content-Disposition',
       'attachment; filename="churches-by-term-report.pdf"',
+    );
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
+  //? MINISTRIES
+  //* MINISTRIES GENERAL REPORT
+  @Get('ministries')
+  @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of ministries has been successfully retrieved. The response includes a downloadable PDF report of the ministries.',
+  })
+  @ApiProduces('application/pdf')
+  async getGeneralMinistries(
+    @Res() response: Response,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    const pdfDoc =
+      await this.reportsService.getGeneralMinistries(paginationDto);
+
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-ministries-report.pdf"',
+    );
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
+  //* CHURCHES BY TERM REPORT
+  @Get('ministries/:term')
+  @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be church name, department, province, district, urbanSector, address, foundingDate and record status.',
+    example: 'Ministerio de Jóvenes',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of ministries has been successfully retrieved. The response includes a downloadable PDF report of the ministries.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: MinistrySearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: MinistrySearchType.MinistryType,
+  })
+  @ApiProduces('application/pdf')
+  async getMinistriesByTerm(
+    @Res() response: Response,
+    @Param('term') term: string,
+    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+  ) {
+    const pdfDoc = await this.reportsService.getMinistriesByTerm(
+      term,
+      searchTypeAndPaginationDto,
+    );
+
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="ministries-by-term-report.pdf"',
     );
     pdfDoc.pipe(response);
     pdfDoc.end();

@@ -12,6 +12,7 @@ import { MemberModule } from '@/modules/member/member.module';
 import { DiscipleModule } from '@/modules/disciple/disciple.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
 import { PreacherModule } from '@/modules/preacher/preacher.module';
+import { MinistryModule } from '@/modules/ministry/ministry.module';
 import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
@@ -21,6 +22,9 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
   providers: [PastorService],
   imports: [
     TypeOrmModule.forFeature([Pastor]),
+    AuthModule,
+    MemberModule,
+    MinistryModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => CopastorModule),
     forwardRef(() => SupervisorModule),
@@ -29,8 +33,6 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     forwardRef(() => FamilyGroupModule),
     forwardRef(() => DiscipleModule),
     forwardRef(() => OfferingIncomeModule),
-    MemberModule,
-    AuthModule,
   ],
   exports: [TypeOrmModule, PastorService],
 })

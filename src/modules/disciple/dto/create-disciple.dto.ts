@@ -10,12 +10,18 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+import {
+  RelationType,
+  RelationTypeNames,
+} from '@/common/enums/relation-type.enum';
 import { Gender } from '@/common/enums/gender.enum';
 import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { MaritalStatus } from '@/common/enums/marital-status.enum';
 import { MemberInactivationReason } from '@/common/enums/member-inactivation-reason.enum';
 import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
+
+import { MinistryAssignment } from '@/common/interfaces/ministry-assignment.interface';
 
 export class CreateDiscipleDto {
   //* General and Personal info
@@ -79,9 +85,8 @@ export class CreateDiscipleDto {
   @ApiProperty({
     example: '2001/12/23',
   })
-  @IsString()
   @IsOptional()
-  conversionDate?: Date;
+  conversionDate?: Date | null;
 
   //* Contact Info
   @ApiProperty({
@@ -185,6 +190,19 @@ export class CreateDiscipleDto {
   @IsOptional()
   recordStatus?: string;
 
+  @ApiProperty({
+    example: RelationType.OnlyRelatedHierarchicalCover,
+  })
+  @IsEnum(RelationType, {
+    message: `El tipo de relación debe ser uno de lo siguientes valores: ${Object.values(
+      RelationTypeNames,
+    )
+      .map((item) => item)
+      .join(', ')} `,
+  })
+  @IsOptional()
+  relationType?: string;
+
   //* Relations
   @ApiProperty({
     example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
@@ -199,6 +217,28 @@ export class CreateDiscipleDto {
   @IsString()
   @IsOptional()
   theirSupervisor?: string;
+
+  @ApiProperty({
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
+  })
+  @IsString()
+  @IsOptional()
+  theirPastor?: string;
+
+  @ApiProperty({
+    description:
+      'Listado de ministerios asignados a la persona (discípulo, pastor, predicador, etc.) junto con sus roles dentro de cada ministerio.',
+    example: [
+      {
+        ministryId: '1234567890abcdef2sfs24021a',
+        ministryRoles: ['member'],
+      },
+    ],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  theirMinistries?: MinistryAssignment[];
 
   //! Properties record inactivation (optional)
   @IsOptional()

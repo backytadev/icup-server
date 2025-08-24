@@ -55,6 +55,7 @@ import { getUsersReport } from '@/modules/reports/reports-types/user/user.report
 import { getZonesReport } from '@/modules/reports/reports-types/zone/zones.report';
 import { getChurchesReport } from '@/modules/reports/reports-types/church/churches.report';
 import { getMembersReport } from '@/modules/reports/reports-types/membership/members.report';
+import { getMinistriesReport } from '@/modules/reports/reports-types/ministry/ministry.report';
 import { getFamilyGroupsReport } from '@/modules/reports/reports-types/family-group/family-groups.report';
 import { getOfferingIncomeReport } from '@/modules/reports/reports-types/offering/offering-income.report';
 import { getOfferingExpensesReport } from '@/modules/reports/reports-types/offering/offering-expenses.report';
@@ -73,6 +74,7 @@ import { ChurchService } from '@/modules/church/church.service';
 import { DiscipleService } from '@/modules/disciple/disciple.service';
 import { CopastorService } from '@/modules/copastor/copastor.service';
 import { PreacherService } from '@/modules/preacher/preacher.service';
+import { MinistryService } from '@/modules/ministry/ministry.service';
 import { SupervisorService } from '@/modules/supervisor/supervisor.service';
 import { FamilyGroupService } from '@/modules/family-group/family-group.service';
 import { OfferingIncomeService } from '@/modules/offering/income/offering-income.service';
@@ -86,6 +88,7 @@ import { Church } from '@/modules/church/entities/church.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
@@ -147,6 +150,7 @@ export class ReportsService {
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
 
     private readonly churchService: ChurchService,
+    private readonly ministryService: MinistryService,
     private readonly pastorService: PastorService,
     private readonly copastorService: CopastorService,
     private readonly supervisorService: SupervisorService,
@@ -412,14 +416,130 @@ export class ReportsService {
         title: 'Reporte de Iglesias',
         subTitle: 'Resultados de Búsqueda de Iglesias',
         description: 'iglesias',
-        searchTerm: `Termino de búsqueda: ${newTerm}`,
-        searchType: `Tipo de búsqueda: ${SearchTypeNames[searchType]}`,
+        searchTerm: `${newTerm}`,
+        searchType: `${SearchTypeNames[searchType]}`,
         searchSubType: SearchSubTypeNames[searchSubType] ?? 'S/N',
         orderSearch: RecordOrderNames[order],
         churchName: churchId
           ? churches[0]?.theirMainChurch?.abbreviatedChurchName
           : undefined,
         data: churches,
+      });
+
+      const doc = this.printerService.createPdf(docDefinition);
+
+      return doc;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      this.handleDBExceptions(error);
+    }
+  }
+
+  //? MINISTRIES
+  //* GENERAL CHURCHES REPORT
+  async getGeneralMinistries(paginationDto: PaginationDto) {
+    const { order } = paginationDto;
+
+    try {
+      const ministries: Ministry[] =
+        await this.ministryService.findAll(paginationDto);
+
+      if (!ministries) {
+        throw new NotFoundException(
+          `No se encontraron ministerios con estos términos de búsqueda.`,
+        );
+      }
+
+      const docDefinition = getMinistriesReport({
+        title: 'Reporte de Ministerios',
+        subTitle: 'Resultados de Búsqueda de Ministerios',
+        description: 'ministerios',
+        orderSearch: order,
+        data: ministries,
+      });
+
+      const doc = this.printerService.createPdf(docDefinition);
+
+      return doc;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.handleDBExceptions(error);
+    }
+  }
+
+  //* MINISTRIES REPORT BY TERM
+  async getMinistriesByTerm(
+    term: string,
+    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  ) {
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
+
+    try {
+      const ministries: Ministry[] = await this.ministryService.findByTerm(
+        term,
+        searchTypeAndPaginationDto,
+      );
+
+      if (!ministries) {
+        throw new NotFoundException(
+          `No se encontraron ministerios con estos términos de búsqueda.`,
+        );
+      }
+
+      let newTerm: string;
+      newTerm = term;
+
+      //* By Founding Date
+      if (searchType === SearchType.FoundingDate) {
+        const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
+
+        if (isNaN(fromTimestamp)) {
+          throw new NotFoundException('Formato de marca de tiempo invalido.');
+        }
+
+        const formattedFromDate = format(fromTimestamp, 'dd/MM/yyyy');
+        const formattedToDate = format(toTimestamp, 'dd/MM/yyyy');
+
+        newTerm = `${formattedFromDate} - ${formattedToDate}`;
+      }
+
+      //* By Record Status
+      if (searchType === SearchType.RecordStatus) {
+        const recordStatusTerm = term.toLowerCase();
+        const validRecordStatus = ['active', 'inactive'];
+
+        if (!validRecordStatus.includes(recordStatusTerm)) {
+          throw new BadRequestException(
+            `Estado de registro no válido: ${term}`,
+          );
+        }
+
+        newTerm = `${RecordStatusNames[recordStatusTerm]} `;
+      }
+
+      const docDefinition = getMinistriesReport({
+        title: 'Reporte de Ministerios',
+        subTitle: 'Resultados de Búsqueda de Ministerios',
+        description: 'ministerios',
+        searchTerm: `${newTerm}`,
+        searchType: `${SearchTypeNames[searchType]}`,
+        searchSubType: SearchSubTypeNames[searchSubType] ?? 'S/N',
+        orderSearch: RecordOrderNames[order],
+        churchName: churchId
+          ? ministries[0]?.theirChurch?.abbreviatedChurchName
+          : undefined,
+        data: ministries,
       });
 
       const doc = this.printerService.createPdf(docDefinition);

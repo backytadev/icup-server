@@ -21,6 +21,7 @@ import { ReportsModule } from '@/modules/reports/reports.module';
 import { PrinterModule } from '@/modules/printer/printer.module';
 import { DiscipleModule } from '@/modules/disciple/disciple.module';
 import { PreacherModule } from '@/modules/preacher/preacher.module';
+import { MinistryModule } from './modules/ministry/ministry.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
 import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { CloudinaryModule } from '@/modules/cloudinary/cloudinary.module';
@@ -69,6 +70,7 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
     CopastorModule,
     PrinterModule,
     PreacherModule,
+    MinistryModule,
     DiscipleModule,
     CloudinaryModule,
     SupervisorModule,

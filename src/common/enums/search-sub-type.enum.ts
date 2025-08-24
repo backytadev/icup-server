@@ -75,6 +75,11 @@ export enum SearchSubType {
   FamilyGroupByPreacherLastNames = 'family_group_by_preacher_last_names',
   FamilyGroupByPreacherFullNames = 'family_group_by_preacher_full_names',
 
+  //? Ministry
+  MinistryByPastorFirstNames = 'ministry_by_pastor_first_names',
+  MinistryByPastorLastNames = 'ministry_by_pastor_last_names',
+  MinistryByPastorFullNames = 'ministry_by_pastor_full_names',
+
   // ? Offering Income
   //* Family Group, Fasting Zonal, Fasting General, Vigil Zonal, vigilia General, Ground Church, Activities, Youngs
   OfferingByDate = 'offering_by_date',
@@ -293,6 +298,11 @@ export const SearchSubTypeNames: Record<SearchSubType, string> = {
     'Por apellidos de su predicador',
   [SearchSubType.FamilyGroupByPreacherFullNames]:
     'Por nombres y apellidos de su predicador',
+
+  [SearchSubType.MinistryByPastorFirstNames]: 'Por nombres de su pastor',
+  [SearchSubType.MinistryByPastorLastNames]: 'Por apellidos de su pastor',
+  [SearchSubType.MinistryByPastorFullNames]:
+    'Por nombres y apellidos de su pastor',
 
   [SearchSubType.OfferingByDate]: 'Por fecha',
 

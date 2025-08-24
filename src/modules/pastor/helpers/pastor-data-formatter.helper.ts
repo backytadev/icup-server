@@ -12,6 +12,12 @@ export const pastorDataFormatter = ({ pastors }: Options) => {
       churchName: pastor?.theirChurch?.churchName,
       abbreviatedChurchName: pastor?.theirChurch?.abbreviatedChurchName,
     },
+    ministries: pastor?.ministries.map((ministry) => ({
+      id: ministry?.id,
+      ministryType: ministry?.ministryType,
+      customMinistryName: ministry?.customMinistryName,
+      district: ministry?.district,
+    })),
     copastors: pastor?.copastors.map((copastor) => ({
       id: copastor?.id,
       firstNames: copastor?.member?.firstNames,

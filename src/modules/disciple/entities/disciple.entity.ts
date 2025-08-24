@@ -57,6 +57,12 @@ export class Disciple {
   })
   recordStatus: string;
 
+  @Column('text', {
+    name: 'relation_type',
+    nullable: true,
+  })
+  relationType: string;
+
   //* Relations (FK)
   @ManyToOne(() => Church, (church) => church.disciples)
   @JoinColumn({ name: 'their_church_id' })
