@@ -58,6 +58,12 @@ export class Preacher {
   })
   recordStatus: string;
 
+  @Column('text', {
+    name: 'relation_type',
+    nullable: true,
+  })
+  relationType: string;
+
   //* Relations (Array)
   @OneToMany(() => Disciple, (disciple) => disciple.theirPreacher)
   disciples: Disciple[];

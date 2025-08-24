@@ -17,6 +17,7 @@ import { Member } from '../../../modules/member/entities/member.entity';
 import { Copastor } from '../../../modules/copastor/entities/copastor.entity';
 import { Preacher } from '../../../modules/preacher/entities/preacher.entity';
 import { Disciple } from '../../../modules/disciple/entities/disciple.entity';
+import { Ministry } from '../../../modules/ministry/entities/ministry.entity';
 import { Supervisor } from '../../../modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '../../../modules/family-group/entities/family-group.entity';
 
@@ -58,7 +59,16 @@ export class Pastor {
   })
   recordStatus: string;
 
+  @Column('text', {
+    name: 'relation_type',
+    nullable: true,
+  })
+  relationType: string;
+
   //? Relations (Array)
+  @OneToMany(() => Ministry, (ministry) => ministry.theirPastor)
+  ministries: Ministry[];
+
   @OneToMany(() => Copastor, (copastor) => copastor.theirPastor)
   copastors: Copastor[];
 

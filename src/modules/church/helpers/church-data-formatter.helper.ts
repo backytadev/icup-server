@@ -24,6 +24,12 @@ export const churchDataFormatter = ({ churches, mainChurch }: Options) => {
       district: anexe?.district,
       urbanSector: anexe?.urbanSector,
     })),
+    ministries: church?.ministries.map((ministry) => ({
+      id: ministry?.id,
+      ministryType: ministry?.ministryType,
+      customMinistryName: ministry?.customMinistryName,
+      district: ministry?.district,
+    })),
     pastors: church?.pastors.map((pastor) => ({
       id: pastor?.id,
       firstNames: pastor?.member?.firstNames,

@@ -18,6 +18,7 @@ import { MetricsModule } from '@/modules/metrics/metrics.module';
 
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
+import { MinistryModule } from '@/modules/ministry/ministry.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 
@@ -30,6 +31,7 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
     MemberModule,
     PrinterModule,
     MetricsModule,
+    MinistryModule,
     FamilyGroupModule,
     OfferingExpenseModule,
     forwardRef(() => ZoneModule),

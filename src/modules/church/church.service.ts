@@ -34,6 +34,7 @@ import { Zone } from '@/modules/zone/entities/zone.entity';
 import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
@@ -45,6 +46,9 @@ export class ChurchService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
+
+    @InjectRepository(Ministry)
+    private readonly ministryRepository: Repository<Ministry>,
 
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
@@ -196,6 +200,7 @@ export class ChurchService {
           'createdBy',
           'anexes',
           'zones',
+          'ministries',
           'familyGroups',
           'pastors.member',
           'copastors.member',
@@ -835,6 +840,10 @@ export class ChurchService {
     }
 
     //? Update in subordinate relations
+    const allMinistries = await this.ministryRepository.find({
+      relations: ['theirChurch'],
+    });
+
     const allPastors = await this.pastorRepository.find({
       relations: ['theirChurch'],
     });
@@ -864,6 +873,21 @@ export class ChurchService {
     });
 
     try {
+      //* Update and set to null relationships in Ministry
+      const ministriesByChurch = allMinistries.filter(
+        (ministry) => ministry?.theirChurch?.id === church?.id,
+      );
+
+      await Promise.all(
+        ministriesByChurch.map(async (ministry) => {
+          await this.pastorRepository.update(ministry?.id, {
+            theirChurch: null,
+            updatedAt: new Date(),
+            updatedBy: user,
+          });
+        }),
+      );
+
       //* Update and set to null relationships in Pastor
       const pastorsByChurch = allPastors.filter(
         (pastor) => pastor?.theirChurch?.id === church?.id,

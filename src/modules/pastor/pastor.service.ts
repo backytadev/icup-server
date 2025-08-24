@@ -38,6 +38,7 @@ import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 
@@ -48,6 +49,9 @@ export class PastorService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
+
+    @InjectRepository(Ministry)
+    private readonly ministryRepository: Repository<Ministry>,
 
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
@@ -214,6 +218,7 @@ export class PastorService {
           'member',
           'theirChurch',
           'familyGroups',
+          'ministries',
           'zones',
           'copastors.member',
           'supervisors.member',
@@ -1401,6 +1406,9 @@ export class PastorService {
     }
 
     //? Update in subordinate relations
+    const allMinistries = await this.ministryRepository.find({
+      relations: ['theirPastor'],
+    });
     const allCopastores = await this.copastorRepository.find({
       relations: ['theirPastor'],
     });
@@ -1421,6 +1429,21 @@ export class PastorService {
     });
 
     try {
+      //* Update and set to null relationships in Ministry
+      const ministriesByPastor = allMinistries.filter(
+        (ministry) => ministry?.theirPastor?.id === pastor?.id,
+      );
+
+      await Promise.all(
+        ministriesByPastor.map(async (ministry) => {
+          await this.ministryRepository.update(ministry?.id, {
+            theirPastor: null,
+            updatedAt: new Date(),
+            updatedBy: user,
+          });
+        }),
+      );
+
       //* Update and set to null relationships in Copastor
       const copastorsByPastor = allCopastores.filter(
         (copastor) => copastor?.theirPastor?.id === pastor?.id,
@@ -1518,6 +1541,8 @@ export class PastorService {
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleDBExceptions(error: any): never {
+    console.log(error);
+
     if (error.code === '23505') {
       const detail = error.detail;
 

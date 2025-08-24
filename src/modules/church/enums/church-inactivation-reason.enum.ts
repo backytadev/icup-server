@@ -40,7 +40,7 @@ export const ChurchInactivationReasonNames: Record<
     'Fusión con otra iglesia.',
   [ChurchInactivationReason.Relocation]: 'Cambio de ubicación.',
   [ChurchInactivationReason.TemporaryClosure]:
-    ' Cierre temporal por remodelación.',
+    'Cierre temporal por remodelación.',
   [ChurchInactivationReason.DataReorganization]: 'Reorganización de registros.',
 
   [ChurchInactivationReason.NaturalDisaster]: 'Desastres naturales.',

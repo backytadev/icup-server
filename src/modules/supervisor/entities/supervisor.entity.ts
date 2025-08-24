@@ -64,6 +64,12 @@ export class Supervisor {
   })
   recordStatus: string;
 
+  @Column('text', {
+    name: 'relation_type',
+    nullable: true,
+  })
+  relationType: string;
+
   //* Relations (Array)
   @OneToMany(() => Preacher, (preacher) => preacher.theirSupervisor)
   preachers: Preacher[];

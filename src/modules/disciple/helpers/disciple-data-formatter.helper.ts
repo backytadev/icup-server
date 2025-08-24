@@ -52,5 +52,17 @@ export const discipleDataFormatter = ({ disciples }: Options) => {
       lastNames: disciple?.theirPreacher?.member?.lastNames,
       roles: disciple?.theirPreacher?.member?.roles,
     },
+    member: {
+      ...disciple.member,
+      ministries: disciple.member.ministries.map((ministry) => ({
+        id: ministry?.ministry?.id,
+        churchMinistryId: ministry?.ministry?.theirChurch?.id,
+        churchMinistryName:
+          ministry?.ministry?.theirChurch?.abbreviatedChurchName,
+        ministryType: ministry?.ministry?.ministryType,
+        customMinistryName: ministry?.ministry?.customMinistryName,
+        ministryRoles: ministry?.ministryRoles,
+      })),
+    },
   }));
 };

@@ -14,6 +14,7 @@ import { User } from '../../../modules/user/entities/user.entity';
 import { Pastor } from '../../../modules/pastor/entities/pastor.entity';
 import { Copastor } from '../../../modules/copastor/entities/copastor.entity';
 import { Preacher } from '../../../modules/preacher/entities/preacher.entity';
+import { Ministry } from '../../../modules/ministry/entities/ministry.entity';
 import { Disciple } from '../../../modules/disciple/entities/disciple.entity';
 import { Supervisor } from '../../../modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '../../../modules/family-group/entities/family-group.entity';
@@ -107,6 +108,9 @@ export class Church {
 
   @OneToMany(() => Pastor, (pastor) => pastor.theirChurch)
   pastors: Pastor[];
+
+  @OneToMany(() => Ministry, (ministry) => ministry.theirChurch)
+  ministries: Ministry[];
 
   @OneToMany(() => Copastor, (copastor) => copastor.theirChurch)
   copastors: Copastor[];

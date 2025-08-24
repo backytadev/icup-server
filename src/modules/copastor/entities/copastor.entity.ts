@@ -58,6 +58,12 @@ export class Copastor {
   })
   recordStatus: string;
 
+  @Column('text', {
+    name: 'relation_type',
+    nullable: true,
+  })
+  relationType: string;
+
   //? Relations (Array)
   @OneToMany(() => Supervisor, (supervisor) => supervisor.theirCopastor)
   supervisors: Supervisor[];

@@ -3,6 +3,10 @@ export enum SearchType {
   ChurchName = 'church_name',
   FoundingDate = 'founding_date',
 
+  //* Ministry
+  MinistryType = 'ministry_type',
+  MinistryCustomName = 'custom_ministry_name',
+
   Department = 'department',
   Province = 'province',
   District = 'district',
@@ -138,6 +142,9 @@ export const SearchTypeNames: Record<SearchType, string> = {
   //* Membership
   [SearchType.ChurchName]: 'Nombre de Iglesia',
   [SearchType.FoundingDate]: 'Fecha de Fundación',
+
+  [SearchType.MinistryType]: 'Tipo de Ministerio',
+  [SearchType.MinistryCustomName]: 'Nombre Alias',
 
   [SearchType.Department]: 'Departamento',
   [SearchType.Province]: 'Provincia',

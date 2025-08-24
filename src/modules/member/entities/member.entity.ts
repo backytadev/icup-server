@@ -1,10 +1,12 @@
 import {
   Column,
   Entity,
+  OneToMany,
   BeforeInsert,
   BeforeUpdate,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { MinistryMember } from '../../ministry/entities/ministry-member.entity';
 
 @Entity({ name: 'members' })
 export class Member {
@@ -36,8 +38,8 @@ export class Member {
   @Column('int', { name: 'number_children', default: 0 })
   numberChildren: number;
 
-  @Column('date', { name: 'conversion_date' })
-  conversionDate: Date;
+  @Column('date', { name: 'conversion_date', nullable: true })
+  conversionDate: Date | null;
 
   //* Contact Info
 
@@ -70,6 +72,10 @@ export class Member {
 
   @Column({ name: 'roles', type: 'text', array: true })
   roles: string[];
+
+  //* Relations (Array)
+  @OneToMany(() => MinistryMember, (ministryMember) => ministryMember.member)
+  ministries: MinistryMember[];
 
   //? Internal Functions
   @BeforeInsert()
