@@ -1,4 +1,5 @@
-import { addDays } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+const timeZone = 'America/Lima';
 
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 
@@ -47,13 +48,11 @@ export const comparativeOfferingIncomeByTypeFormatter = ({
 }: Options): OfferingIncomeComparativeByTypeDataResult[] => {
   const dataResult: OfferingIncomeComparativeByTypeDataResult[] =
     offeringIncome?.reduce((acc, offering) => {
-      const offeringDate = new Date(addDays(offering.date, 1));
-      const offeringMonth = offeringDate.getMonth();
+      const zonedDate = toZonedTime(offering.date, timeZone);
+      const offeringMonth = zonedDate.getMonth();
 
       const existing = acc.find(
-        (item) =>
-          item?.month ===
-          monthNames[new Date(addDays(offering.date, 1)).getMonth()],
+        (item) => item?.month === monthNames[offeringMonth],
       );
 
       if (existing) {
