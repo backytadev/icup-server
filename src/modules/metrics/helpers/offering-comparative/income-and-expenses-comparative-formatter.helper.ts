@@ -1,5 +1,6 @@
-import { addDays } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
+const timeZone = 'America/Lima';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
@@ -81,9 +82,10 @@ export const IncomeAndExpensesComparativeFormatter = ({
   //? Previous year
   //* Filtrar los ingresos y gastos del año anterior por mes
   const previousYearDataByMonth = monthNames.map((_, index) =>
-    previousYearData.filter(
-      (offering) => new Date(addDays(offering.date, 1)).getMonth() === index,
-    ),
+    previousYearData.filter((offering) => {
+      const zonedDate = toZonedTime(offering.date, timeZone);
+      return zonedDate.getMonth() === index;
+    }),
   );
 
   let previousNetResult: number | null = null;
@@ -116,9 +118,10 @@ export const IncomeAndExpensesComparativeFormatter = ({
   //? Current
   //* Filtrar los ingresos y gastos del año actual por mes
   const currentYearDataByMonth = monthNames.map((_, index) =>
-    currentYearData.filter(
-      (offering) => new Date(addDays(offering.date, 1)).getMonth() === index,
-    ),
+    currentYearData.filter((offering) => {
+      const zonedDate = toZonedTime(offering.date, timeZone);
+      return zonedDate.getMonth() === index;
+    }),
   );
 
   let currentNetResult: number | null = null;
