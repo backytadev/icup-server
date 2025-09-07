@@ -16,9 +16,10 @@ import {
 import { isUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { MemberRole } from '@/common/enums/member-role.enum';
 import { GenderNames } from '@/common/enums/gender.enum';
+import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
+import { RelationType } from '@/common/enums/relation-type.enum';
 import { MaritalStatusNames } from '@/common/enums/marital-status.enum';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
@@ -54,7 +55,6 @@ import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { MinistryMember } from '@/modules/ministry/entities/ministry-member.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
-import { RelationType } from '@/common/enums/relation-type.enum';
 
 @Injectable()
 export class DiscipleService {
@@ -2337,7 +2337,6 @@ export class DiscipleService {
     }
   }
 
-  //  todo: arreglar esta parte para que se pueda actualizar en todos los casos en especial en subida de nivel
   //* UPDATE DISCIPLE
   async update(
     id: string,
@@ -2617,6 +2616,7 @@ export class DiscipleService {
             theirFamilyGroup: newFamilyGroup,
             updatedAt: new Date(),
             updatedBy: user,
+            relationType: relationType ?? null,
             inactivationCategory:
               recordStatus === RecordStatus.Active
                 ? null
@@ -2628,25 +2628,47 @@ export class DiscipleService {
             recordStatus: recordStatus,
           });
 
-          //* Validate if there is any equal record
-          const hasChangesInMinistries = theirMinistries.some((newMinistry) => {
-            const existing = disciple.member?.ministries?.find(
-              (m) => m.ministry.id === newMinistry.ministryId,
-            );
+          //* Validate if there is any equal record or deleted records
+          const existingMinistryIds =
+            disciple.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
 
-            if (!existing) return true;
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = disciple.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
 
-            const existingRoles = [...existing.ministryRoles].sort();
-            const newRoles = [...newMinistry.ministryRoles].sort();
+              if (!existing) return true;
 
-            return (
-              existingRoles.length !== newRoles.length ||
-              existingRoles.some((role, idx) => role !== newRoles[idx])
-            );
-          });
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
+
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
 
           //* Create Ministry Member
           if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
             const ministryMembers = await Promise.all(
               theirMinistries.map(async (ministryData) => {
                 const ministry = await this.ministryRepository.findOne({
@@ -2698,10 +2720,7 @@ export class DiscipleService {
 
       //* RELATION TYPE WITH PASTOR
       //? Update if their Pastor is different
-      if (
-        disciple?.theirPastor?.id !== theirPastor &&
-        relationType === RelationType.OnlyRelatedMinistries
-      ) {
+      if (theirPastor && relationType === RelationType.OnlyRelatedMinistries) {
         //* Validate family Group
         if (!theirPastor) {
           throw new NotFoundException(
@@ -2716,7 +2735,7 @@ export class DiscipleService {
 
         if (!newPastor) {
           throw new NotFoundException(
-            `Pastor con id: ${theirFamilyGroup} no fue encontrado.`,
+            `Pastor con id: ${theirPastor} no fue encontrado.`,
           );
         }
 
@@ -2798,25 +2817,47 @@ export class DiscipleService {
             recordStatus: recordStatus,
           });
 
-          //* Validate if there is any equal record
-          const hasChangesInMinistries = theirMinistries.some((newMinistry) => {
-            const existing = disciple.member?.ministries?.find(
-              (m) => m.ministry.id === newMinistry.ministryId,
-            );
+          //* Validate if there is any equal record or deleted records
+          const existingMinistryIds =
+            disciple.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
 
-            if (!existing) return true;
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = disciple.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
 
-            const existingRoles = [...existing.ministryRoles].sort();
-            const newRoles = [...newMinistry.ministryRoles].sort();
+              if (!existing) return true;
 
-            return (
-              existingRoles.length !== newRoles.length ||
-              existingRoles.some((role, idx) => role !== newRoles[idx])
-            );
-          });
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
+
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
 
           //* Create Ministry Member
           if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
             const ministryMembers = await Promise.all(
               theirMinistries.map(async (ministryData) => {
                 const ministry = await this.ministryRepository.findOne({
@@ -2927,24 +2968,46 @@ export class DiscipleService {
             recordStatus: recordStatus,
           });
 
-          //* Validate if there is any equal record
-          const hasChangesInMinistries = theirMinistries.some((newMinistry) => {
-            const existing = disciple.member?.ministries?.find(
-              (m) => m.ministry.id === newMinistry.ministryId,
-            );
+          //* Validate if there is any equal record or deleted records
+          const existingMinistryIds =
+            disciple.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
 
-            if (!existing) return true;
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = disciple.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
 
-            const existingRoles = [...existing.ministryRoles].sort();
-            const newRoles = [...newMinistry.ministryRoles].sort();
+              if (!existing) return true;
 
-            return (
-              existingRoles.length !== newRoles.length ||
-              existingRoles.some((role, idx) => role !== newRoles[idx])
-            );
-          });
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
+
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
 
           if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
             const ministryMembers = await Promise.all(
               theirMinistries.map(async (ministryData) => {
                 const ministry = await this.ministryRepository.findOne({
@@ -3053,24 +3116,47 @@ export class DiscipleService {
             recordStatus: recordStatus,
           });
 
-          //* Validate if there is any equal record
-          const hasChangesInMinistries = theirMinistries.some((newMinistry) => {
-            const existing = disciple.member?.ministries?.find(
-              (m) => m.ministry.id === newMinistry.ministryId,
-            );
+          //* Validate if there is any equal record or deleted records
+          const existingMinistryIds =
+            disciple.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
 
-            if (!existing) return true;
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = disciple.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
 
-            const existingRoles = [...existing.ministryRoles].sort();
-            const newRoles = [...newMinistry.ministryRoles].sort();
+              if (!existing) return true;
 
-            return (
-              existingRoles.length !== newRoles.length ||
-              existingRoles.some((role, idx) => role !== newRoles[idx])
-            );
-          });
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
 
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
+
+          //* Create Ministry Member
           if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
             const ministryMembers = await Promise.all(
               theirMinistries.map(async (ministryData) => {
                 const ministry = await this.ministryRepository.findOne({
@@ -3272,7 +3358,10 @@ export class DiscipleService {
           theirPastor: newPastor,
           theirCopastor: newCopastor,
           theirZone: newZone,
-          relationType: relationType ?? null,
+          relationType:
+            theirMinistries.length > 0
+              ? RelationType.RelatedBothMinistriesAndHierarchicalCover
+              : RelationType.OnlyRelatedHierarchicalCover,
           theirSupervisor: newSupervisor,
           theirFamilyGroup: null,
           createdAt: new Date(),

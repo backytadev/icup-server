@@ -29,9 +29,10 @@ import { preacherDataFormatter } from '@/modules/preacher/helpers/preacher-data-
 import { CreatePreacherDto } from '@/modules/preacher/dto/create-preacher.dto';
 import { UpdatePreacherDto } from '@/modules/preacher/dto/update-preacher.dto';
 
-import { MemberRole } from '@/common/enums/member-role.enum';
 import { GenderNames } from '@/common/enums/gender.enum';
+import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
+import { RelationType } from '@/common/enums/relation-type.enum';
 import { MaritalStatusNames } from '@/common/enums/marital-status.enum';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
@@ -48,10 +49,12 @@ import { User } from '@/modules/user/entities/user.entity';
 import { Church } from '@/modules/church/entities/church.entity';
 import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { Member } from '@/modules/member/entities/member.entity';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
+import { MinistryMember } from '@/modules/ministry/entities/ministry-member.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 
 @Injectable()
@@ -61,6 +64,12 @@ export class PreacherService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
+
+    @InjectRepository(MinistryMember)
+    private readonly ministryMemberRepository: Repository<MinistryMember>,
+
+    @InjectRepository(Ministry)
+    private readonly ministryRepository: Repository<Ministry>,
 
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
@@ -95,7 +104,13 @@ export class PreacherService {
     createPreacherDto: CreatePreacherDto,
     user: User,
   ): Promise<Preacher> {
-    const { roles, theirSupervisor } = createPreacherDto;
+    const {
+      roles,
+      theirSupervisor,
+      theirMinistries,
+      relationType,
+      theirPastorOnlyMinistries,
+    } = createPreacherDto;
 
     if (!roles.includes(MemberRole.Preacher)) {
       throw new BadRequestException(`El rol "Predicador" debe ser incluido.`);
@@ -112,101 +127,126 @@ export class PreacherService {
       );
     }
 
-    if (!theirSupervisor) {
-      throw new NotFoundException(
-        `Para crear un nuevo Predicador se le debe asignar un Supervisor.`,
-      );
-    }
+    let supervisor: Supervisor | null = null;
+    let zone = null;
+    let copastor = null;
+    let pastor = null;
+    let church = null;
 
     //* Validate and assign supervisor
-    const supervisor = await this.supervisorRepository.findOne({
-      where: { id: theirSupervisor },
-      relations: [
-        'theirChurch',
-        'theirPastor.member',
-        'theirCopastor.member',
-        'theirZone',
-      ],
-    });
+    if (theirSupervisor) {
+      supervisor = await this.supervisorRepository.findOne({
+        where: { id: theirSupervisor },
+        relations: [
+          'theirChurch',
+          'theirPastor.member',
+          'theirCopastor.member',
+          'theirZone',
+        ],
+      });
 
-    if (!supervisor) {
-      throw new NotFoundException(
-        `Supervisor con id: ${theirSupervisor} no fue encontrado.`,
-      );
+      if (!supervisor) {
+        throw new NotFoundException(
+          `Supervisor con id: ${theirSupervisor} no fue encontrado.`,
+        );
+      }
+
+      if (supervisor?.recordStatus === RecordStatus.Inactive) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Supervisor debe ser "Activo".`,
+        );
+      }
+
+      //* Validate and assign zone according supervisor
+      if (!supervisor?.theirZone) {
+        throw new NotFoundException(
+          `Zona no fue encontrada, verifica que Supervisor tenga una Zona asignada.`,
+        );
+      }
+
+      zone = await this.zoneRepository.findOne({
+        where: { id: supervisor?.theirZone?.id },
+      });
+
+      if (zone?.recordStatus === RecordStatus.Inactive) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Zona debe ser "Activo".`,
+        );
+      }
+
+      //* Validate and assign copastor according supervisor
+      if (!supervisor?.theirCopastor) {
+        throw new NotFoundException(
+          `Co-Pastor no fue encontrado, verifica que Supervisor tenga un Co-Pastor asignado.`,
+        );
+      }
+
+      copastor = await this.copastorRepository.findOne({
+        where: { id: supervisor?.theirCopastor?.id },
+      });
+
+      if (copastor?.recordStatus === RecordStatus.Inactive) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Co-Pastor debe ser "Activo".`,
+        );
+      }
+
+      //* Validate and assign pastor according supervisor
+      if (!supervisor?.theirPastor) {
+        throw new NotFoundException(
+          `Pastor no fue encontrado, verifica que Supervisor tenga un Pastor asignado.`,
+        );
+      }
+
+      pastor = await this.pastorRepository.findOne({
+        where: { id: supervisor?.theirPastor?.id },
+      });
+
+      if (pastor?.recordStatus === RecordStatus.Inactive) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Pastor debe ser "Activo".`,
+        );
+      }
+
+      //* Validate and assign church according supervisor
+      if (!supervisor?.theirChurch) {
+        throw new NotFoundException(
+          `Iglesia no fue encontrada, verifica que Supervisor tenga una Iglesia asignada.`,
+        );
+      }
+
+      church = await this.churchRepository.findOne({
+        where: { id: supervisor?.theirChurch?.id },
+      });
+
+      if (church?.recordStatus === RecordStatus.Inactive) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Iglesia debe ser "Activo".`,
+        );
+      }
     }
 
-    if (supervisor?.recordStatus === RecordStatus.Inactive) {
-      throw new BadRequestException(
-        `La propiedad "Estado de registro" en Supervisor debe ser "Activo".`,
-      );
-    }
+    if (!theirSupervisor) {
+      pastor = await this.pastorRepository.findOne({
+        where: { id: theirPastorOnlyMinistries },
+        relations: ['theirChurch'],
+      });
 
-    //* Validate and assign zone according supervisor
-    if (!supervisor?.theirZone) {
-      throw new NotFoundException(
-        `Zona no fue encontrada, verifica que Supervisor tenga una Zona asignada.`,
-      );
-    }
+      if (!pastor?.recordStatus) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Pastor debe ser "Activo".`,
+        );
+      }
 
-    const zone = await this.zoneRepository.findOne({
-      where: { id: supervisor?.theirZone?.id },
-    });
+      church = await this.churchRepository.findOne({
+        where: { id: pastor?.theirChurch?.id },
+      });
 
-    if (zone?.recordStatus === RecordStatus.Inactive) {
-      throw new BadRequestException(
-        `La propiedad "Estado de registro" en Zona debe ser "Activo".`,
-      );
-    }
-
-    //* Validate and assign copastor according supervisor
-    if (!supervisor?.theirCopastor) {
-      throw new NotFoundException(
-        `Co-Pastor no fue encontrado, verifica que Supervisor tenga un Co-Pastor asignado.`,
-      );
-    }
-
-    const copastor = await this.copastorRepository.findOne({
-      where: { id: supervisor?.theirCopastor?.id },
-    });
-
-    if (copastor?.recordStatus === RecordStatus.Inactive) {
-      throw new BadRequestException(
-        `La propiedad "Estado de registro" en Co-Pastor debe ser "Activo".`,
-      );
-    }
-
-    //* Validate and assign pastor according supervisor
-    if (!supervisor?.theirPastor) {
-      throw new NotFoundException(
-        `Pastor no fue encontrado, verifica que Supervisor tenga un Pastor asignado.`,
-      );
-    }
-
-    const pastor = await this.pastorRepository.findOne({
-      where: { id: supervisor?.theirPastor?.id },
-    });
-
-    if (pastor?.recordStatus === RecordStatus.Inactive) {
-      throw new BadRequestException(
-        `La propiedad "Estado de registro" en Pastor debe ser "Activo".`,
-      );
-    }
-
-    //* Validate and assign church according supervisor
-    if (!supervisor?.theirChurch) {
-      throw new NotFoundException(
-        `Iglesia no fue encontrada, verifica que Supervisor tenga una Iglesia asignada.`,
-      );
-    }
-
-    const church = await this.churchRepository.findOne({
-      where: { id: supervisor?.theirChurch?.id },
-    });
-
-    if (church?.recordStatus === RecordStatus.Inactive) {
-      throw new BadRequestException(
-        `La propiedad "Estado de registro" en Iglesia debe ser "Activo".`,
-      );
+      if (!church?.recordStatus) {
+        throw new BadRequestException(
+          `La propiedad "Estado de registro" en Iglesia debe ser "Activo".`,
+        );
+      }
     }
 
     //* Create new instance member and assign to new preacher instance
@@ -236,14 +276,43 @@ export class PreacherService {
 
       const newPreacher = this.preacherRepository.create({
         member: newMember,
-        theirChurch: church,
-        theirPastor: pastor,
-        theirCopastor: copastor,
-        theirSupervisor: supervisor,
-        theirZone: zone,
+        theirChurch: church ?? null,
+        theirPastor: pastor ?? null,
+        theirCopastor: copastor ?? null,
+        theirSupervisor: supervisor ?? null,
+        theirZone: zone ?? null,
+        relationType: relationType ?? null,
         createdAt: new Date(),
         createdBy: user,
       });
+
+      //* Ministries (opcional)
+      if (theirMinistries && theirMinistries.length > 0) {
+        const ministryMembers = await Promise.all(
+          theirMinistries.map(async (ministryData) => {
+            const ministry = await this.ministryRepository.findOne({
+              where: { id: ministryData?.ministryId },
+            });
+
+            if (!ministry?.recordStatus) {
+              throw new BadRequestException(
+                `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+              );
+            }
+
+            return this.ministryMemberRepository.create({
+              member: newMember,
+              memberRoles: newMember.roles,
+              ministryRoles: ministryData.ministryRoles,
+              ministry: ministry,
+              createdAt: new Date(),
+              createdBy: user,
+            });
+          }),
+        );
+
+        await this.ministryMemberRepository.save(ministryMembers);
+      }
 
       return await this.preacherRepository.save(newPreacher);
     } catch (error) {
@@ -308,6 +377,9 @@ export class PreacherService {
           'updatedBy',
           'createdBy',
           'member',
+          'member.ministries',
+          'member.ministries.ministry',
+          'member.ministries.ministry.theirChurch',
           'theirChurch',
           'theirPastor.member',
           'theirCopastor.member',
@@ -403,6 +475,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -469,6 +544,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -535,6 +613,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -601,6 +682,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -657,6 +741,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -723,6 +810,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -789,6 +879,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -855,6 +948,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -898,6 +994,9 @@ export class PreacherService {
           .leftJoinAndSelect('preacher.updatedBy', 'updatedBy')
           .leftJoinAndSelect('preacher.createdBy', 'createdBy')
           .leftJoinAndSelect('preacher.member', 'member')
+          .leftJoinAndSelect('member.ministries', 'memberMinistries')
+          .leftJoinAndSelect('memberMinistries.ministry', 'ministry')
+          .leftJoinAndSelect('ministry.theirChurch', 'ministryChurch')
           .leftJoinAndSelect('preacher.theirChurch', 'theirChurch')
           .leftJoinAndSelect('preacher.theirPastor', 'theirPastor')
           .leftJoinAndSelect('theirPastor.member', 'pastorMember')
@@ -984,6 +1083,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1053,6 +1155,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1122,6 +1227,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1175,6 +1283,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1219,6 +1330,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1303,6 +1417,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1363,6 +1480,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1421,6 +1541,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1499,6 +1622,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1558,6 +1684,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1610,6 +1739,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1659,6 +1791,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1703,6 +1838,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1747,6 +1885,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1791,6 +1932,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1835,6 +1979,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1879,6 +2026,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1929,6 +2079,9 @@ export class PreacherService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'theirChurch',
             'theirPastor.member',
             'theirCopastor.member',
@@ -1994,7 +2147,10 @@ export class PreacherService {
       recordStatus,
       theirSupervisor,
       theirCopastor,
-      theirPastor,
+      theirPastorRelationDirect,
+      theirPastorOnlyMinistries,
+      relationType,
+      theirMinistries,
       isDirectRelationToPastor,
       memberInactivationReason,
       memberInactivationCategory,
@@ -2015,6 +2171,9 @@ export class PreacherService {
       where: { id: id },
       relations: [
         'member',
+        'member.ministries',
+        'member.ministries.ministry',
+        'member.ministries.ministry.theirChurch',
         'theirChurch',
         'theirPastor.member',
         'theirCopastor.member',
@@ -2121,12 +2280,20 @@ export class PreacherService {
         );
       }
 
+      //* RELATION TYPE WITH SUPERVISOR
       //? Update if their Supervisor is different
-      if (preacher?.theirSupervisor?.id !== theirSupervisor) {
+      if (
+        preacher?.theirSupervisor?.id !== theirSupervisor &&
+        (relationType === RelationType.OnlyRelatedHierarchicalCover ||
+          relationType ===
+            RelationType.RelatedBothMinistriesAndHierarchicalCover)
+      ) {
+        console.log('entro');
+
         //* Validate supervisor
         if (!theirSupervisor) {
           throw new NotFoundException(
-            `Para poder actualizar un Predicador, se le debe asignar un Supervisor.`,
+            `Para poder actualizar un Predicador relacionado jerarquicamente o con ministerios, se debe asignar un Supervisor.`,
           );
         }
 
@@ -2260,9 +2427,9 @@ export class PreacherService {
             theirCopastor: newCopastor,
             theirSupervisor: newSupervisor,
             theirZone: newZone,
-            theirFamilyGroup: preacher.theirFamilyGroup,
             updatedAt: new Date(),
             updatedBy: user,
+            relationType: relationType ?? null,
             inactivationCategory:
               recordStatus === RecordStatus.Active
                 ? null
@@ -2273,6 +2440,90 @@ export class PreacherService {
                 : memberInactivationReason,
             recordStatus: recordStatus,
           });
+
+          //* Validate if there is any equal record or deleted records
+          const existingMinistryIds =
+            preacher.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = preacher.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
+
+              if (!existing) return true;
+
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
+
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
+
+          //* Create Ministry Member
+          if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
+            const ministryMembers = await Promise.all(
+              theirMinistries.map(async (ministryData) => {
+                const ministry = await this.ministryRepository.findOne({
+                  where: { id: ministryData?.ministryId },
+                });
+
+                if (!ministry?.recordStatus) {
+                  throw new BadRequestException(
+                    `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+                  );
+                }
+
+                const existingMember =
+                  await this.ministryMemberRepository.findOne({
+                    where: {
+                      member: { id: savedMember.id },
+                      ministry: { id: ministry.id },
+                    },
+                  });
+
+                if (existingMember) {
+                  existingMember.ministryRoles = ministryData.ministryRoles;
+                  existingMember.updatedAt = new Date();
+                  existingMember.updatedBy = user;
+                  return existingMember;
+                }
+
+                return this.ministryMemberRepository.create({
+                  member: savedMember,
+                  memberRoles: savedMember.roles,
+                  ministryRoles: ministryData.ministryRoles,
+                  ministry: ministry,
+                  createdAt: new Date(),
+                  createdBy: user,
+                });
+              }),
+            );
+
+            await this.ministryMemberRepository.save(
+              ministryMembers.filter(Boolean),
+            );
+          }
 
           savedPreacher = await this.preacherRepository.save(updatedPreacher);
         } catch (error) {
@@ -2367,9 +2618,208 @@ export class PreacherService {
         return savedPreacher;
       }
 
+      //* RELATION TYPE WITH PASTOR
+      //? Update if their Pastor is different
+      if (
+        theirPastorOnlyMinistries &&
+        relationType === RelationType.OnlyRelatedMinistries
+      ) {
+        //* Validate family Group
+        if (!theirPastorOnlyMinistries) {
+          throw new NotFoundException(
+            `Para poder actualizar un Discípulo relacionado a Ministerios, se debe asignar un Pastor.`,
+          );
+        }
+
+        const newPastor = await this.pastorRepository.findOne({
+          where: { id: theirPastorOnlyMinistries },
+          relations: ['theirChurch'],
+        });
+
+        if (!newPastor) {
+          throw new NotFoundException(
+            `Pastor con id: ${theirPastorOnlyMinistries} no fue encontrado.`,
+          );
+        }
+
+        if (!newPastor?.recordStatus) {
+          throw new BadRequestException(
+            `La propiedad "Estado de registro" en Grupo Familiar debe ser "Activo".`,
+          );
+        }
+
+        //* Validate Church according family Group
+        if (!newPastor?.theirChurch) {
+          throw new BadRequestException(
+            `No se encontró la Iglesia, verifica que Grupo Familiar tenga una Iglesia asignada.`,
+          );
+        }
+
+        const newChurch = await this.churchRepository.findOne({
+          where: { id: newPastor?.theirChurch?.id },
+        });
+
+        if (!newChurch?.recordStatus) {
+          throw new BadRequestException(
+            `La propiedad "Estado de registro" en Iglesia debe ser "Activo".`,
+          );
+        }
+
+        //* Update and save
+        let savedMember: Member;
+        try {
+          const updatedMember = await this.memberRepository.preload({
+            id: preacher.member.id,
+            firstNames: updatePreacherDto.firstNames,
+            lastNames: updatePreacherDto.lastNames,
+            gender: updatePreacherDto.gender,
+            originCountry: updatePreacherDto.originCountry,
+            birthDate: updatePreacherDto.birthDate,
+            maritalStatus: updatePreacherDto.maritalStatus,
+            numberChildren: +updatePreacherDto.numberChildren,
+            conversionDate: updatePreacherDto.conversionDate ?? null,
+            email: updatePreacherDto.email ?? null,
+            phoneNumber: updatePreacherDto.phoneNumber ?? null,
+            residenceCountry: updatePreacherDto.residenceCountry,
+            residenceDepartment: updatePreacherDto.residenceDepartment,
+            residenceProvince: updatePreacherDto.residenceProvince,
+            residenceDistrict: updatePreacherDto.residenceDistrict,
+            residenceUrbanSector: updatePreacherDto.residenceUrbanSector,
+            residenceAddress: updatePreacherDto.residenceAddress,
+            referenceAddress: updatePreacherDto.referenceAddress,
+            roles: updatePreacherDto.roles,
+          });
+
+          savedMember = await this.memberRepository.save(updatedMember);
+        } catch (error) {
+          this.handleDBExceptions(error);
+        }
+
+        try {
+          const updatedDisciple = await this.preacherRepository.preload({
+            id: preacher.id,
+            member: savedMember,
+            theirChurch: newChurch,
+            theirPastor: newPastor,
+            theirCopastor: null,
+            theirSupervisor: null,
+            theirZone: null,
+            theirFamilyGroup: null,
+            relationType: relationType ?? null,
+            updatedAt: new Date(),
+            updatedBy: user,
+            inactivationCategory:
+              recordStatus === RecordStatus.Active
+                ? null
+                : memberInactivationCategory,
+            inactivationReason:
+              recordStatus === RecordStatus.Active
+                ? null
+                : memberInactivationReason,
+            recordStatus: recordStatus,
+          });
+
+          //* Validate if there is any equal record and deleted records
+          const existingMinistryIds =
+            preacher.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = preacher.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
+
+              if (!existing) return true;
+
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
+
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
+
+          //* Create Ministry Member
+          if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
+            const ministryMembers = await Promise.all(
+              theirMinistries.map(async (ministryData) => {
+                const ministry = await this.ministryRepository.findOne({
+                  where: { id: ministryData?.ministryId },
+                });
+
+                if (!ministry?.recordStatus) {
+                  throw new BadRequestException(
+                    `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+                  );
+                }
+
+                const existingMember =
+                  await this.ministryMemberRepository.findOne({
+                    where: {
+                      member: { id: savedMember.id },
+                      ministry: { id: ministry.id },
+                    },
+                  });
+
+                if (existingMember) {
+                  existingMember.ministryRoles = ministryData.ministryRoles;
+                  existingMember.updatedAt = new Date();
+                  existingMember.updatedBy = user;
+                  return existingMember;
+                }
+
+                return this.ministryMemberRepository.create({
+                  member: savedMember,
+                  memberRoles: savedMember.roles,
+                  ministryRoles: ministryData.ministryRoles,
+                  ministry: ministry,
+                  createdAt: new Date(),
+                  createdBy: user,
+                });
+              }),
+            );
+
+            await this.ministryMemberRepository.save(
+              ministryMembers.filter(Boolean),
+            );
+          }
+
+          return await this.preacherRepository.save(updatedDisciple);
+        } catch (error) {
+          this.handleDBExceptions(error);
+        }
+      }
+
+      //* RELATION TYPE WITH SUPERVISOR - SAME SUPERVISOR
       //? Update and save if is same Supervisor
       //! Also in the case that the Preacher does not have a zone and we need to get all the new information from the supervisor that was updated with the new zone
-      if (preacher?.theirSupervisor?.id === theirSupervisor) {
+      if (
+        preacher?.theirSupervisor?.id === theirSupervisor &&
+        (relationType === RelationType.OnlyRelatedHierarchicalCover ||
+          relationType ===
+            RelationType.RelatedBothMinistriesAndHierarchicalCover)
+      ) {
+        console.log('entra');
+
         //* Validate supervisor
         if (!theirSupervisor) {
           throw new NotFoundException(
@@ -2507,9 +2957,9 @@ export class PreacherService {
             theirCopastor: newCopastor,
             theirSupervisor: newSupervisor,
             theirZone: newZone,
-            theirFamilyGroup: preacher.theirFamilyGroup,
             updatedAt: new Date(),
             updatedBy: user,
+            relationType: relationType ?? null,
             inactivationCategory:
               recordStatus === RecordStatus.Active
                 ? null
@@ -2524,6 +2974,89 @@ export class PreacherService {
           savedPreacher = await this.preacherRepository.save(updatedPreacher);
         } catch (error) {
           this.handleDBExceptions(error);
+        }
+
+        //* Validate if there is any equal record and deleted records
+        const existingMinistryIds =
+          preacher.member?.ministries?.map((m) => m.ministry.id) ?? [];
+        const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+        const hasChangesInMinistries =
+          theirMinistries.some((newMinistry) => {
+            const existing = preacher.member?.ministries?.find(
+              (m) => m.ministry.id === newMinistry.ministryId,
+            );
+
+            if (!existing) return true;
+
+            const existingRoles = [...existing.ministryRoles].sort();
+            const newRoles = [...newMinistry.ministryRoles].sort();
+
+            return (
+              existingRoles.length !== newRoles.length ||
+              existingRoles.some((role, idx) => role !== newRoles[idx])
+            );
+          }) || existingMinistryIds.some((id) => !newMinistryIds.includes(id));
+
+        //* Create Ministry Member
+        if (hasChangesInMinistries) {
+          const currentMinistryMembers =
+            await this.ministryMemberRepository.find({
+              where: { member: { id: savedMember.id } },
+              relations: ['ministry'],
+            });
+
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+          const toRemove = currentMinistryMembers.filter(
+            (mm) => !newMinistryIds.includes(mm.ministry.id),
+          );
+
+          if (toRemove.length > 0) {
+            await this.ministryMemberRepository.remove(toRemove);
+          }
+
+          const ministryMembers = await Promise.all(
+            theirMinistries.map(async (ministryData) => {
+              const ministry = await this.ministryRepository.findOne({
+                where: { id: ministryData?.ministryId },
+              });
+
+              if (!ministry?.recordStatus) {
+                throw new BadRequestException(
+                  `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+                );
+              }
+
+              const existingMember =
+                await this.ministryMemberRepository.findOne({
+                  where: {
+                    member: { id: savedMember.id },
+                    ministry: { id: ministry.id },
+                  },
+                });
+
+              if (existingMember) {
+                existingMember.ministryRoles = ministryData.ministryRoles;
+                existingMember.updatedAt = new Date();
+                existingMember.updatedBy = user;
+                return existingMember;
+              }
+
+              return this.ministryMemberRepository.create({
+                member: savedMember,
+                memberRoles: savedMember.roles,
+                ministryRoles: ministryData.ministryRoles,
+                ministry: ministry,
+                createdAt: new Date(),
+                createdBy: user,
+              });
+            }),
+          );
+
+          await this.ministryMemberRepository.save(
+            ministryMembers.filter(Boolean),
+          );
         }
 
         //? Update in subordinate relations
@@ -2576,6 +3109,154 @@ export class PreacherService {
           );
 
           return savedPreacher;
+        } catch (error) {
+          this.handleDBExceptions(error);
+        }
+      }
+
+      //* RELATION TYPE WITH PASTOR
+      //? Update and save if is same Pastor
+
+      if (
+        theirSupervisor &&
+        relationType === RelationType.OnlyRelatedMinistries
+      ) {
+        let savedMember: Member;
+        try {
+          const updatedMember = await this.memberRepository.preload({
+            id: preacher.member.id,
+            firstNames: updatePreacherDto.firstNames,
+            lastNames: updatePreacherDto.lastNames,
+            gender: updatePreacherDto.gender,
+            originCountry: updatePreacherDto.originCountry,
+            birthDate: updatePreacherDto.birthDate,
+            maritalStatus: updatePreacherDto.maritalStatus,
+            numberChildren: +updatePreacherDto.numberChildren,
+            conversionDate: updatePreacherDto.conversionDate ?? null,
+            email: updatePreacherDto.email ?? null,
+            phoneNumber: updatePreacherDto.phoneNumber ?? null,
+            residenceCountry: updatePreacherDto.residenceCountry,
+            residenceDepartment: updatePreacherDto.residenceDepartment,
+            residenceProvince: updatePreacherDto.residenceProvince,
+            residenceDistrict: updatePreacherDto.residenceDistrict,
+            residenceUrbanSector: updatePreacherDto.residenceUrbanSector,
+            residenceAddress: updatePreacherDto.residenceAddress,
+            referenceAddress: updatePreacherDto.referenceAddress,
+            roles: updatePreacherDto.roles,
+          });
+          savedMember = await this.memberRepository.save(updatedMember);
+        } catch (error) {
+          this.handleDBExceptions(error);
+        }
+
+        try {
+          const updatedDisciple = await this.preacherRepository.preload({
+            id: preacher.id,
+            member: savedMember,
+            theirChurch: preacher.theirChurch,
+            theirPastor: preacher.theirPastor,
+            theirCopastor: preacher.theirCopastor,
+            theirSupervisor: preacher.theirSupervisor,
+            theirZone: preacher.theirZone,
+            relationType: relationType ?? null,
+            updatedAt: new Date(),
+            updatedBy: user,
+            inactivationCategory:
+              recordStatus === RecordStatus.Active
+                ? null
+                : memberInactivationCategory,
+            inactivationReason:
+              recordStatus === RecordStatus.Active
+                ? null
+                : memberInactivationReason,
+            recordStatus: recordStatus,
+          });
+
+          //* Validate if there is any equal record and deleted records
+          const existingMinistryIds =
+            preacher.member?.ministries?.map((m) => m.ministry.id) ?? [];
+          const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+          const hasChangesInMinistries =
+            theirMinistries.some((newMinistry) => {
+              const existing = preacher.member?.ministries?.find(
+                (m) => m.ministry.id === newMinistry.ministryId,
+              );
+
+              if (!existing) return true;
+
+              const existingRoles = [...existing.ministryRoles].sort();
+              const newRoles = [...newMinistry.ministryRoles].sort();
+
+              return (
+                existingRoles.length !== newRoles.length ||
+                existingRoles.some((role, idx) => role !== newRoles[idx])
+              );
+            }) ||
+            existingMinistryIds.some((id) => !newMinistryIds.includes(id));
+
+          //* Create Ministry Member
+          if (hasChangesInMinistries) {
+            const currentMinistryMembers =
+              await this.ministryMemberRepository.find({
+                where: { member: { id: savedMember.id } },
+                relations: ['ministry'],
+              });
+
+            const newMinistryIds = theirMinistries.map((m) => m.ministryId);
+
+            const toRemove = currentMinistryMembers.filter(
+              (mm) => !newMinistryIds.includes(mm.ministry.id),
+            );
+
+            if (toRemove.length > 0) {
+              await this.ministryMemberRepository.remove(toRemove);
+            }
+
+            const ministryMembers = await Promise.all(
+              theirMinistries.map(async (ministryData) => {
+                const ministry = await this.ministryRepository.findOne({
+                  where: { id: ministryData?.ministryId },
+                });
+
+                if (!ministry?.recordStatus) {
+                  throw new BadRequestException(
+                    `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+                  );
+                }
+
+                const existingMember =
+                  await this.ministryMemberRepository.findOne({
+                    where: {
+                      member: { id: savedMember.id },
+                      ministry: { id: ministry.id },
+                    },
+                  });
+
+                if (existingMember) {
+                  existingMember.ministryRoles = ministryData.ministryRoles;
+                  existingMember.updatedAt = new Date();
+                  existingMember.updatedBy = user;
+                  return existingMember;
+                }
+
+                return this.ministryMemberRepository.create({
+                  member: savedMember,
+                  memberRoles: savedMember.roles,
+                  ministryRoles: ministryData.ministryRoles,
+                  ministry: ministry,
+                  createdAt: new Date(),
+                  createdBy: user,
+                });
+              }),
+            );
+
+            await this.ministryMemberRepository.save(
+              ministryMembers.filter(Boolean),
+            );
+          }
+
+          return await this.discipleRepository.save(updatedDisciple);
         } catch (error) {
           this.handleDBExceptions(error);
         }
@@ -2706,9 +3387,59 @@ export class PreacherService {
             theirPastor: newPastor,
             theirCopastor: newCopastor,
             isDirectRelationToPastor: isDirectRelationToPastor,
+            relationType:
+              theirMinistries.length > 0
+                ? RelationType.RelatedBothMinistriesAndHierarchicalCover
+                : RelationType.OnlyRelatedHierarchicalCover,
             createdAt: new Date(),
             createdBy: user,
           });
+
+          //* Update ministries of member
+          if (theirMinistries.length > 0) {
+            const ministryMembers = await Promise.all(
+              theirMinistries.map(async (ministryData) => {
+                const ministry = await this.ministryRepository.findOne({
+                  where: { id: ministryData?.ministryId },
+                });
+
+                if (!ministry?.recordStatus) {
+                  throw new BadRequestException(
+                    `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+                  );
+                }
+
+                const existingMember =
+                  await this.ministryMemberRepository.findOne({
+                    where: {
+                      member: { id: updatedMember.id },
+                      ministry: { id: ministry.id },
+                    },
+                  });
+
+                if (existingMember) {
+                  existingMember.ministryRoles = ministryData.ministryRoles;
+                  existingMember.memberRoles = updatedMember.roles;
+                  existingMember.updatedAt = new Date();
+                  existingMember.updatedBy = user;
+                  return existingMember;
+                }
+
+                return this.ministryMemberRepository.create({
+                  member: updatedMember,
+                  memberRoles: updatedMember.roles,
+                  ministryRoles: ministryData.ministryRoles,
+                  ministry: ministry,
+                  createdAt: new Date(),
+                  createdBy: user,
+                });
+              }),
+            );
+
+            await this.ministryMemberRepository.save(
+              ministryMembers.filter(Boolean),
+            );
+          }
 
           const savedSupervisor =
             await this.supervisorRepository.save(newSupervisor);
@@ -2746,14 +3477,14 @@ export class PreacherService {
       //? Raise level and create direct relation to pastor
       if (isDirectRelationToPastor) {
         //* Validation new copastor
-        if (!theirPastor) {
+        if (!theirPastorRelationDirect) {
           throw new NotFoundException(
             `Para ascender de Predicador a Supervisor y asignarlo directamente a un Pastor, es necesario seleccionar un Pastor.`,
           );
         }
 
         const newPastor = await this.pastorRepository.findOne({
-          where: { id: theirPastor },
+          where: { id: theirPastorRelationDirect },
           relations: ['theirChurch'],
         });
 
@@ -2818,10 +3549,60 @@ export class PreacherService {
             theirChurch: newChurch,
             theirPastor: newPastor,
             theirCopastor: null,
+            relationType:
+              theirMinistries.length > 0
+                ? RelationType.RelatedBothMinistriesAndHierarchicalCover
+                : RelationType.OnlyRelatedHierarchicalCover,
             isDirectRelationToPastor: isDirectRelationToPastor,
             createdAt: new Date(),
             createdBy: user,
           });
+
+          //* Update ministries of member
+          if (theirMinistries.length > 0) {
+            const ministryMembers = await Promise.all(
+              theirMinistries.map(async (ministryData) => {
+                const ministry = await this.ministryRepository.findOne({
+                  where: { id: ministryData?.ministryId },
+                });
+
+                if (!ministry?.recordStatus) {
+                  throw new BadRequestException(
+                    `La propiedad "Estado de registro" en el Ministerio debe ser "Activo".`,
+                  );
+                }
+
+                const existingMember =
+                  await this.ministryMemberRepository.findOne({
+                    where: {
+                      member: { id: updatedMember.id },
+                      ministry: { id: ministry.id },
+                    },
+                  });
+
+                if (existingMember) {
+                  existingMember.ministryRoles = ministryData.ministryRoles;
+                  existingMember.memberRoles = updatedMember.roles;
+                  existingMember.updatedAt = new Date();
+                  existingMember.updatedBy = user;
+                  return existingMember;
+                }
+
+                return this.ministryMemberRepository.create({
+                  member: updatedMember,
+                  memberRoles: updatedMember.roles,
+                  ministryRoles: ministryData.ministryRoles,
+                  ministry: ministry,
+                  createdAt: new Date(),
+                  createdBy: user,
+                });
+              }),
+            );
+
+            await this.ministryMemberRepository.save(
+              ministryMembers.filter(Boolean),
+            );
+          }
 
           const savedSupervisor =
             await this.supervisorRepository.save(newSupervisor);

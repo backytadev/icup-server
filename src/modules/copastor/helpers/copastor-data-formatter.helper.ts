@@ -48,5 +48,17 @@ export const copastorDataFormatter = ({ copastors }: Options) => {
       firstNames: disciple?.member?.firstNames,
       lastNames: disciple?.member?.lastNames,
     })),
+    member: {
+      ...copastor.member,
+      ministries: copastor.member?.ministries?.map((ministry) => ({
+        id: ministry?.ministry?.id,
+        churchMinistryId: ministry?.ministry?.theirChurch?.id,
+        churchMinistryName:
+          ministry?.ministry?.theirChurch?.abbreviatedChurchName,
+        ministryType: ministry?.ministry?.ministryType,
+        customMinistryName: ministry?.ministry?.customMinistryName,
+        ministryRoles: ministry?.ministryRoles,
+      })),
+    },
   }));
 };
