@@ -51,5 +51,17 @@ export const supervisorDataFormatter = ({ supervisors }: Options) => {
       firstNames: disciple?.member?.firstNames,
       lastNames: disciple?.member?.lastNames,
     })),
+    member: {
+      ...supervisor.member,
+      ministries: supervisor?.member?.ministries?.map((ministry) => ({
+        id: ministry?.ministry?.id,
+        churchMinistryId: ministry?.ministry?.theirChurch?.id,
+        churchMinistryName:
+          ministry?.ministry?.theirChurch?.abbreviatedChurchName,
+        ministryType: ministry?.ministry?.ministryType,
+        customMinistryName: ministry?.ministry?.customMinistryName,
+        ministryRoles: ministry?.ministryRoles,
+      })),
+    },
   }));
 };

@@ -231,7 +231,7 @@ export class CreateDiscipleDto {
     example: [
       {
         ministryId: '1234567890abcdef2sfs24021a',
-        ministryRoles: ['member'],
+        ministryRoles: ['kids_ministry_leader', 'youth_ministry_member'],
       },
     ],
     required: false,

@@ -14,6 +14,7 @@ import { ChurchModule } from '@/modules/church/church.module';
 import { MemberModule } from '@/modules/member/member.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
 import { PreacherModule } from '@/modules/preacher/preacher.module';
+import { MinistryModule } from '@/modules/ministry/ministry.module';
 import { DiscipleModule } from '@/modules/disciple/disciple.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
@@ -32,6 +33,7 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     forwardRef(() => DiscipleModule),
     forwardRef(() => OfferingIncomeModule),
     MemberModule,
+    MinistryModule,
     AuthModule,
   ],
   exports: [TypeOrmModule, SupervisorService],
