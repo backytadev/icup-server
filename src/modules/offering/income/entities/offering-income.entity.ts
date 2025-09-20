@@ -1,5 +1,6 @@
 import {
   Column,
+  Unique,
   Entity,
   ManyToOne,
   JoinColumn,
@@ -20,6 +21,7 @@ import { FamilyGroup } from '../../../../modules/family-group/entities/family-gr
 import { ExternalDonor } from '../../../../modules/external-donor/entities/external-donor.entity';
 
 @Entity({ name: 'offering_income' })
+@Unique(['church', 'receiptCode'])
 export class OfferingIncome {
   //* General data
   @PrimaryGeneratedColumn('uuid')
@@ -52,7 +54,7 @@ export class OfferingIncome {
   @Column('text', { name: 'shift', nullable: true })
   shift: string;
 
-  @Column('text', { unique: true })
+  @Column('text', { name: 'receipt_code' })
   receiptCode: string;
 
   @Column('text', { name: 'inactivation_reason', nullable: true })

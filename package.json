@@ -23,10 +23,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky",
     "typeorm": "typeorm-ts-node-commonjs -d ./src/config/typeorm.config.ts",
-    "migration:generate": "cross-env npm run typeorm migration:generate ./src/database/migrations/%npm_config_name%",
+    "migration:generate": "cross-env typeorm-ts-node-commonjs -d ./src/config/typeorm.config.ts migration:generate ./src/database/migrations/%npm_config_name%",
     "migration:create": "cross-env typeorm-ts-node-commonjs migration:create ./src/database/migrations/%npm_config_name%",
-    "migration:run": "npm run typeorm migration:run",
-    "migration:revert": "npm run typeorm migration:revert"
+    "migration:run": "cross-env typeorm-ts-node-commonjs -d ./src/config/typeorm.config.ts migration:run",
+    "migration:revert": "cross-env typeorm-ts-node-commonjs -d ./src/config/typeorm.config.ts migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

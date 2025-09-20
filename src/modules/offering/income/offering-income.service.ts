@@ -169,7 +169,7 @@ export class OfferingIncomeService {
     }
 
     //* Generamos el código de recibo antes de guardar la entidad
-    const receiptCode = await this.generateNextReceipt(prefix);
+    const receiptCode = await this.generateNextReceipt(prefix, churchId);
 
     //* Validations
     if (type === OfferingIncomeCreationType.Offering) {
@@ -858,7 +858,8 @@ export class OfferingIncomeService {
       if (
         subType === OfferingIncomeCreationSubType.ZonalFasting ||
         subType === OfferingIncomeCreationSubType.ZonalVigil ||
-        subType === OfferingIncomeCreationSubType.ZonalEvangelism
+        subType === OfferingIncomeCreationSubType.ZonalEvangelism ||
+        subType === OfferingIncomeCreationSubType.ZonalUnitedService
       ) {
         if (!churchId) {
           throw new NotFoundException(`La iglesia es requerida.`);
@@ -1351,6 +1352,7 @@ export class OfferingIncomeService {
         searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
         searchType === OfferingIncomeSearchType.ZonalEvangelism ||
+        searchType === OfferingIncomeSearchType.ZonalUnitedService ||
         searchType === OfferingIncomeSearchType.GeneralFasting ||
         searchType === OfferingIncomeSearchType.GeneralVigil ||
         searchType === OfferingIncomeSearchType.GeneralEvangelism ||
@@ -1659,7 +1661,7 @@ export class OfferingIncomeService {
       }
     }
 
-    //* By Zone and date
+    //* By Family Group and date
     if (
       term &&
       searchType === OfferingIncomeSearchType.FamilyGroup &&
@@ -2112,6 +2114,7 @@ export class OfferingIncomeService {
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalUnitedService ||
         searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType === OfferingIncomeSearchSubType.OfferingByZone
     ) {
@@ -2177,6 +2180,7 @@ export class OfferingIncomeService {
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalUnitedService ||
         searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType === OfferingIncomeSearchSubType.OfferingByZoneDate
     ) {
@@ -2258,6 +2262,7 @@ export class OfferingIncomeService {
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalUnitedService ||
         searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingBySupervisorFirstNames
@@ -2332,6 +2337,7 @@ export class OfferingIncomeService {
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalUnitedService ||
         searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingBySupervisorLastNames
@@ -2406,6 +2412,7 @@ export class OfferingIncomeService {
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalUnitedService ||
         searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingBySupervisorFullNames
@@ -3726,6 +3733,7 @@ export class OfferingIncomeService {
       if (
         subType === OfferingIncomeCreationSubType.ZonalVigil ||
         subType === OfferingIncomeCreationSubType.ZonalFasting ||
+        subType === OfferingIncomeCreationSubType.ZonalUnitedService ||
         subType === OfferingIncomeCreationSubType.ZonalEvangelism
       ) {
         existsOffering = await this.offeringIncomeRepository.find({
@@ -4068,6 +4076,8 @@ export class OfferingIncomeService {
             OfferingIncomeCreationSubType.ZonalFasting ||
           offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil ||
           offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalUnitedService ||
+          offeringIncome.subType ===
             OfferingIncomeCreationSubType.ZonalEvangelism
         ) {
           offeringDestiny = await this.offeringIncomeRepository.findOne({
@@ -4225,7 +4235,10 @@ export class OfferingIncomeService {
           }
 
           //* Generate the new receipt code; the previous record retains its code for identification
-          const receiptCode = await this.generateNextReceipt(prefix);
+          const receiptCode = await this.generateNextReceipt(
+            prefix,
+            offeringIncome.church.id,
+          );
 
           //* Comments of change amount and currency for the new record
           const newComments = `Información de Conversión\n💲 Monto anterior: ${offeringIncome.amount} ${offeringIncome?.currency}\n💰Tipo de cambio (precio): ${exchangeRate}\n💲 Monto convertido: ${(+offeringIncome.amount * +exchangeRate).toFixed(2)} ${
@@ -4410,6 +4423,7 @@ export class OfferingIncomeService {
       sunday_school: 'ED',
       youth_service: 'CJ',
       united_service: 'CU',
+      zonal_united_service: 'CUZ',
       activities: 'AC',
       church_ground: 'TI',
       special: 'OE',
@@ -4419,12 +4433,16 @@ export class OfferingIncomeService {
   }
 
   //? Method to generate the next receipt code
-  private async generateNextReceipt(prefix: string): Promise<string> {
+  private async generateNextReceipt(
+    prefix: string,
+    churchId: string,
+  ): Promise<string> {
     const lastRecord = await this.offeringIncomeRepository
       .createQueryBuilder('offeringIncome')
       .where('offeringIncome.receiptCode LIKE :prefix', {
         prefix: `ROF-${prefix}-%`,
       })
+      .andWhere('offeringIncome.church_id = :churchId', { churchId })
       .orderBy('offeringIncome.receiptCode', 'DESC')
       .getOne();
 

@@ -1729,7 +1729,7 @@ export class ReportsService {
       }
 
       let newTerm: string;
-      newTerm = term;
+      newTerm = term.split('-').join(' ');
 
       //* By Date
       if (
@@ -1744,6 +1744,7 @@ export class ReportsService {
           searchType === SearchType.GeneralEvangelism ||
           searchType === SearchType.YouthService ||
           searchType === SearchType.UnitedService ||
+          searchType === SearchType.ZonalUnitedService ||
           searchType === SearchType.Activities ||
           searchType === SearchType.Special ||
           searchType === SearchType.ChurchGround ||
@@ -1807,7 +1808,11 @@ export class ReportsService {
 
       //* By Zone and Date
       if (
-        searchType === SearchType.FamilyGroup &&
+        (searchType === SearchType.FamilyGroup ||
+          searchType === SearchType.ZonalEvangelism ||
+          searchType === SearchType.ZonalFasting ||
+          searchType === SearchType.ZonalVigil ||
+          searchType === SearchType.ZonalUnitedService) &&
         searchSubType === SearchSubType.OfferingByZoneDate
       ) {
         const [zone, date] = term.split('&');
