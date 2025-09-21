@@ -6,7 +6,7 @@ export interface Options {
 }
 
 export const churchDataFormatter = ({ churches, mainChurch }: Options) => {
-  return churches.map((church) => ({
+  return churches?.map((church) => ({
     ...church,
     theirMainChurch: church.isAnexe
       ? {
@@ -24,7 +24,7 @@ export const churchDataFormatter = ({ churches, mainChurch }: Options) => {
       district: anexe?.district,
       urbanSector: anexe?.urbanSector,
     })),
-    ministries: church?.ministries.map((ministry) => ({
+    ministries: church?.ministries?.map((ministry) => ({
       id: ministry?.id,
       ministryType: ministry?.ministryType,
       customMinistryName: ministry?.customMinistryName,

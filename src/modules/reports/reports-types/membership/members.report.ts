@@ -157,7 +157,11 @@ export const getMembersReport = (
       footer: footerSection,
       pageMargins: [20, 120, 20, 60],
       content: Object.values(groupedByZone)
-        .reverse()
+        .sort((a, b) =>
+          (a[0]?.theirFamilyGroup?.familyGroupCode ?? '').localeCompare(
+            b[0]?.theirFamilyGroup.familyGroupCode ?? '',
+          ),
+        )
         .map((data, index, array) => ({
           stack: [
             {

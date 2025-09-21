@@ -513,7 +513,9 @@ export const generateReceiptByOfferingIncomeId = (
         style: 'header',
       },
       {
-        text: `"${churchName.split('-')[0].trim().split('Cristiana')[1].trim()}"`,
+        text: churchName.includes('Cristiana')
+          ? `"${churchName.split('-')[0].trim().split('Cristiana')[1]?.trim()}"`
+          : `"${churchName.trim()}"`,
         style: 'header2',
       },
       {
