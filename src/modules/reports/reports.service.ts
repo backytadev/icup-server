@@ -1414,6 +1414,7 @@ export class ReportsService {
           ? disciples[0]?.theirChurch?.abbreviatedChurchName
           : undefined,
         data: disciples,
+        isDiscipleModule: true,
       });
 
       const doc = this.printerService.createPdf(docDefinition);

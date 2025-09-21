@@ -30,6 +30,7 @@ interface ReportOptions {
   orderSearch?: string;
   churchName?: string;
   data: DataOptions;
+  isDiscipleModule?: boolean;
 }
 
 export const getMembersReport = (
@@ -45,126 +46,204 @@ export const getMembersReport = (
     searchSubType,
     orderSearch,
     churchName,
+    isDiscipleModule = false,
   } = options;
 
-  return {
-    pageOrientation: 'landscape',
-    header: headerSection({
-      title: title,
-      subTitle: subTitle,
-      searchTerm: searchTerm,
-      searchType: searchType,
-      searchSubType: searchSubType,
-      orderSearch: orderSearch,
-      churchName: churchName,
-    }),
-    footer: footerSection,
-    pageMargins: [20, 120, 20, 60],
-    content: [
-      {
-        layout: 'customLayout01', // optional
-        table: {
-          headerRows: 1,
-          widths: [100, 75, 30, 'auto', 80, 95, 100, '*'],
+  //* Grouped by Family Group
+  const groupedByZone = data.reduce(
+    (acc: Record<string, Disciple[]>, item: Disciple) => {
+      const groupId = item.theirFamilyGroup?.familyGroupCode ?? 'SIN_CODIGO';
+      if (!acc[groupId]) {
+        acc[groupId] = [];
+      }
+      acc[groupId].push(item);
+      return acc;
+    },
+    {},
+  );
 
-          body: [
-            [
-              {
-                text: 'Nom. y Apellidos',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'F. Nacimiento',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'Edad',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'E. Civil',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'F. Conversion',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'N. Teléfono',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'Distrito (S.U)',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'Dirección',
-                style: {
-                  bold: true,
-                },
-              },
-            ],
-            ...data.map((item: MemberOptions) => [
-              `${item?.member?.firstNames} ${item?.member?.lastNames}`,
-              formatDateToLimaDayMonthYear(item?.member?.birthDate),
-              item?.member?.age,
-              MaritalStatusNames[item?.member?.maritalStatus],
-              formatDateToLimaDayMonthYear(item?.member?.conversionDate),
-              item.member.phoneNumber ?? '-',
-              `${item?.member?.residenceDistrict} - ${item?.member?.residenceUrbanSector}`,
-              `${item?.member?.residenceAddress} (${item?.member?.referenceAddress})`,
-            ]),
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-          ],
-        },
-      },
+  if (searchType && !isDiscipleModule) {
+    return {
+      pageOrientation: 'landscape',
+      header: headerSection({
+        title: title,
+        subTitle: subTitle,
+        searchTerm: searchTerm,
+        searchType: searchType,
+        searchSubType: searchSubType,
+        orderSearch: orderSearch,
+        churchName: churchName,
+      }),
+      footer: footerSection,
+      pageMargins: [20, 120, 20, 60],
+      content: [
+        {
+          layout: 'customLayout01', // optional
+          table: {
+            headerRows: 1,
+            widths: [100, 75, 30, 'auto', 80, 95, 100, '*'],
 
-      {
-        layout: 'noBorders',
-        table: {
-          headerRows: 1,
-          widths: [115, 75, 'auto', 'auto', 75, 'auto', 'auto', 'auto'],
-          body: [
-            [
-              {
-                text: `Total de ${description}:`,
-                colSpan: 1,
-                fontSize: 13,
-                bold: true,
-                margin: [0, 10, 0, 0],
-              },
-              {
-                text: `${data.length} ${description}.`,
-                bold: true,
-                fontSize: 13,
-                colSpan: 2,
-                margin: [0, 10, 0, 0],
-              },
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
+            body: [
+              [
+                { text: 'Nom. y Apellidos', style: { bold: true } },
+                { text: 'F. Nacimiento', style: { bold: true } },
+                { text: 'Edad', style: { bold: true } },
+                { text: 'E. Civil', style: { bold: true } },
+                { text: 'F. Conversion', style: { bold: true } },
+                { text: 'N. Teléfono', style: { bold: true } },
+                { text: 'Distrito (S.U)', style: { bold: true } },
+                { text: 'Dirección', style: { bold: true } },
+              ],
+              ...data.map((item: MemberOptions) => [
+                `${item?.member?.firstNames} ${item?.member?.lastNames}`,
+                formatDateToLimaDayMonthYear(item?.member?.birthDate),
+                item?.member?.age,
+                MaritalStatusNames[item?.member?.maritalStatus],
+                formatDateToLimaDayMonthYear(item?.member?.conversionDate),
+                item.member.phoneNumber ?? '-',
+                `${item?.member?.residenceDistrict} - ${item?.member?.residenceUrbanSector}`,
+                `${item?.member?.residenceAddress} (${item?.member?.referenceAddress})`,
+              ]),
+              ['', '', '', '', '', '', '', ''],
+              ['', '', '', '', '', '', '', ''],
             ],
-          ],
+          },
         },
-      },
-    ],
-  };
+        {
+          layout: 'noBorders',
+          table: {
+            headerRows: 1,
+            widths: [115, 75, 'auto', 'auto', 75, 'auto', 'auto', 'auto'],
+            body: [
+              [
+                {
+                  text: `Total de ${description}:`,
+                  colSpan: 1,
+                  fontSize: 13,
+                  bold: true,
+                  margin: [0, 10, 0, 0],
+                },
+                {
+                  text: `${data.length} ${description}.`,
+                  bold: true,
+                  fontSize: 13,
+                  colSpan: 2,
+                  margin: [0, 10, 0, 0],
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+              ],
+            ],
+          },
+        },
+      ],
+    };
+  } else if (searchType === 'Nombre de Zona') {
+    return {
+      pageOrientation: 'landscape',
+      header: headerSection({
+        title: title,
+        subTitle: subTitle,
+        searchTerm: searchTerm,
+        searchType: searchType,
+        searchSubType: searchSubType,
+        orderSearch: orderSearch,
+        churchName: churchName,
+      }),
+      footer: footerSection,
+      pageMargins: [20, 120, 20, 60],
+      content: Object.values(groupedByZone)
+        .reverse()
+        .map((data, index, array) => ({
+          stack: [
+            {
+              layout: 'noBorders',
+              table: {
+                headerRows: 1,
+                widths: ['*'],
+                body: [
+                  [
+                    {
+                      text: `${data[0]?.theirFamilyGroup?.familyGroupCode} ~ ${data[0]?.theirFamilyGroup?.familyGroupName}`,
+                      color: '#1d96d3',
+                      fontSize: 16,
+                      bold: true,
+                      italics: true,
+                      alignment: 'center',
+                      margin: [0, 0, 0, 5],
+                    },
+                  ],
+                ],
+              },
+            },
+            {
+              layout: 'customLayout01',
+              table: {
+                headerRows: 1,
+                widths: [100, 75, 30, 'auto', 80, 95, 100, '*'],
+                body: [
+                  [
+                    { text: 'Nom. y Apellidos', style: { bold: true } },
+                    { text: 'F. Nacimiento', style: { bold: true } },
+                    { text: 'Edad', style: { bold: true } },
+                    { text: 'E. Civil', style: { bold: true } },
+                    { text: 'F. Conversion', style: { bold: true } },
+                    { text: 'N. Teléfono', style: { bold: true } },
+                    { text: 'Distrito (S.U)', style: { bold: true } },
+                    { text: 'Dirección', style: { bold: true } },
+                  ],
+                  ...data.map((item: MemberOptions) => [
+                    `${item?.member?.firstNames} ${item?.member?.lastNames}`,
+                    formatDateToLimaDayMonthYear(item?.member?.birthDate),
+                    item?.member?.age,
+                    MaritalStatusNames[item?.member?.maritalStatus],
+                    formatDateToLimaDayMonthYear(item?.member?.conversionDate),
+                    item.member.phoneNumber ?? '-',
+                    `${item?.member?.residenceDistrict} - ${item?.member?.residenceUrbanSector}`,
+                    `${item?.member?.residenceAddress} (${item?.member?.referenceAddress})`,
+                  ]),
+                  ['', '', '', '', '', '', '', ''],
+                  ['', '', '', '', '', '', '', ''],
+                ],
+              },
+            },
+            {
+              layout: 'noBorders',
+              table: {
+                headerRows: 1,
+                widths: [115, 75, 'auto', 'auto', 75, 'auto', 'auto', 'auto'],
+                body: [
+                  [
+                    {
+                      text: `Total de ${description}:`,
+                      fontSize: 13,
+                      bold: true,
+                      margin: [0, 10, 0, 0],
+                    },
+                    {
+                      text: `${data.length} ${description}.`,
+                      bold: true,
+                      fontSize: 13,
+                      colSpan: 2,
+                      margin: [0, 10, 0, 0],
+                    },
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                  ],
+                ],
+              },
+            },
+          ],
+          pageBreak: index < array.length - 1 ? 'after' : undefined,
+        })),
+    };
+  }
 };
