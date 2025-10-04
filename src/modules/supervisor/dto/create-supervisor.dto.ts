@@ -3,7 +3,7 @@ import {
   IsEmail,
   IsArray,
   IsString,
-  IsBoolean,
+  // IsBoolean,
   MaxLength,
   MinLength,
   IsNotEmpty,
@@ -19,6 +19,7 @@ import { Gender } from '@/common/enums/gender.enum';
 import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { MaritalStatus } from '@/common/enums/marital-status.enum';
+import { MinistryAssignment } from '@/common/interfaces/ministry-assignment.interface';
 import { MemberInactivationReason } from '@/common/enums/member-inactivation-reason.enum';
 import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
 
@@ -203,11 +204,11 @@ export class CreateSupervisorDto {
   @IsOptional()
   recordStatus?: string;
 
-  @ApiProperty({
-    example: true,
-  })
-  @IsBoolean()
-  isDirectRelationToPastor: boolean;
+  // @ApiProperty({
+  //   example: true,
+  // })
+  // @IsBoolean()
+  // isDirectRelationToPastor: boolean;
 
   //* Relations
   @ApiProperty({
@@ -223,6 +224,35 @@ export class CreateSupervisorDto {
   @IsString()
   @IsOptional()
   theirPastor?: string;
+
+  @ApiProperty({
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
+  })
+  @IsString()
+  @IsOptional()
+  theirPastorRelationDirect?: string;
+
+  @ApiProperty({
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
+  })
+  @IsString()
+  @IsOptional()
+  theirPastorOnlyMinistries?: string;
+
+  @ApiProperty({
+    description:
+      'Listado de ministerios asignados a la persona (discípulo, pastor, predicador, etc.) junto con sus roles dentro de cada ministerio.',
+    example: [
+      {
+        ministryId: '1234567890abcdef2sfs24021a',
+        ministryRoles: ['kids_ministry_leader', 'youth_ministry_member'],
+      },
+    ],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  theirMinistries?: MinistryAssignment[];
 
   //! Properties record inactivation (optional)
   @IsOptional()

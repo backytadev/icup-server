@@ -1,10 +1,12 @@
 export enum RelationType {
+  RelatedDirectToPastor = 'related_direct_pastor',
   OnlyRelatedHierarchicalCover = 'only_related_hierarchical_cover',
   OnlyRelatedMinistries = 'only_related_ministries',
   RelatedBothMinistriesAndHierarchicalCover = 'related_both_ministries_and_hierarchical_cover',
 }
 
 export const RelationTypeNames: Record<RelationType, string> = {
+  [RelationType.RelatedDirectToPastor]: 'Directa con pastor',
   [RelationType.OnlyRelatedHierarchicalCover]:
     'Solo con una cobertura jerárquica',
   [RelationType.OnlyRelatedMinistries]: 'Solo con ministerios',

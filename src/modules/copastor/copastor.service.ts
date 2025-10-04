@@ -23,14 +23,19 @@ import { copastorDataFormatter } from '@/modules/copastor/helpers/copastor-data-
 import { GenderNames } from '@/common/enums/gender.enum';
 import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
+import { RelationType } from '@/common/enums/relation-type.enum';
 import { MaritalStatusNames } from '@/common/enums/marital-status.enum';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
+import { createMinistryMember } from '@/common/helpers/create-ministry-member';
+import { updateMinistryMember } from '@/common/helpers/update-ministry-member';
+import { raiseLevelMinistryMember } from '@/common/helpers/raise-level-ministry-member';
 import { getBirthDateByMonth } from '@/common/helpers/get-birth-date-by-month.helper';
 import { dateFormatterToDDMMYYYY } from '@/common/helpers/date-formatter-to-ddmmyyy.helper';
+import { validationExistsChangesMinistryMember } from '@/common/helpers/validation-exists-changes-ministry-member';
 
 import { MemberType } from '@/modules/offering/income/enums/member-type.enum';
 
@@ -42,8 +47,10 @@ import { Member } from '@/modules/member/entities/member.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
+import { MinistryMember } from '@/modules/ministry/entities/ministry-member.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 
 @Injectable()
@@ -52,6 +59,12 @@ export class CopastorService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
+
+    @InjectRepository(MinistryMember)
+    private readonly ministryMemberRepository: Repository<MinistryMember>,
+
+    @InjectRepository(Ministry)
+    private readonly ministryRepository: Repository<Ministry>,
 
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
@@ -86,7 +99,8 @@ export class CopastorService {
     createCopastorDto: CreateCopastorDto,
     user: User,
   ): Promise<Copastor> {
-    const { roles, theirPastor } = createCopastorDto;
+    const { roles, theirPastor, theirMinistries, relationType } =
+      createCopastorDto;
 
     if (!roles.includes(MemberRole.Copastor)) {
       throw new BadRequestException(`El rol "Co-Pastor" deben ser incluidos.`);
@@ -173,9 +187,21 @@ export class CopastorService {
         member: newMember,
         theirChurch: church,
         theirPastor: pastor,
+        relationType: relationType ?? null,
         createdAt: new Date(),
         createdBy: user,
       });
+
+      //* Create Ministries
+      if (theirMinistries && theirMinistries.length > 0) {
+        await createMinistryMember({
+          theirMinistries,
+          ministryRepository: this.ministryRepository,
+          ministryMemberRepository: this.ministryMemberRepository,
+          newMember,
+          user,
+        });
+      }
 
       return await this.copastorRepository.save(newCopastor);
     } catch (error) {
@@ -258,6 +284,9 @@ export class CopastorService {
           'updatedBy',
           'createdBy',
           'member',
+          'member.ministries',
+          'member.ministries.ministry',
+          'member.ministries.ministry.theirChurch',
           'zones',
           'familyGroups',
           'theirChurch',
@@ -347,6 +376,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -409,6 +441,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -461,6 +496,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -523,6 +561,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -577,6 +618,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -641,6 +685,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -695,6 +742,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -740,6 +790,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -816,6 +869,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -876,6 +932,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -924,6 +983,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -969,6 +1031,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1014,6 +1079,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1059,6 +1127,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1104,6 +1175,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1149,6 +1223,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1194,6 +1271,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1243,6 +1323,9 @@ export class CopastorService {
             'updatedBy',
             'createdBy',
             'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'zones',
             'familyGroups',
             'theirChurch',
@@ -1309,6 +1392,8 @@ export class CopastorService {
       recordStatus,
       theirPastor,
       theirChurch,
+      relationType,
+      theirMinistries,
       memberInactivationReason,
       memberInactivationCategory,
     } = updateCopastorDto;
@@ -1325,7 +1410,14 @@ export class CopastorService {
 
     const copastor = await this.copastorRepository.findOne({
       where: { id: id },
-      relations: ['theirPastor', 'theirChurch', 'member'],
+      relations: [
+        'theirPastor',
+        'theirChurch',
+        'member',
+        'member.ministries',
+        'member.ministries.ministry',
+        'member.ministries.ministry.theirChurch',
+      ],
     });
 
     if (!copastor) {
@@ -1460,6 +1552,7 @@ export class CopastorService {
             member: savedMember,
             theirChurch: newChurch,
             theirPastor: newPastor,
+            relationType: relationType ?? null,
             updatedAt: new Date(),
             updatedBy: user,
             inactivationCategory:
@@ -1472,6 +1565,23 @@ export class CopastorService {
                 : memberInactivationReason,
             recordStatus: recordStatus,
           });
+
+          //* Validate if there is any equal record or deleted records
+          const hasChangesInMinistries = validationExistsChangesMinistryMember({
+            memberEntity: copastor,
+            theirMinistries,
+          });
+
+          //* Update Ministry Member
+          if (hasChangesInMinistries) {
+            await updateMinistryMember({
+              theirMinistries,
+              ministryRepository: this.ministryRepository,
+              ministryMemberRepository: this.ministryMemberRepository,
+              savedMember,
+              user,
+            });
+          }
 
           savedCopastor = await this.copastorRepository.save(updatedCopastor);
         } catch (error) {
@@ -1593,7 +1703,7 @@ export class CopastorService {
       //? Update and save if is same Pastor
       if (copastor?.theirPastor?.id === theirPastor) {
         try {
-          const updatedMember = await this.memberRepository.preload({
+          const savedMember = await this.memberRepository.preload({
             id: copastor.member.id,
             firstNames: updateCopastorDto.firstNames,
             lastNames: updateCopastorDto.lastNames,
@@ -1615,13 +1725,14 @@ export class CopastorService {
             roles: updateCopastorDto.roles,
           });
 
-          await this.memberRepository.save(updatedMember);
+          await this.memberRepository.save(savedMember);
 
           const updatedCopastor = await this.copastorRepository.preload({
             id: copastor.id,
-            member: updatedMember,
+            member: savedMember,
             theirChurch: copastor.theirChurch,
             theirPastor: copastor.theirPastor,
+            relationType: relationType ?? null,
             updatedAt: new Date(),
             updatedBy: user,
             inactivationCategory:
@@ -1634,6 +1745,23 @@ export class CopastorService {
                 : memberInactivationReason,
             recordStatus: recordStatus,
           });
+
+          //* Validate if there is any equal record or deleted records
+          const hasChangesInMinistries = validationExistsChangesMinistryMember({
+            memberEntity: copastor,
+            theirMinistries,
+          });
+
+          //* Update Ministry Member
+          if (hasChangesInMinistries) {
+            await updateMinistryMember({
+              theirMinistries,
+              ministryRepository: this.ministryRepository,
+              ministryMemberRepository: this.ministryMemberRepository,
+              savedMember,
+              user,
+            });
+          }
 
           return await this.copastorRepository.save(updatedCopastor);
         } catch (error) {
@@ -1686,7 +1814,7 @@ export class CopastorService {
 
       //? Create new instance Pastor and delete old Copastor
       try {
-        const updatedMember = await this.memberRepository.preload({
+        const savedMember = await this.memberRepository.preload({
           id: copastor.member.id,
           firstNames: updateCopastorDto.firstNames,
           lastNames: updateCopastorDto.lastNames,
@@ -1708,14 +1836,29 @@ export class CopastorService {
           roles: updateCopastorDto.roles,
         });
 
-        await this.memberRepository.save(updatedMember);
+        await this.memberRepository.save(savedMember);
 
         const newPastor = this.pastorRepository.create({
-          member: updatedMember,
+          member: savedMember,
           theirChurch: newChurch,
+          relationType:
+            theirMinistries.length > 0
+              ? RelationType.RelatedBothMinistriesAndHierarchicalCover
+              : RelationType.OnlyRelatedHierarchicalCover,
           createdAt: new Date(),
           createdBy: user,
         });
+
+        //* Raise level ministries of member
+        if (theirMinistries.length > 0) {
+          await raiseLevelMinistryMember({
+            theirMinistries,
+            savedMember,
+            ministryRepository: this.ministryRepository,
+            ministryMemberRepository: this.ministryMemberRepository,
+            user,
+          });
+        }
 
         const savedPastor = await this.pastorRepository.save(newPastor);
 
