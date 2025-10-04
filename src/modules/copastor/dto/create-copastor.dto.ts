@@ -21,6 +21,8 @@ import { MaritalStatus } from '@/common/enums/marital-status.enum';
 import { MemberInactivationReason } from '@/common/enums/member-inactivation-reason.enum';
 import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
 
+import { MinistryAssignment } from '@/common/interfaces/ministry-assignment.interface';
+
 export class CreateCopastorDto {
   //* General and Personal info
   @ApiProperty({
@@ -216,6 +218,21 @@ export class CreateCopastorDto {
   @IsString()
   @IsOptional()
   theirChurch?: string;
+
+  @ApiProperty({
+    description:
+      'Listado de ministerios asignados a la persona (discípulo, pastor, predicador, etc.) junto con sus roles dentro de cada ministerio.',
+    example: [
+      {
+        ministryId: '1234567890abcdef2sfs24021a',
+        ministryRoles: ['kids_ministry_leader', 'youth_ministry_member'],
+      },
+    ],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  theirMinistries?: MinistryAssignment[];
 
   //! Properties record inactivation (optional)
   @IsOptional()

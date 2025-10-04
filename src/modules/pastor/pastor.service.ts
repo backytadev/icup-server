@@ -27,8 +27,11 @@ import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
+import { createMinistryMember } from '@/common/helpers/create-ministry-member';
+import { updateMinistryMember } from '@/common/helpers/update-ministry-member';
 import { getBirthDateByMonth } from '@/common/helpers/get-birth-date-by-month.helper';
 import { dateFormatterToDDMMYYYY } from '@/common/helpers/date-formatter-to-ddmmyyy.helper';
+import { validationExistsChangesMinistryMember } from '@/common/helpers/validation-exists-changes-ministry-member';
 
 import { Zone } from '@/modules/zone/entities/zone.entity';
 import { User } from '@/modules/user/entities/user.entity';
@@ -41,6 +44,7 @@ import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
+import { MinistryMember } from '@/modules/ministry/entities/ministry-member.entity';
 
 @Injectable()
 export class PastorService {
@@ -49,6 +53,9 @@ export class PastorService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
+
+    @InjectRepository(MinistryMember)
+    private readonly ministryMemberRepository: Repository<MinistryMember>,
 
     @InjectRepository(Ministry)
     private readonly ministryRepository: Repository<Ministry>,
@@ -80,7 +87,8 @@ export class PastorService {
 
   //* CREATE PASTOR
   async create(createPastorDto: CreatePastorDto, user: User): Promise<Pastor> {
-    const { roles, theirChurch } = createPastorDto;
+    const { roles, theirChurch, theirMinistries, relationType } =
+      createPastorDto;
 
     if (!roles.includes(MemberRole.Pastor)) {
       throw new BadRequestException(`El rol "Pastor" debe ser incluido.`);
@@ -149,9 +157,21 @@ export class PastorService {
       const newPastor = this.pastorRepository.create({
         member: newMember,
         theirChurch: church,
+        relationType: relationType ?? null,
         createdAt: new Date(),
         createdBy: user,
       });
+
+      //* Create Ministries
+      if (theirMinistries && theirMinistries.length > 0) {
+        await createMinistryMember({
+          theirMinistries,
+          ministryRepository: this.ministryRepository,
+          ministryMemberRepository: this.ministryMemberRepository,
+          newMember,
+          user,
+        });
+      }
 
       return await this.pastorRepository.save(newPastor);
     } catch (error) {
@@ -216,6 +236,9 @@ export class PastorService {
           'updatedBy',
           'createdBy',
           'member',
+          'member.ministries',
+          'member.ministries.ministry',
+          'member.ministries.ministry.theirChurch',
           'theirChurch',
           'familyGroups',
           'ministries',
@@ -297,12 +320,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -344,12 +370,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -393,12 +422,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -447,12 +479,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -492,12 +527,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -568,12 +606,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -628,12 +669,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -676,12 +720,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -721,12 +768,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -766,12 +816,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -811,12 +864,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -856,12 +912,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -901,12 +960,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -946,12 +1008,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -997,12 +1062,15 @@ export class PastorService {
           take: limit,
           skip: offset,
           relations: [
+            'member',
+            'member.ministries',
+            'member.ministries.ministry',
+            'member.ministries.ministry.theirChurch',
             'updatedBy',
             'createdBy',
             'theirChurch',
             'zones',
             'familyGroups',
-            'member',
             'copastors.member',
             'supervisors.member',
             'preachers.member',
@@ -1051,6 +1119,8 @@ export class PastorService {
       roles,
       recordStatus,
       theirChurch,
+      relationType,
+      theirMinistries,
       memberInactivationCategory,
       memberInactivationReason,
     } = updatePastorDto;
@@ -1182,6 +1252,7 @@ export class PastorService {
           const updatedPastor = await this.pastorRepository.preload({
             id: pastor.id,
             member: savedMember,
+            relationType: relationType ?? null,
             theirChurch: newChurch,
             updatedAt: new Date(),
             updatedBy: user,
@@ -1195,6 +1266,23 @@ export class PastorService {
                 : memberInactivationReason,
             recordStatus: recordStatus,
           });
+
+          //* Validate if there is any equal record or deleted records
+          const hasChangesInMinistries = validationExistsChangesMinistryMember({
+            memberEntity: pastor,
+            theirMinistries,
+          });
+
+          //* Update Ministry Member
+          if (hasChangesInMinistries) {
+            await updateMinistryMember({
+              theirMinistries,
+              ministryRepository: this.ministryRepository,
+              ministryMemberRepository: this.ministryMemberRepository,
+              savedMember,
+              user,
+            });
+          }
 
           savedPastor = await this.pastorRepository.save(updatedPastor);
         } catch (error) {
@@ -1321,7 +1409,7 @@ export class PastorService {
       //? Update and save if is same Church
       if (pastor.theirChurch?.id === theirChurch) {
         try {
-          const updatedMember = await this.memberRepository.preload({
+          const savedMember = await this.memberRepository.preload({
             id: pastor.member.id,
             firstNames: updatePastorDto.firstNames,
             lastNames: updatePastorDto.lastNames,
@@ -1343,12 +1431,13 @@ export class PastorService {
             roles: updatePastorDto.roles,
           });
 
-          await this.memberRepository.save(updatedMember);
+          await this.memberRepository.save(savedMember);
 
           const updatedPastor = await this.pastorRepository.preload({
             id: pastor.id,
-            member: updatedMember,
+            member: savedMember,
             theirChurch: pastor.theirChurch,
+            relationType: relationType ?? null,
             updatedAt: new Date(),
             updatedBy: user,
             inactivationCategory:
@@ -1361,6 +1450,23 @@ export class PastorService {
                 : memberInactivationReason,
             recordStatus: recordStatus,
           });
+
+          //* Validate if there is any equal record or deleted records
+          const hasChangesInMinistries = validationExistsChangesMinistryMember({
+            memberEntity: pastor,
+            theirMinistries,
+          });
+
+          //* Update Ministry Member
+          if (hasChangesInMinistries) {
+            await updateMinistryMember({
+              theirMinistries,
+              ministryRepository: this.ministryRepository,
+              ministryMemberRepository: this.ministryMemberRepository,
+              savedMember,
+              user,
+            });
+          }
 
           return await this.pastorRepository.save(updatedPastor);
         } catch (error) {
@@ -1541,8 +1647,6 @@ export class PastorService {
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleDBExceptions(error: any): never {
-    console.log(error);
-
     if (error.code === '23505') {
       const detail = error.detail;
 
