@@ -290,7 +290,9 @@ export class ReportsService {
             OfferingIncomeCreationSubType.ZonalFasting ||
           offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil ||
           offeringIncome.subType ===
-            OfferingIncomeCreationSubType.ZonalEvangelism
+            OfferingIncomeCreationSubType.ZonalEvangelism ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalUnitedService
             ? `${offeringIncome?.zone?.theirCopastor?.member?.firstNames} ${offeringIncome?.zone?.theirCopastor?.member?.lastNames}`
             : offeringIncome.subType ===
                 OfferingIncomeCreationSubType.FamilyGroup

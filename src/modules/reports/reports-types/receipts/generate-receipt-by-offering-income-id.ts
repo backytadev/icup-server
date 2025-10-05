@@ -263,7 +263,8 @@ export const generateReceiptByOfferingIncomeId = (
   if (
     subType === OfferingIncomeCreationSubType.FamilyGroup ||
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil
+    subType === OfferingIncomeCreationSubType.ZonalVigil ||
+    subType === OfferingIncomeCreationSubType.ZonalUnitedService
   ) {
     relationshipDetails.push([
       {
@@ -316,7 +317,8 @@ export const generateReceiptByOfferingIncomeId = (
   if (
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
     subType === OfferingIncomeCreationSubType.ZonalVigil ||
-    subType === OfferingIncomeCreationSubType.ZonalEvangelism
+    subType === OfferingIncomeCreationSubType.ZonalEvangelism ||
+    subType === OfferingIncomeCreationSubType.ZonalUnitedService
   ) {
     relationshipDetails.push([
       {
@@ -358,7 +360,8 @@ export const generateReceiptByOfferingIncomeId = (
     subType === OfferingIncomeCreationSubType.FamilyGroup ||
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
     subType === OfferingIncomeCreationSubType.ZonalVigil ||
-    subType === OfferingIncomeCreationSubType.ZonalEvangelism
+    subType === OfferingIncomeCreationSubType.ZonalEvangelism ||
+    subType === OfferingIncomeCreationSubType.ZonalUnitedService
   ) {
     relationshipDetails.push([
       {
