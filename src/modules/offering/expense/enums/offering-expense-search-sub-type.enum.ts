@@ -45,6 +45,7 @@ export enum OfferingExpenseSearchSubType {
   ConstructionEquipment = 'construction_equipment',
   OfficeEquipment = 'office_equipment',
   KitchenEquipment = 'kitchen_equipment',
+  SanitaryEquipment = 'sanitary_equipment',
   CleaningEquipment = 'cleaning_equipment',
   AudioVideoRecordingEquipment = 'audio_video_recording_equipment',
   OfficeFurniture = 'office_furniture',
@@ -62,6 +63,7 @@ export enum OfferingExpenseSearchSubType {
   PackagingMaterials = 'packaging_and_storage_materials',
   SundaySchoolMaterials = 'sunday_school_educational_materials',
   RenovationMaterials = 'renovation_materials',
+  PlumbingSupplies = 'plumbing_supplies',
   PaintingSupplies = 'painting_supplies',
   ElectricalSupplies = 'electrical_supplies',
   ConstructionTools = 'construction_tools',
@@ -170,6 +172,7 @@ export const OfferingExpenseSearchSubTypeNames: Record<
     'Equipos de construcción',
   [OfferingExpenseSearchSubType.KitchenEquipment]: 'Equipos de cocina',
   [OfferingExpenseSearchSubType.CleaningEquipment]: 'Equipos de limpieza',
+  [OfferingExpenseSearchSubType.SanitaryEquipment]: 'Equipos sanitarios',
   [OfferingExpenseSearchSubType.AudioVideoRecordingEquipment]:
     'Equipos de grabación (a/v)',
   [OfferingExpenseSearchSubType.OfficeFurniture]: 'Mobiliarios informáticos',
@@ -186,6 +189,7 @@ export const OfferingExpenseSearchSubTypeNames: Record<
   [OfferingExpenseSearchSubType.CookingIngredients]: 'Insumos de cocina',
   [OfferingExpenseSearchSubType.OfficeSupplies]: 'Utensilios de oficina',
   [OfferingExpenseSearchSubType.CleaningMaterials]: 'Materiales de limpieza',
+  [OfferingExpenseSearchSubType.PlumbingSupplies]: 'Utensilios de de plomeria',
   [OfferingExpenseSearchSubType.PackagingMaterials]:
     'Materiales de almacenamiento',
   [OfferingExpenseSearchSubType.SundaySchoolMaterials]:
