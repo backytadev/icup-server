@@ -62,7 +62,7 @@ export const getMembersReport = (
     {},
   );
 
-  if (searchType && !isDiscipleModule) {
+  if (!isDiscipleModule) {
     return {
       pageOrientation: 'landscape',
       header: headerSection({
@@ -81,15 +81,14 @@ export const getMembersReport = (
           layout: 'customLayout01', // optional
           table: {
             headerRows: 1,
-            widths: [100, 75, 30, 'auto', 80, 95, 100, '*'],
+            widths: [100, 75, 'auto', 80, 95, 100, '*'],
 
             body: [
               [
                 { text: 'Nom. y Apellidos', style: { bold: true } },
                 { text: 'F. Nacimiento', style: { bold: true } },
-                { text: 'Edad', style: { bold: true } },
                 { text: 'E. Civil', style: { bold: true } },
-                { text: 'F. Conversion', style: { bold: true } },
+                { text: 'F. Conversión', style: { bold: true } },
                 { text: 'N. Teléfono', style: { bold: true } },
                 { text: 'Distrito (S.U)', style: { bold: true } },
                 { text: 'Dirección', style: { bold: true } },
@@ -97,15 +96,14 @@ export const getMembersReport = (
               ...data.map((item: MemberOptions) => [
                 `${item?.member?.firstNames} ${item?.member?.lastNames}`,
                 formatDateToLimaDayMonthYear(item?.member?.birthDate),
-                item?.member?.age,
                 MaritalStatusNames[item?.member?.maritalStatus],
                 formatDateToLimaDayMonthYear(item?.member?.conversionDate),
                 item.member.phoneNumber ?? '-',
                 `${item?.member?.residenceDistrict} - ${item?.member?.residenceUrbanSector}`,
                 `${item?.member?.residenceAddress} (${item?.member?.referenceAddress})`,
               ]),
-              ['', '', '', '', '', '', '', ''],
-              ['', '', '', '', '', '', '', ''],
+              ['', '', '', '', '', '', ''],
+              ['', '', '', '', '', '', ''],
             ],
           },
         },
@@ -113,7 +111,7 @@ export const getMembersReport = (
           layout: 'noBorders',
           table: {
             headerRows: 1,
-            widths: [115, 75, 'auto', 'auto', 75, 'auto', 'auto', 'auto'],
+            widths: [115, 75, 'auto', 'auto', 'auto', 'auto', 'auto'],
             body: [
               [
                 {
@@ -130,7 +128,6 @@ export const getMembersReport = (
                   colSpan: 2,
                   margin: [0, 10, 0, 0],
                 },
-                {},
                 {},
                 {},
                 {},
@@ -188,12 +185,11 @@ export const getMembersReport = (
               layout: 'customLayout01',
               table: {
                 headerRows: 1,
-                widths: [100, 75, 30, 'auto', 80, 95, 100, '*'],
+                widths: [100, 75, 'auto', 80, 95, 100, '*'],
                 body: [
                   [
                     { text: 'Nom. y Apellidos', style: { bold: true } },
                     { text: 'F. Nacimiento', style: { bold: true } },
-                    { text: 'Edad', style: { bold: true } },
                     { text: 'E. Civil', style: { bold: true } },
                     { text: 'F. Conversion', style: { bold: true } },
                     { text: 'N. Teléfono', style: { bold: true } },
@@ -203,15 +199,14 @@ export const getMembersReport = (
                   ...data.map((item: MemberOptions) => [
                     `${item?.member?.firstNames} ${item?.member?.lastNames}`,
                     formatDateToLimaDayMonthYear(item?.member?.birthDate),
-                    item?.member?.age,
                     MaritalStatusNames[item?.member?.maritalStatus],
                     formatDateToLimaDayMonthYear(item?.member?.conversionDate),
                     item.member.phoneNumber ?? '-',
                     `${item?.member?.residenceDistrict} - ${item?.member?.residenceUrbanSector}`,
                     `${item?.member?.residenceAddress} (${item?.member?.referenceAddress})`,
                   ]),
-                  ['', '', '', '', '', '', '', ''],
-                  ['', '', '', '', '', '', '', ''],
+                  ['', '', '', '', '', '', ''],
+                  ['', '', '', '', '', '', ''],
                 ],
               },
             },
@@ -219,7 +214,7 @@ export const getMembersReport = (
               layout: 'noBorders',
               table: {
                 headerRows: 1,
-                widths: [115, 75, 'auto', 'auto', 75, 'auto', 'auto', 'auto'],
+                widths: [115, 75, 'auto', 75, 'auto', 'auto', 'auto'],
                 body: [
                   [
                     {
@@ -235,7 +230,6 @@ export const getMembersReport = (
                       colSpan: 2,
                       margin: [0, 10, 0, 0],
                     },
-                    {},
                     {},
                     {},
                     {},
