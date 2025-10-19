@@ -1805,6 +1805,7 @@ export class SupervisorService {
       theirPastorRelationDirect,
       theirPastorOnlyMinistries,
       theirCopastor,
+      theirPastor,
       theirMinistries,
       // isDirectRelationToPastor,
       memberInactivationReason,
@@ -2673,7 +2674,7 @@ export class SupervisorService {
         recordStatus === RecordStatus.Active)
     ) {
       //* Validation new pastor
-      if (!theirPastorRelationDirect) {
+      if (!theirPastor) {
         // as simple theirPastor
         throw new NotFoundException(
           `Para subir de nivel de Supervisor a Co-Pastor, debe asignar un Pastor.`,
@@ -2681,7 +2682,7 @@ export class SupervisorService {
       }
 
       const newPastor = await this.pastorRepository.findOne({
-        where: { id: theirPastorRelationDirect },
+        where: { id: theirPastor },
         relations: ['theirChurch'],
       });
 
