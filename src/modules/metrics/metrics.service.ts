@@ -17,7 +17,7 @@ import {
 } from 'typeorm';
 
 import { toZonedTime } from 'date-fns-tz';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { DashboardSearchType } from '@/common/enums/dashboard-search-type.enum';
@@ -127,8 +127,8 @@ export class MetricsService {
     private readonly offeringExpenseRepository: Repository<OfferingExpense>,
   ) {}
 
-  //? GENERE BALANCE SUMMARY REPORT
-  async generateBalanceSummaryReport(
+  //? GENERE BALANCE SUMMARY
+  async generateBalanceSummary(
     paginationDto: ReportPaginationDto,
   ): Promise<any> {
     const { churchId, endMonth, startMonth, year, currency } = paginationDto;
@@ -136,11 +136,14 @@ export class MetricsService {
     const currentStartMonthDate = new Date(`${startMonth} 1, ${year}`);
     const currentEndMonthDate = new Date(`${endMonth} 1, ${year}`);
 
-    const currentYearStartDate = startOfMonth(currentStartMonthDate);
+    const currentYearStartDate = subMonths(
+      startOfMonth(currentStartMonthDate),
+      1,
+    );
     const currentYearEndDate = endOfMonth(currentEndMonthDate);
 
-    const previousStartMonthDate = new Date(`${startMonth} 1, ${+year - 1}`);
-    const previousEndMonthDate = new Date(`${endMonth} 1, ${+year - 1}`);
+    const previousStartMonthDate = new Date(`January 1, ${+year - 1}`);
+    const previousEndMonthDate = new Date(`January 1, ${+year - 1}`);
 
     const previousYearStartDate = startOfMonth(previousStartMonthDate);
     const previousYearEndDate = endOfMonth(previousEndMonthDate);

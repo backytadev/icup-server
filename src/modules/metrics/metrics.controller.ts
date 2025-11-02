@@ -43,7 +43,7 @@ import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.en
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 
-  //* Balance summary report
+  //* Balance summary
   @Get('/view-balance-summary')
   @Auth()
   @ApiOkResponse({
@@ -54,10 +54,10 @@ export class MetricsController {
     description:
       '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
   })
-  generateBalanceSummaryReport(
+  generateBalanceSummary(
     @Query() paginationDto: ReportPaginationDto,
   ): Promise<any> {
-    return this.metricsService.generateBalanceSummaryReport(paginationDto);
+    return this.metricsService.generateBalanceSummary(paginationDto);
   }
 
   //? FIND BY TERM
