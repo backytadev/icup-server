@@ -13,11 +13,12 @@ import {
 } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
+import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
 import { Auth } from '@/modules/auth/decorators/auth.decorator';
 import { MetricsService } from '@/modules/metrics/metrics.service';
-import { MetricSearchType } from './enums/metrics-search-type.enum';
+import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.enum';
 
 @ApiTags('Metrics')
 @ApiBearerAuth()
@@ -41,6 +42,23 @@ import { MetricSearchType } from './enums/metrics-search-type.enum';
 @Controller('metrics')
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
+
+  //* Balance summary report
+  @Get('/view-balance-summary')
+  @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
+  })
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  generateBalanceSummaryReport(
+    @Query() paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    return this.metricsService.generateBalanceSummaryReport(paginationDto);
+  }
 
   //? FIND BY TERM
   @Get(':term')

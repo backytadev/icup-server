@@ -23,7 +23,7 @@ import {
 } from '@nestjs/swagger';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
-import { MetricsPaginationDto } from '@/common/dtos/metrics-pagination.dto';
+import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
 import { Auth } from '@/modules/auth/decorators/auth.decorator';
@@ -1108,7 +1108,7 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getMemberMetrics(
     @Res() response: Response,
-    @Query() paginationDto: MetricsPaginationDto,
+    @Query() paginationDto: ReportPaginationDto,
   ) {
     const pdfDoc = await this.reportsService.getMemberMetrics(paginationDto);
 
@@ -1131,7 +1131,7 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getFamilyGroupMetrics(
     @Res() response: Response,
-    @Query() paginationDto: MetricsPaginationDto,
+    @Query() paginationDto: ReportPaginationDto,
   ) {
     const pdfDoc =
       await this.reportsService.getFamilyGroupMetrics(paginationDto);
@@ -1155,7 +1155,7 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getOfferingIncomeMetrics(
     @Res() response: Response,
-    @Query() paginationDto: MetricsPaginationDto,
+    @Query() paginationDto: ReportPaginationDto,
   ) {
     const pdfDoc =
       await this.reportsService.getOfferingIncomeMetrics(paginationDto);
@@ -1179,7 +1179,7 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getOfferingExpenseMetrics(
     @Res() response: Response,
-    @Query() paginationDto: MetricsPaginationDto,
+    @Query() paginationDto: ReportPaginationDto,
   ) {
     const pdfDoc =
       await this.reportsService.getOfferingExpenseMetrics(paginationDto);
@@ -1203,7 +1203,7 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getFinancialBalanceComparativeMetrics(
     @Res() response: Response,
-    @Query() paginationDto: MetricsPaginationDto,
+    @Query() paginationDto: ReportPaginationDto,
   ) {
     const pdfDoc =
       await this.reportsService.getFinancialBalanceComparativeMetrics(

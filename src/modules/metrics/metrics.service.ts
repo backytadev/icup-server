@@ -22,6 +22,7 @@ import { endOfMonth, startOfMonth } from 'date-fns';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { DashboardSearchType } from '@/common/enums/dashboard-search-type.enum';
 
+import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
 import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.enum';
@@ -126,6 +127,120 @@ export class MetricsService {
     private readonly offeringExpenseRepository: Repository<OfferingExpense>,
   ) {}
 
+  //? GENERE BALANCE SUMMARY REPORT
+  async generateBalanceSummaryReport(
+    paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    const { churchId, endMonth, startMonth, year, currency } = paginationDto;
+
+    const currentStartMonthDate = new Date(`${startMonth} 1, ${year}`);
+    const currentEndMonthDate = new Date(`${endMonth} 1, ${year}`);
+
+    const currentYearStartDate = startOfMonth(currentStartMonthDate);
+    const currentYearEndDate = endOfMonth(currentEndMonthDate);
+
+    const previousStartMonthDate = new Date(`${startMonth} 1, ${+year - 1}`);
+    const previousEndMonthDate = new Date(`${endMonth} 1, ${+year - 1}`);
+
+    const previousYearStartDate = startOfMonth(previousStartMonthDate);
+    const previousYearEndDate = endOfMonth(previousEndMonthDate);
+
+    try {
+      const church = await this.churchRepository.findOne({
+        where: {
+          id: churchId,
+          recordStatus: RecordStatus.Active,
+        },
+      });
+
+      if (!church) return [];
+
+      //? Resumen general (ingresos vs salidas)
+      //* Current year
+      const currentYearOfferingIncome =
+        await this.offeringIncomeRepository.find({
+          where: [
+            {
+              church: church,
+              subType: Not(OfferingIncomeCreationSubType.ChurchGround),
+              currency: currency,
+              date: Between(currentYearStartDate, currentYearEndDate),
+              recordStatus: RecordStatus.Active,
+            },
+            {
+              church: church,
+              subType: IsNull(),
+              currency: currency,
+              date: Between(currentYearStartDate, currentYearEndDate),
+              recordStatus: RecordStatus.Active,
+            },
+          ],
+          relations: ['church'],
+        });
+
+      const currentYearOfferingExpenses =
+        await this.offeringExpenseRepository.find({
+          where: {
+            church: church,
+            currency: currency,
+            date: Between(currentYearStartDate, currentYearEndDate),
+            recordStatus: RecordStatus.Active,
+          },
+          relations: ['church'],
+        });
+
+      //* Previous year
+      const previousYearOfferingIncome =
+        await this.offeringIncomeRepository.find({
+          where: [
+            {
+              church: church,
+              subType: Not(OfferingIncomeCreationSubType.ChurchGround),
+
+              currency: currency,
+              date: Between(previousYearStartDate, previousYearEndDate),
+              recordStatus: RecordStatus.Active,
+            },
+            {
+              church: church,
+              subType: IsNull(),
+              currency: currency,
+              date: Between(previousYearStartDate, previousYearEndDate),
+              recordStatus: RecordStatus.Active,
+            },
+          ],
+          relations: ['church'],
+        });
+
+      const previousYearOfferingExpenses =
+        await this.offeringExpenseRepository.find({
+          where: {
+            church: church,
+            currency: currency,
+            date: Between(previousYearStartDate, previousYearEndDate),
+            recordStatus: RecordStatus.Active,
+          },
+          relations: ['church'],
+        });
+
+      //? Resumen de Ingreso
+
+      //? Resumen de Egresos
+
+      // * Return formatted data
+      return IncomeAndExpensesComparativeFormatter({
+        currentYearOfferingIncome: currentYearOfferingIncome,
+        currentYearOfferingExpenses: currentYearOfferingExpenses,
+        previousYearOfferingIncome: previousYearOfferingIncome,
+        previousYearOfferingExpenses: previousYearOfferingExpenses,
+        startMonth: startMonth,
+        endMonth: endMonth,
+      }) as any;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
   //? FIND BY TERM
   async findByTerm(
     term: string,
@@ -147,7 +262,7 @@ export class MetricsService {
     }
 
     if (!searchType) {
-      throw new BadRequestException(`El tipo de búsqueda es requerido.`);
+      throw new BadRequestException(`El tipo de búsqueda es requerido1.`);
     }
 
     //? DASHBOARD

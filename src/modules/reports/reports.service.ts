@@ -28,7 +28,7 @@ import { MaritalStatusNames } from '@/common/enums/marital-status.enum';
 import { SearchType, SearchTypeNames } from '@/common/enums/search-types.enum';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
-import { MetricsPaginationDto } from '@/common/dtos/metrics-pagination.dto';
+import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
 import {
@@ -2213,7 +2213,7 @@ export class ReportsService {
 
   //? METRICS
   //* MEMBER METRICS REPORT
-  async getMemberMetrics(metricsPaginationDto: MetricsPaginationDto) {
+  async getMemberMetrics(metricsPaginationDto: ReportPaginationDto) {
     const { year, churchId, types } = metricsPaginationDto;
 
     try {
@@ -2381,7 +2381,7 @@ export class ReportsService {
   }
 
   //* FAMILY GROUP METRICS REPORT
-  async getFamilyGroupMetrics(metricsPaginationDto: MetricsPaginationDto) {
+  async getFamilyGroupMetrics(metricsPaginationDto: ReportPaginationDto) {
     const { year, churchId, types } = metricsPaginationDto;
 
     try {
@@ -2513,7 +2513,7 @@ export class ReportsService {
   }
 
   //* OFFERING INCOME METRICS REPORT
-  async getOfferingIncomeMetrics(metricsPaginationDto: MetricsPaginationDto) {
+  async getOfferingIncomeMetrics(metricsPaginationDto: ReportPaginationDto) {
     const { year, startMonth, endMonth, churchId, types } =
       metricsPaginationDto;
 
@@ -2764,7 +2764,7 @@ export class ReportsService {
   }
 
   //* OFFERING EXPENSE METRICS REPORT
-  async getOfferingExpenseMetrics(metricsPaginationDto: MetricsPaginationDto) {
+  async getOfferingExpenseMetrics(metricsPaginationDto: ReportPaginationDto) {
     const { year, startMonth, endMonth, churchId, types } =
       metricsPaginationDto;
 
@@ -2949,7 +2949,7 @@ export class ReportsService {
 
   //* FINANCIAL BALANCE COMPARATIVE METRICS REPORT
   async getFinancialBalanceComparativeMetrics(
-    metricsPaginationDto: MetricsPaginationDto,
+    metricsPaginationDto: ReportPaginationDto,
   ) {
     const { year, startMonth, endMonth, churchId, types } =
       metricsPaginationDto;
@@ -3378,13 +3378,13 @@ export class ReportsService {
       }
 
       //* Other Expenses
-      let offeringExpensesComparativeByOtherExpenses: OfferingExpenseComparativeByTypeDataResult[];
+      let offeringExpensesComparativeByOtherExpensesDataResult: OfferingExpenseComparativeByTypeDataResult[];
       if (
         metricsTypesArray.includes(
           MetricSearchType.ComparativeOfferingExpensesByType,
         )
       ) {
-        offeringExpensesComparativeByOtherExpenses =
+        offeringExpensesComparativeByOtherExpensesDataResult =
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.OtherExpenses}&${year}`,
             {
@@ -3541,70 +3541,38 @@ export class ReportsService {
         startMonth: startMonth,
         endMonth: endMonth,
         yearlyIncomeExpenseComparativePenDataResult,
-        yearlyIncomeExpenseComparativeUsdDataResult:
-          yearlyIncomeExpenseComparativeUsdDataResult,
-        yearlyIncomeExpenseComparativeEurDataResult:
-          yearlyIncomeExpenseComparativeEurDataResult,
-        generalOfferingIncomeComparativeDataResult:
-          generalOfferingIncomeComparativeDataResult,
-        offeringIncomeComparativeByFamilyGroupDataResult:
-          offeringIncomeComparativeByFamilyGroupDataResult,
-        offeringIncomeComparativeBySundayServiceDataResult:
-          offeringIncomeComparativeBySundayServiceDataResult,
-        offeringIncomeComparativeBySundaySchoolDataResult:
-          offeringIncomeComparativeBySundaySchoolDataResult,
-        offeringIncomeComparativeByGeneralFastingDataResult:
-          offeringIncomeComparativeByGeneralFastingDataResult,
-        offeringIncomeComparativeByGeneralVigilDataResult:
-          offeringIncomeComparativeByGeneralVigilDataResult,
-        offeringIncomeComparativeByZonalVigilDataResult:
-          offeringIncomeComparativeByZonalVigilDataResult,
-        offeringIncomeComparativeByZonalFastingDataResult:
-          offeringIncomeComparativeByZonalFastingDataResult,
-        offeringIncomeComparativeByYouthServiceDataResult:
-          offeringIncomeComparativeByYouthServiceDataResult,
-        offeringIncomeComparativeByUnitedServiceDataResult:
-          offeringIncomeComparativeByUnitedServiceDataResult,
-        offeringIncomeComparativeBySpecialOfferingDataResult:
-          offeringIncomeComparativeBySpecialOfferingDataResult,
-        offeringIncomeComparativeByActivitiesDataResult:
-          offeringIncomeComparativeByActivitiesDataResult,
-        offeringIncomeComparativeByChurchGroundDataResult:
-          offeringIncomeComparativeByChurchGroundDataResult,
-        offeringIncomeComparativeByIncomeAdjustmentDataResult:
-          offeringIncomeComparativeByIncomeAdjustmentDataResult,
-        generalOfferingExpensesComparativeDataResult:
-          generalOfferingExpensesComparativeDataResult,
-        offeringOperationalExpensesComparativeDataResult:
-          offeringOperationalExpensesComparativeDataResult,
-        offeringExpensesComparativeByMaintenanceAndRepairDataResult:
-          offeringExpensesComparativeByMaintenanceAndRepairDataResult,
-        offeringExpensesComparativeByDecorationDataResult:
-          offeringExpensesComparativeByDecorationDataResult,
-        offeringExpensesComparativeByEquipmentAndTechnologyDataResult:
-          offeringExpensesComparativeByEquipmentAndTechnologyDataResult,
-        offeringExpensesComparativeBySuppliesDataResult:
-          offeringExpensesComparativeBySuppliesDataResult,
-        offeringExpensesComparativeByPlaningEventsDataResult:
-          offeringExpensesComparativeByPlaningEventsDataResult,
-        offeringExpensesComparativeByOtherExpensesDataResult:
-          offeringExpensesComparativeByOtherExpenses,
-        offeringExpensesComparativeByExpenseAdjustmentDataResult:
-          offeringExpensesComparativeByExpenseAdjustmentDataResult,
-        offeringOperationalExpensesBySubTypeComparativeDataResult:
-          offeringOperationalExpensesBySubTypeComparativeDataResult,
-        offeringMaintenanceAndRepairExpensesBySubTypeComparativeDataResult:
-          offeringMaintenanceAndRepairExpensesBySubTypeComparativeDataResult,
-        offeringDecorationExpensesBySubTypeComparativeDataResult:
-          offeringDecorationExpensesBySubTypeComparativeDataResult,
-        offeringSuppliesExpensesBySubTypeComparativeDataResult:
-          offeringSuppliesExpensesBySubTypeComparativeDataResult,
-        offeringPlaningEventsExpensesBySubTypeComparativeDataResult:
-          offeringPlaningEventsExpensesBySubTypeComparativeDataResult,
-        offeringOtherExpensesBySubTypeComparativeDataResult:
-          offeringOtherExpensesBySubTypeComparativeDataResult,
-        offeringEquipmentAndTechnologyExpensesBySubTypeComparativeDataResult:
-          offeringEquipmentAndTechnologyExpensesBySubTypeComparativeDataResult,
+        yearlyIncomeExpenseComparativeUsdDataResult,
+        yearlyIncomeExpenseComparativeEurDataResult,
+        generalOfferingIncomeComparativeDataResult,
+        offeringIncomeComparativeByFamilyGroupDataResult,
+        offeringIncomeComparativeBySundayServiceDataResult,
+        offeringIncomeComparativeBySundaySchoolDataResult,
+        offeringIncomeComparativeByGeneralFastingDataResult,
+        offeringIncomeComparativeByGeneralVigilDataResult,
+        offeringIncomeComparativeByZonalVigilDataResult,
+        offeringIncomeComparativeByZonalFastingDataResult,
+        offeringIncomeComparativeByYouthServiceDataResult,
+        offeringIncomeComparativeByUnitedServiceDataResult,
+        offeringIncomeComparativeBySpecialOfferingDataResult,
+        offeringIncomeComparativeByActivitiesDataResult,
+        offeringIncomeComparativeByChurchGroundDataResult,
+        offeringIncomeComparativeByIncomeAdjustmentDataResult,
+        generalOfferingExpensesComparativeDataResult,
+        offeringOperationalExpensesComparativeDataResult,
+        offeringExpensesComparativeByMaintenanceAndRepairDataResult,
+        offeringExpensesComparativeByDecorationDataResult,
+        offeringExpensesComparativeByEquipmentAndTechnologyDataResult,
+        offeringExpensesComparativeBySuppliesDataResult,
+        offeringExpensesComparativeByPlaningEventsDataResult,
+        offeringExpensesComparativeByOtherExpensesDataResult,
+        offeringExpensesComparativeByExpenseAdjustmentDataResult,
+        offeringOperationalExpensesBySubTypeComparativeDataResult,
+        offeringMaintenanceAndRepairExpensesBySubTypeComparativeDataResult,
+        offeringDecorationExpensesBySubTypeComparativeDataResult,
+        offeringSuppliesExpensesBySubTypeComparativeDataResult,
+        offeringPlaningEventsExpensesBySubTypeComparativeDataResult,
+        offeringOtherExpensesBySubTypeComparativeDataResult,
+        offeringEquipmentAndTechnologyExpensesBySubTypeComparativeDataResult,
       });
 
       const doc = this.printerService.createPdf(docDefinition);

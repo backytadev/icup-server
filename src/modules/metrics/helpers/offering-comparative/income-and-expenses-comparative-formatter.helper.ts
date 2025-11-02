@@ -10,6 +10,8 @@ interface DataResultOptions {
   currentYearOfferingExpenses: OfferingExpense[];
   previousYearOfferingIncome: OfferingIncome[];
   previousYearOfferingExpenses: OfferingExpense[];
+  startMonth?: string;
+  endMonth?: string;
 }
 
 export interface YearlyIncomeExpenseComparativeDataResult {
@@ -25,7 +27,7 @@ export interface YearlyIncomeExpenseComparativeDataResult {
   };
 }
 
-const monthNames = [
+const MONTH_NAMES = [
   'Enero',
   'Febrero',
   'Marzo',
@@ -40,12 +42,39 @@ const monthNames = [
   'Diciembre',
 ];
 
+const MONTH_MAP_EN_TO_ES: Record<string, string> = {
+  january: 'Enero',
+  february: 'Febrero',
+  march: 'Marzo',
+  april: 'Abril',
+  may: 'Mayo',
+  june: 'Junio',
+  july: 'Julio',
+  august: 'Agosto',
+  september: 'Septiembre',
+  october: 'Octubre',
+  november: 'Noviembre',
+  december: 'Diciembre',
+};
+
+const normalizeMonth = (month: string) => {
+  if (!month) return null;
+
+  const lower = month.toLowerCase();
+  const spanish = MONTH_MAP_EN_TO_ES[lower];
+  return spanish ?? null;
+};
 export const IncomeAndExpensesComparativeFormatter = ({
   currentYearOfferingExpenses,
   currentYearOfferingIncome,
   previousYearOfferingIncome,
   previousYearOfferingExpenses,
+  startMonth = null,
+  endMonth = null,
 }: DataResultOptions): YearlyIncomeExpenseComparativeDataResult[] => {
+  const startEs = normalizeMonth(startMonth) ?? null;
+  const endEs = normalizeMonth(endMonth) ?? null;
+
   const currentYearData = [
     ...currentYearOfferingIncome,
     ...currentYearOfferingExpenses,
@@ -81,7 +110,7 @@ export const IncomeAndExpensesComparativeFormatter = ({
 
   //? Previous year
   //* Filtrar los ingresos y gastos del año anterior por mes
-  const previousYearDataByMonth = monthNames.map((_, index) =>
+  const previousYearDataByMonth = MONTH_NAMES.map((_, index) =>
     previousYearData.filter((offering) => {
       const zonedDate = toZonedTime(offering.date, timeZone);
       return zonedDate.getMonth() === index;
@@ -91,13 +120,13 @@ export const IncomeAndExpensesComparativeFormatter = ({
   let previousNetResult: number | null = null;
 
   const previousYearResults: YearlyIncomeExpenseComparativeDataResult[] =
-    monthNames.map((_, index) => {
+    MONTH_NAMES.map((_, index) => {
       const { totalIncome, totalExpenses } = calculateIncomeAndExpenses(
         previousYearDataByMonth[index],
       );
 
       const previousMonthResult: YearlyIncomeExpenseComparativeDataResult = {
-        month: monthNames[index],
+        month: MONTH_NAMES[index],
         currency: previousYearData[0]?.currency || 'S/D',
         netResultPrevious: previousNetResult,
         totalIncome,
@@ -117,7 +146,7 @@ export const IncomeAndExpensesComparativeFormatter = ({
 
   //? Current
   //* Filtrar los ingresos y gastos del año actual por mes
-  const currentYearDataByMonth = monthNames.map((_, index) =>
+  const currentYearDataByMonth = MONTH_NAMES.map((_, index) =>
     currentYearData.filter((offering) => {
       const zonedDate = toZonedTime(offering.date, timeZone);
       return zonedDate.getMonth() === index;
@@ -127,13 +156,13 @@ export const IncomeAndExpensesComparativeFormatter = ({
   let currentNetResult: number | null = null;
 
   const currentYearResults: YearlyIncomeExpenseComparativeDataResult[] =
-    monthNames.map((_, index) => {
+    MONTH_NAMES.map((_, index) => {
       const { totalIncome, totalExpenses } = calculateIncomeAndExpenses(
         currentYearDataByMonth[index],
       );
 
       const currentMonthResult: YearlyIncomeExpenseComparativeDataResult = {
-        month: monthNames[index],
+        month: MONTH_NAMES[index],
         currency: currentYearData[0]?.currency || 'S/D',
         netResultPrevious:
           index === 0 ? previousYearResults.at(-1).netResult : currentNetResult,
@@ -154,5 +183,16 @@ export const IncomeAndExpensesComparativeFormatter = ({
       return currentMonthResult;
     });
 
-  return currentYearResults;
+  const filteredData =
+    startEs && endEs
+      ? currentYearResults.filter((item) => {
+          const startIndex = MONTH_NAMES.indexOf(startEs);
+          const endIndex = MONTH_NAMES.indexOf(endEs);
+          const itemIndex = MONTH_NAMES.indexOf(item.month);
+
+          return itemIndex >= startIndex && itemIndex <= endIndex;
+        })
+      : currentYearResults;
+
+  return filteredData;
 };

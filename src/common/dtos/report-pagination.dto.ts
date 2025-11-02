@@ -3,13 +3,14 @@ import { IsOptional, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 
-export class MetricsPaginationDto {
+export class ReportPaginationDto {
   @ApiProperty({
     example: '2024',
     description:
       'The year for which the metrics reports are to be generated. This is important for filtering reports by a specific year.',
   })
   @IsOptional()
+  @IsString()
   @Type(() => String)
   year?: string;
 
@@ -20,6 +21,7 @@ export class MetricsPaginationDto {
       'The starting month for the metrics report generation. This parameter helps define the time frame for which the report will include data.',
   })
   @IsOptional()
+  @IsString()
   @Type(() => String)
   startMonth?: string;
 
@@ -30,6 +32,7 @@ export class MetricsPaginationDto {
       'The ending month for the metrics report generation. This completes the time frame for the report, indicating the last month of data to include.',
   })
   @IsOptional()
+  @IsString()
   @Type(() => String)
   endMonth?: string;
 
@@ -38,6 +41,7 @@ export class MetricsPaginationDto {
     description:
       'A list of report types that will be generated. This can include various predefined metric categories, such as "members_by_category" or "members_by_category_and_gender". The values determine the content and structure of the report.',
   })
+  @IsString()
   @IsOptional()
   types?: string;
 
@@ -50,4 +54,13 @@ export class MetricsPaginationDto {
   @IsString()
   @Type(() => String)
   churchId?: string;
+
+  @ApiProperty({
+    description: 'Currency used to display financial amounts (ISO code).',
+    example: 'PEN',
+  })
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  currency?: string;
 }
