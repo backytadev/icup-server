@@ -35,11 +35,13 @@ export class AuthService {
 
   //* Login user
   async login(loginUserDto: LoginUserDto, res: Response): Promise<any> {
-    const { password, email } = loginUserDto;
+    const { password, email, userName } = loginUserDto;
+
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     try {
       const user = await this.userRepository.findOne({
-        where: { email },
+        where: isEmail ? { email: email } : { userName: userName },
         select: {
           firstNames: true,
           lastNames: true,
@@ -52,6 +54,7 @@ export class AuthService {
           createdAt: false,
           updatedAt: false,
         },
+        relations: ['churches'],
       });
 
       if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -87,6 +90,12 @@ export class AuthService {
 
       return res.json({
         ...userWithoutPassword,
+        churches: user.churches.map((ch) => ({
+          id: ch.id,
+          churchName: ch.churchName,
+          abbreviatedChurchName: ch.abbreviatedChurchName,
+          churchCode: ch.churchCode,
+        })),
         token: accessToken,
       });
     } catch (error) {

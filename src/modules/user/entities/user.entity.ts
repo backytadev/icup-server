@@ -6,9 +6,12 @@ import {
   BeforeUpdate,
   BeforeInsert,
   PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 import { RecordStatus } from '../../../common/enums/record-status.enum';
+import { Church } from '../../../modules/church/entities/church.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -24,6 +27,9 @@ export class User {
 
   @Column('text')
   gender: string;
+
+  @Column('text', { name: 'user_name', unique: true, nullable: true })
+  userName: string;
 
   @Column('text', { unique: true })
   email: string;
@@ -60,6 +66,15 @@ export class User {
     default: RecordStatus.Active,
   })
   recordStatus: string;
+
+  //* Relations
+  @ManyToMany(() => Church, (church) => church.users)
+  @JoinTable({
+    name: 'user_churches',
+    joinColumn: { name: 'user_id' },
+    inverseJoinColumn: { name: 'church_id' },
+  })
+  churches: Church[];
 
   //? Internal Functions
   @BeforeInsert()

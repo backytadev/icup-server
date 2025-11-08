@@ -8,6 +8,7 @@ import { Church } from '@/modules/church/entities/church.entity';
 import { ChurchController } from '@/modules/church/church.controller';
 
 import { ZoneModule } from '@/modules/zone/zone.module';
+import { UserModule } from '@/modules/user/user.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
 import { PreacherModule } from '@/modules/preacher/preacher.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
@@ -23,6 +24,7 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
     TypeOrmModule.forFeature([Church]),
     AuthModule,
     MinistryModule,
+    forwardRef(() => UserModule),
     forwardRef(() => PastorModule),
     forwardRef(() => CopastorModule),
     forwardRef(() => SupervisorModule),

@@ -11,10 +11,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @MinLength(6)
   @MaxLength(20)
-  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message:
-      'The current password must have a Uppercase, lowercase letter and a number',
-  })
+  @Matches(
+    /^(?:(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}|[0-9]{4,15})$/,
+    {
+      message:
+        'La contraseña debe ser alfanumérica con mayúscula, minúscula y símbolo, o numérica de 4 a 15 dígitos',
+    },
+  )
   currentPassword?: string;
 
   @ApiProperty({
@@ -24,9 +27,12 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @MinLength(6)
   @MaxLength(20)
-  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message:
-      'The new password must have a Uppercase, lowercase letter and a number',
-  })
+  @Matches(
+    /^(?:(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}|[0-9]{4,15})$/,
+    {
+      message:
+        'La contraseña debe ser alfanumérica con mayúscula, minúscula y símbolo, o numérica de 4 a 15 dígitos',
+    },
+  )
   newPassword?: string;
 }

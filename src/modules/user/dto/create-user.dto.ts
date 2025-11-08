@@ -29,15 +29,25 @@ export class CreateUserDto {
 
   @ApiProperty({
     example: 'Abcd$12345$',
+    description: 'Contraseña debe ser fuerte o numérica',
   })
-  @IsString()
   @MinLength(6)
   @MaxLength(20)
-  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message:
-      'The password must have a Uppercase, lowercase letter and a number',
-  })
+  @Matches(
+    /^(?:(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}|[0-9]{4,15})$/,
+    {
+      message:
+        'La contraseña debe ser alfanumérica con mayúscula, minúscula y símbolo, o numérica de 4 a 15 dígitos',
+    },
+  )
   password: string;
+
+  @ApiProperty({
+    example: 'jorge10',
+  })
+  @IsString()
+  @MinLength(5)
+  userName: string;
 
   @ApiProperty({
     example: 'Jorge Martin',
@@ -80,6 +90,13 @@ export class CreateUserDto {
   @IsArray()
   @IsNotEmpty()
   roles: string[];
+
+  @ApiProperty({
+    example: ['church_id_1', 'church_id_2'],
+  })
+  @IsArray()
+  @IsNotEmpty()
+  churches: string[];
 
   //! Properties record inactivation (optional)
   @IsOptional()

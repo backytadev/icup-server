@@ -4,6 +4,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -129,6 +130,9 @@ export class Church {
 
   @OneToMany(() => Disciple, (disciple) => disciple.theirChurch)
   disciples: Disciple[];
+
+  @ManyToMany(() => User, (user) => user.churches)
+  users: User[];
 
   //* Relations(FK)
   @ManyToOne(() => Church, (church) => church.anexes, {

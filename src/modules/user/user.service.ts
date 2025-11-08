@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsOrderValue, ILike, Raw, Repository } from 'typeorm';
+import { FindOptionsOrderValue, ILike, In, Raw, Repository } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
 
@@ -25,6 +25,7 @@ import {
   UserSearchTypeNames,
 } from '@/modules/user/enums/user-search-type.enum';
 import { User } from '@/modules/user/entities/user.entity';
+import { Church } from '@/modules/church/entities/church.entity';
 
 import { CreateUserDto } from '@/modules/user/dto/create-user.dto';
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto';
@@ -35,17 +36,28 @@ export class UserService {
   private readonly logger = new Logger('UserService');
 
   constructor(
+    @InjectRepository(Church)
+    private readonly churchRepository: Repository<Church>,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
   //* CREATE USER
   async create(createUserDto: CreateUserDto, user: User) {
-    const { password, ...userData } = createUserDto;
+    const { password, churches: churchIds, ...userData } = createUserDto;
+
+    const churches = await this.churchRepository.find({
+      where: {
+        id: In(churchIds),
+        recordStatus: RecordStatus.Active,
+      },
+    });
 
     try {
       const newUser = this.userRepository.create({
         ...userData,
+        churches: churches,
         password: bcrypt.hashSync(password, 10),
         createdBy: user,
         createdAt: new Date(),
@@ -70,7 +82,7 @@ export class UserService {
         where: { recordStatus: RecordStatus.Active },
         take: limit,
         skip: offset,
-        relations: ['updatedBy', 'createdBy'],
+        relations: ['updatedBy', 'createdBy', 'churches'],
         order: { createdAt: order as FindOptionsOrderValue },
       });
 
@@ -117,7 +129,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy'],
+          relations: ['updatedBy', 'createdBy', 'churches'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -149,7 +161,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy'],
+          relations: ['updatedBy', 'createdBy', 'churches'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -183,7 +195,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy'],
+          relations: ['updatedBy', 'createdBy', 'churches'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -217,7 +229,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy'],
+          relations: ['updatedBy', 'createdBy', 'churches'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -258,7 +270,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy'],
+          relations: ['updatedBy', 'createdBy', 'churches'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -296,7 +308,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy'],
+          relations: ['updatedBy', 'createdBy', 'churches'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -338,9 +350,11 @@ export class UserService {
     const {
       firstNames,
       lastNames,
+      userName,
       gender,
       email,
       roles,
+      churches: churchesId,
       recordStatus,
       currentPassword,
       newPassword,
@@ -350,6 +364,16 @@ export class UserService {
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
+    }
+
+    let churches: Church[] = undefined;
+    if (churchesId) {
+      churches = await this.churchRepository.find({
+        where: {
+          id: In(churchesId),
+          recordStatus: RecordStatus.Active,
+        },
+      });
     }
 
     const dataUser = await this.userRepository.findOne({
@@ -364,6 +388,7 @@ export class UserService {
         gender: true,
         password: true,
       },
+      relations: ['churches'],
     });
 
     if (!dataUser) {
@@ -395,8 +420,10 @@ export class UserService {
           id: id,
           firstNames: firstNames,
           lastNames: lastNames,
+          userName: userName,
           gender: gender,
           roles: roles,
+          churches: churches,
           email: email,
           password: bcrypt.hashSync(newPassword, 10),
           updatedAt: new Date(),
@@ -424,8 +451,10 @@ export class UserService {
           id: id,
           firstNames: firstNames,
           lastNames: lastNames,
+          userName: userName,
           gender: gender,
           roles: roles,
+          churches: churches,
           email: email,
           updatedAt: new Date(),
           updatedBy: user,
