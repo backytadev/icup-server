@@ -70,6 +70,9 @@ export enum OfferingExpenseSearchSubType {
   AudioVisualSupplies = 'audio_visual_supplies',
   SafetyEquipment = 'safety_equipment',
   FirstAidSupplies = 'first_aid_supplies',
+  EvangelismMaterials = 'evangelism_materials',
+  LibraryMaterials = 'library_materials',
+  MinistryMaterials = 'ministry_materials',
 
   //* Planing Events Expenses
   AdvertisingAndEventPromotion = 'advertising_and_event_promotion',
@@ -206,6 +209,12 @@ export const OfferingExpenseSearchSubTypeNames: Record<
   [OfferingExpenseSearchSubType.SafetyEquipment]: 'Utensilios de seguridad.',
   [OfferingExpenseSearchSubType.FirstAidSupplies]:
     'Insumos y utensilios de primeros auxilios',
+  [OfferingExpenseSearchSubType.EvangelismMaterials]:
+    'Materiales de evangelismo',
+  [OfferingExpenseSearchSubType.LibraryMaterials]:
+    'Materiales para biblioteca (Biblias y libros)',
+  [OfferingExpenseSearchSubType.MinistryMaterials]:
+    'Materiales para ministerios',
 
   // Planing Events Expenses
   [OfferingExpenseSearchSubType.AdvertisingAndEventPromotion]:

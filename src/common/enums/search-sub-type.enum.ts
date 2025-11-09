@@ -178,6 +178,9 @@ export enum SearchSubType {
   AudioVisualSupplies = 'audio_visual_supplies',
   SafetyEquipment = 'safety_equipment',
   FirstAidSupplies = 'first_aid_supplies',
+  EvangelismMaterials = 'evangelism_materials',
+  LibraryMaterials = 'library_materials',
+  MinistryMaterials = 'ministry_materials',
 
   //* Planing Events Expenses
   AdvertisingAndEventPromotion = 'advertising_and_event_promotion',
@@ -411,6 +414,10 @@ export const SearchSubTypeNames: Record<SearchSubType, string> = {
   [SearchSubType.AudioVisualSupplies]: 'Utensilios de audio y video ',
   [SearchSubType.SafetyEquipment]: 'Utensilios de seguridad.',
   [SearchSubType.FirstAidSupplies]: 'Insumos y utensilios de primeros auxilios',
+  [SearchSubType.EvangelismMaterials]: 'Materiales de evangelismo',
+  [SearchSubType.LibraryMaterials]:
+    'Materiales para biblioteca (Biblias y libros)',
+  [SearchSubType.MinistryMaterials]: 'Materiales para ministerios',
 
   // Planing Events Expenses
   [SearchSubType.AdvertisingAndEventPromotion]:

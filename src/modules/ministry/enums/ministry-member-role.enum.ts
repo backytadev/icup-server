@@ -14,9 +14,9 @@ export enum MinistryMemberRole {
   TechnologyMinistryLeader = 'technology_ministry_leader',
   TechnologyMinistryCoLeader = 'technology_ministry_co_leader',
   TechnologyMinistryMember = 'technology_ministry_member',
-  DiscipleshipMinistryLeader = 'discipleship_ministry_leader',
-  DiscipleshipMinistryCoLeader = 'discipleship_ministry_co_leader',
-  DiscipleshipMinistryMember = 'discipleship_ministry_member',
+  BiblicalTeachingMinistryLeader = 'biblical_teaching_ministry_leader',
+  BiblicalTeachingMinistryCoLeader = 'biblical_teaching_ministry_co_leader',
+  BiblicalTeachingMinistryMember = 'biblical_teaching_ministry_member',
   WorshipMinistryLeader = 'worship_ministry_leader',
   WorshipMinistryCoLeader = 'worship_ministry_co_leader',
   WorshipMinistryMember = 'worship_ministry_member',
@@ -40,10 +40,12 @@ export const MinistryMemberRoleNames: Record<MinistryMemberRole, string> = {
   [MinistryMemberRole.TechnologyMinistryLeader]: 'Min. Tecnología (Líder)',
   [MinistryMemberRole.TechnologyMinistryCoLeader]: 'Min. Tecnología (Co-Líder)',
   [MinistryMemberRole.TechnologyMinistryMember]: 'Min. Tecnología (Miembro)',
-  [MinistryMemberRole.DiscipleshipMinistryLeader]: 'Min. Discipulado (Líder)',
-  [MinistryMemberRole.DiscipleshipMinistryCoLeader]:
-    'Min. Discipulado (Co-Líder)',
-  [MinistryMemberRole.DiscipleshipMinistryMember]: 'Min. Discipulado (Miembro)',
+  [MinistryMemberRole.BiblicalTeachingMinistryLeader]:
+    'Min. Enseñanza Biblica (Líder)',
+  [MinistryMemberRole.BiblicalTeachingMinistryCoLeader]:
+    'Min. Enseñanza Biblica (Co-Líder)',
+  [MinistryMemberRole.BiblicalTeachingMinistryMember]:
+    'Min. Enseñanza Biblica (Miembro)',
   [MinistryMemberRole.WorshipMinistryLeader]: 'Min. Alabanza (Líder)',
   [MinistryMemberRole.WorshipMinistryCoLeader]: 'Min. Alabanza (Co-Líder)',
   [MinistryMemberRole.WorshipMinistryMember]: 'Min. Alabanza (Miembro)',
