@@ -57,7 +57,7 @@ export class MetricsController {
   generateBalanceSummary(
     @Query() paginationDto: ReportPaginationDto,
   ): Promise<any> {
-    return this.metricsService.generateBalanceSummary(paginationDto);
+    return this.metricsService.generateFinancialBalanceSummary(paginationDto);
   }
 
   //? FIND BY TERM

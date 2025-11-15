@@ -128,7 +128,7 @@ export class MetricsService {
   ) {}
 
   //? GENERE BALANCE SUMMARY
-  async generateBalanceSummary(
+  async generateFinancialBalanceSummary(
     paginationDto: ReportPaginationDto,
   ): Promise<any> {
     const { churchId, endMonth, startMonth, year, currency } = paginationDto;
@@ -146,6 +146,20 @@ export class MetricsService {
 
     const previousYearStartDate = startOfMonth(previousStartMonthDate);
     const previousYearEndDate = endOfMonth(previousEndMonthDate);
+
+    //* Income
+    const startMonthDateIncome = new Date(`${startMonth} 1, ${year}`);
+    const endMonthDateIncome = new Date(`${endMonth} 1, ${year}`);
+
+    const startDateIncome = startOfMonth(startMonthDateIncome);
+    const endDateIncome = endOfMonth(endMonthDateIncome);
+
+    //* Expenses
+    const startMonthDateExpenses = new Date(`${startMonth} 1, ${year}`);
+    const endMonthDateExpenses = new Date(`${endMonth} 1, ${year}`);
+
+    const startDateExpenses = startOfMonth(startMonthDateExpenses);
+    const endDateExpenses = endOfMonth(endMonthDateExpenses);
 
     try {
       const church = await this.churchRepository.findOne({
@@ -225,12 +239,7 @@ export class MetricsService {
           relations: ['church'],
         });
 
-      //? Resumen de Ingreso
-
-      //? Resumen de Egresos
-
-      // * Return formatted data
-      return IncomeAndExpensesComparativeFormatter({
+      const calculateBalanceSummary = IncomeAndExpensesComparativeFormatter({
         currentYearOfferingIncome: currentYearOfferingIncome,
         currentYearOfferingExpenses: currentYearOfferingExpenses,
         previousYearOfferingIncome: previousYearOfferingIncome,
@@ -238,6 +247,43 @@ export class MetricsService {
         startMonth: startMonth,
         endMonth: endMonth,
       }) as any;
+
+      //? Resumen de Ingresos
+      const offeringIncome = await this.offeringIncomeRepository.find({
+        where: {
+          church: church,
+          date: Between(startDateIncome, endDateIncome),
+          recordStatus: RecordStatus.Active,
+        },
+        relations: ['church'],
+      });
+
+      const calculateSummaryIncome = generalComparativeOfferingIncomeFormatter({
+        offeringIncome: offeringIncome,
+      }) as any;
+
+      //? Resumen de Salidas
+      const offeringExpenses = await this.offeringExpenseRepository.find({
+        where: {
+          church: church,
+          date: Between(startDateExpenses, endDateExpenses),
+          recordStatus: RecordStatus.Active,
+        },
+
+        relations: ['church'],
+      });
+
+      const calculateSummaryExpenses =
+        generalComparativeOfferingExpensesFormatter({
+          offeringExpenses,
+        }) as any;
+
+      //* Final data
+      return {
+        calculateBalanceSummary,
+        calculateSummaryIncome,
+        calculateSummaryExpenses,
+      };
     } catch (error) {
       this.handleDBExceptions(error);
     }
