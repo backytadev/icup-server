@@ -1,6 +1,7 @@
 import { toZonedTime } from 'date-fns-tz';
 const timeZone = 'America/Lima';
 
+import { normalizeMonth } from '@/common/helpers/normalize-name-months';
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 
 import { OfferingIncomeCreationTypeNames } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
@@ -10,6 +11,8 @@ import { OfferingIncome } from '@/modules/offering/income/entities/offering-inco
 
 interface Options {
   offeringIncome: OfferingIncome[];
+  startMonth?: string;
+  endMonth?: string;
 }
 
 interface Church {
@@ -28,7 +31,7 @@ export interface OfferingIncomeComparativeByTypeDataResult {
   totalAmount: number;
 }
 
-const monthNames = [
+const MONTH_NAMES = [
   'Enero',
   'Febrero',
   'Marzo',
@@ -45,14 +48,19 @@ const monthNames = [
 
 export const comparativeOfferingIncomeByTypeFormatter = ({
   offeringIncome,
+  startMonth = null,
+  endMonth = null,
 }: Options): OfferingIncomeComparativeByTypeDataResult[] => {
+  const startEs = normalizeMonth(startMonth) ?? null;
+  const endEs = normalizeMonth(endMonth) ?? null;
+
   const dataResult: OfferingIncomeComparativeByTypeDataResult[] =
     offeringIncome?.reduce((acc, offering) => {
       const zonedDate = toZonedTime(offering.date, timeZone);
       const offeringMonth = zonedDate.getMonth();
 
       const existing = acc.find(
-        (item) => item?.month === monthNames[offeringMonth],
+        (item) => item?.month === MONTH_NAMES[offeringMonth],
       );
 
       if (existing) {
@@ -67,7 +75,7 @@ export const comparativeOfferingIncomeByTypeFormatter = ({
         existing.totalAmount += +offering.amount;
       } else {
         acc.push({
-          month: monthNames[offeringMonth],
+          month: MONTH_NAMES[offeringMonth],
           type: OfferingIncomeCreationTypeNames[offering?.type],
           subType:
             OfferingIncomeCreationSubTypeNames[offering.subType] ??
@@ -89,7 +97,18 @@ export const comparativeOfferingIncomeByTypeFormatter = ({
       return acc;
     }, []);
 
-  return dataResult.sort(
-    (a, b) => monthNames.indexOf(a.month) - monthNames.indexOf(b.month),
+  const filteredData =
+    startEs && endEs
+      ? dataResult.filter((item) => {
+          const startIndex = MONTH_NAMES.indexOf(startEs);
+          const endIndex = MONTH_NAMES.indexOf(endEs);
+          const itemIndex = MONTH_NAMES.indexOf(item.month);
+
+          return itemIndex >= startIndex && itemIndex <= endIndex;
+        })
+      : dataResult;
+
+  return filteredData.sort(
+    (a, b) => MONTH_NAMES.indexOf(a.month) - MONTH_NAMES.indexOf(b.month),
   );
 };

@@ -1,12 +1,15 @@
 import { toZonedTime } from 'date-fns-tz';
 const timeZone = 'America/Lima';
 
+import { normalizeMonth } from '@/common/helpers/normalize-name-months';
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
 import { OfferingExpenseSearchTypeNames } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
 
 interface Options {
   offeringExpenses: OfferingExpense[];
+  startMonth?: string;
+  endMonth?: string;
 }
 
 interface Church {
@@ -24,7 +27,7 @@ export interface OfferingExpenseComparativeByTypeDataResult {
   totalAmount: number;
 }
 
-const monthNames = [
+const MONTH_NAMES = [
   'Enero',
   'Febrero',
   'Marzo',
@@ -41,14 +44,19 @@ const monthNames = [
 
 export const comparativeOfferingExpensesByTypeFormatter = ({
   offeringExpenses,
+  startMonth,
+  endMonth,
 }: Options): OfferingExpenseComparativeByTypeDataResult[] => {
+  const startEs = normalizeMonth(startMonth) ?? null;
+  const endEs = normalizeMonth(endMonth) ?? null;
+
   const dataResult: OfferingExpenseComparativeByTypeDataResult[] =
     offeringExpenses?.reduce((acc, offering) => {
       const zonedDate = toZonedTime(offering.date, timeZone);
       const offeringMonth = zonedDate.getMonth();
 
       const existing = acc.find(
-        (item) => item?.month === monthNames[offeringMonth],
+        (item) => item?.month === MONTH_NAMES[offeringMonth],
       );
 
       if (existing) {
@@ -63,7 +71,7 @@ export const comparativeOfferingExpensesByTypeFormatter = ({
         existing.totalAmount += +offering.amount;
       } else {
         acc.push({
-          month: monthNames[offeringMonth],
+          month: MONTH_NAMES[offeringMonth],
           type: OfferingExpenseSearchTypeNames[offering?.type],
           accumulatedOfferingPEN:
             offering?.currency === CurrencyType.PEN ? +offering?.amount : 0,
@@ -82,7 +90,18 @@ export const comparativeOfferingExpensesByTypeFormatter = ({
       return acc;
     }, []);
 
-  return dataResult.sort(
-    (a, b) => monthNames.indexOf(a.month) - monthNames.indexOf(b.month),
+  const filteredData =
+    startEs && endEs
+      ? dataResult.filter((item) => {
+          const startIndex = MONTH_NAMES.indexOf(startEs);
+          const endIndex = MONTH_NAMES.indexOf(endEs);
+          const itemIndex = MONTH_NAMES.indexOf(item.month);
+
+          return itemIndex >= startIndex && itemIndex <= endIndex;
+        })
+      : dataResult;
+
+  return filteredData.sort(
+    (a, b) => MONTH_NAMES.indexOf(a.month) - MONTH_NAMES.indexOf(b.month),
   );
 };

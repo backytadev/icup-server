@@ -44,7 +44,7 @@ export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 
   //* Balance summary
-  @Get('/view-balance-summary')
+  @Get('/balance/summary/general')
   @Auth()
   @ApiOkResponse({
     description:
@@ -54,12 +54,47 @@ export class MetricsController {
     description:
       '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
   })
-  generateBalanceSummary(
+  generateFinancialBalanceSummary(
     @Query() paginationDto: ReportPaginationDto,
   ): Promise<any> {
     return this.metricsService.generateFinancialBalanceSummary(paginationDto);
   }
 
+  //* Income details by month
+  @Get('/balance/income/monthly-detail-by-type')
+  @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
+  })
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  getIncomeMonthlyDetailByType(
+    @Query() paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    return this.metricsService.getIncomeMonthlyDetailByType(paginationDto);
+  }
+
+  //* Expense details by month
+  @Get('/balance/expenses/monthly-detail-by-type')
+  @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
+  })
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  getExpenseMonthlyDetailByType(
+    @Query() paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    return this.metricsService.getExpenseMonthlyDetailByType(paginationDto);
+  }
+
+  // todo: revisar esto al final para quitar y ver la doc si algo se mueve
   //? FIND BY TERM
   @Get(':term')
   @Auth()

@@ -1,6 +1,7 @@
 import { toZonedTime } from 'date-fns-tz';
 const timeZone = 'America/Lima';
 
+import { normalizeMonth } from '@/common/helpers/normalize-name-months';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
@@ -42,28 +43,6 @@ const MONTH_NAMES = [
   'Diciembre',
 ];
 
-const MONTH_MAP_EN_TO_ES: Record<string, string> = {
-  january: 'Enero',
-  february: 'Febrero',
-  march: 'Marzo',
-  april: 'Abril',
-  may: 'Mayo',
-  june: 'Junio',
-  july: 'Julio',
-  august: 'Agosto',
-  september: 'Septiembre',
-  october: 'Octubre',
-  november: 'Noviembre',
-  december: 'Diciembre',
-};
-
-const normalizeMonth = (month: string) => {
-  if (!month) return null;
-
-  const lower = month.toLowerCase();
-  const spanish = MONTH_MAP_EN_TO_ES[lower];
-  return spanish ?? null;
-};
 export const IncomeAndExpensesComparativeFormatter = ({
   currentYearOfferingExpenses,
   currentYearOfferingIncome,

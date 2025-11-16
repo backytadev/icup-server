@@ -289,6 +289,102 @@ export class MetricsService {
     }
   }
 
+  //? Find by month (cards)
+  //* Income
+  async getIncomeMonthlyDetailByType(
+    paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    const { churchId, endMonth, type, startMonth, year } = paginationDto;
+    const yearVale = +year;
+
+    const startMonthDate = new Date(`January 1, ${yearVale}`);
+    const endMonthDate = new Date(`December 1, ${yearVale}`);
+    const startDate = startOfMonth(startMonthDate);
+    const endDate = endOfMonth(endMonthDate);
+
+    try {
+      const church = await this.churchRepository.findOne({
+        where: {
+          id: churchId,
+          recordStatus: RecordStatus.Active,
+        },
+      });
+      if (!church) return [];
+      let offeringIncome: OfferingIncome[];
+      if (type !== OfferingIncomeCreationType.IncomeAdjustment) {
+        offeringIncome = await this.offeringIncomeRepository.find({
+          where: {
+            church: church,
+            subType: type,
+            date: Between(startDate, endDate),
+            recordStatus: RecordStatus.Active,
+          },
+          relations: ['church'],
+        });
+      }
+      if (type === OfferingIncomeCreationType.IncomeAdjustment) {
+        offeringIncome = await this.offeringIncomeRepository.find({
+          where: {
+            church: church,
+            type: type,
+            date: Between(startDate, endDate),
+            recordStatus: RecordStatus.Active,
+          },
+          relations: ['church'],
+        });
+      }
+      return comparativeOfferingIncomeByTypeFormatter({
+        offeringIncome: offeringIncome,
+        startMonth,
+        endMonth,
+      }) as any;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  //* Expense
+  async getExpenseMonthlyDetailByType(
+    paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    const { churchId, endMonth, type, startMonth, year } = paginationDto;
+    const yearVale = +year;
+
+    const startMonthDate = new Date(`January 1, ${yearVale}`);
+    const endMonthDate = new Date(`December 1, ${yearVale}`);
+    const startDate = startOfMonth(startMonthDate);
+    const endDate = endOfMonth(endMonthDate);
+
+    try {
+      const church = await this.churchRepository.findOne({
+        where: {
+          id: churchId,
+          recordStatus: RecordStatus.Active,
+        },
+      });
+
+      if (!church) return [];
+
+      const offeringExpenses = await this.offeringExpenseRepository.find({
+        where: {
+          church: church,
+          type: type,
+          date: Between(startDate, endDate),
+          recordStatus: RecordStatus.Active,
+        },
+        relations: ['church'],
+      });
+
+      return comparativeOfferingExpensesByTypeFormatter({
+        offeringExpenses,
+        endMonth,
+        startMonth,
+      }) as any;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
   //? FIND BY TERM
   async findByTerm(
     term: string,

@@ -63,4 +63,13 @@ export class ReportPaginationDto {
   @IsString()
   @Type(() => String)
   currency?: string;
+
+  @ApiProperty({
+    description: 'Currency used to display financial amounts (ISO code).',
+    example: 'family_group',
+  })
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  type?: string;
 }
