@@ -6,6 +6,7 @@ interface SeedUser {
   gender: string;
   password: string;
   roles: string[];
+  ministries: string[];
   churches: string[];
 }
 
@@ -24,6 +25,7 @@ export const dataUsers: SeedDataUsers = {
       password: 'Abcd1234$',
       roles: ['admin-user'],
       churches: [],
+      ministries: [],
     },
     {
       userName: 'User2',
@@ -34,6 +36,7 @@ export const dataUsers: SeedDataUsers = {
       password: 'Abcd1234%',
       roles: ['admin-user'],
       churches: [],
+      ministries: [],
     },
     {
       userName: 'User3',
@@ -44,6 +47,7 @@ export const dataUsers: SeedDataUsers = {
       password: 'Abcd1234&',
       roles: ['admin-user'],
       churches: [],
+      ministries: [],
     },
   ],
 };

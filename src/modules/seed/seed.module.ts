@@ -13,6 +13,7 @@ import { MemberModule } from '@/modules/member/member.module';
 import { PreacherModule } from '@/modules/preacher/preacher.module';
 import { DiscipleModule } from '@/modules/disciple/disciple.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
+import { MinistryModule } from '@/modules/ministry/ministry.module';
 import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 import { ExternalDonorModule } from '@/modules/external-donor/external-donor.module';
@@ -24,6 +25,7 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
   providers: [SeedService],
   imports: [
     ChurchModule,
+    MinistryModule,
     PastorModule,
     CopastorModule,
     SupervisorModule,

@@ -4,10 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '@/modules/auth/auth.module';
 
 import { User } from '@/modules/user/entities/user.entity';
+import { ChurchModule } from '@/modules/church/church.module';
+import { MinistryModule } from '@/modules/ministry/ministry.module';
 
 import { UserService } from '@/modules/user/user.service';
 import { UserController } from '@/modules/user/user.controller';
-import { ChurchModule } from '../church/church.module';
 
 @Module({
   controllers: [UserController],
@@ -15,6 +16,7 @@ import { ChurchModule } from '../church/church.module';
   imports: [
     TypeOrmModule.forFeature([User]),
     forwardRef(() => AuthModule),
+    forwardRef(() => MinistryModule),
     forwardRef(() => ChurchModule),
   ],
   exports: [TypeOrmModule, UserService],

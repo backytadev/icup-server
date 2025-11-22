@@ -98,6 +98,13 @@ export class CreateUserDto {
   @IsNotEmpty()
   churches: string[];
 
+  @ApiProperty({
+    example: ['ministry_id_1', 'ministry_id_2'],
+  })
+  @IsArray()
+  @IsNotEmpty()
+  ministries: string[];
+
   //! Properties record inactivation (optional)
   @IsOptional()
   @IsEnum(UserInactivationCategory)

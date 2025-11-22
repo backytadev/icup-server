@@ -26,6 +26,7 @@ import {
 } from '@/modules/user/enums/user-search-type.enum';
 import { User } from '@/modules/user/entities/user.entity';
 import { Church } from '@/modules/church/entities/church.entity';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 
 import { CreateUserDto } from '@/modules/user/dto/create-user.dto';
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto';
@@ -39,13 +40,21 @@ export class UserService {
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
 
+    @InjectRepository(Ministry)
+    private readonly ministryRepository: Repository<Ministry>,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
   //* CREATE USER
   async create(createUserDto: CreateUserDto, user: User) {
-    const { password, churches: churchIds, ...userData } = createUserDto;
+    const {
+      password,
+      churches: churchIds,
+      ministries: ministryIds,
+      ...userData
+    } = createUserDto;
 
     const churches = await this.churchRepository.find({
       where: {
@@ -54,9 +63,17 @@ export class UserService {
       },
     });
 
+    const ministries = await this.ministryRepository.find({
+      where: {
+        id: In(ministryIds),
+        recordStatus: RecordStatus.Active,
+      },
+    });
+
     try {
       const newUser = this.userRepository.create({
         ...userData,
+        ministries: ministries,
         churches: churches,
         password: bcrypt.hashSync(password, 10),
         createdBy: user,
@@ -82,7 +99,7 @@ export class UserService {
         where: { recordStatus: RecordStatus.Active },
         take: limit,
         skip: offset,
-        relations: ['updatedBy', 'createdBy', 'churches'],
+        relations: ['updatedBy', 'createdBy', 'churches', 'churches'],
         order: { createdAt: order as FindOptionsOrderValue },
       });
 
@@ -129,7 +146,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches'],
+          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -161,7 +178,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches'],
+          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -195,7 +212,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches'],
+          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -229,7 +246,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches'],
+          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -270,7 +287,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches'],
+          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -308,7 +325,7 @@ export class UserService {
           },
           take: limit,
           skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches'],
+          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
@@ -354,6 +371,7 @@ export class UserService {
       gender,
       email,
       roles,
+      ministries: ministriesId,
       churches: churchesId,
       recordStatus,
       currentPassword,
@@ -371,6 +389,16 @@ export class UserService {
       churches = await this.churchRepository.find({
         where: {
           id: In(churchesId),
+          recordStatus: RecordStatus.Active,
+        },
+      });
+    }
+
+    let ministries: Ministry[] = undefined;
+    if (ministriesId) {
+      ministries = await this.ministryRepository.find({
+        where: {
+          id: In(ministriesId),
           recordStatus: RecordStatus.Active,
         },
       });
@@ -423,6 +451,7 @@ export class UserService {
           userName: userName,
           gender: gender,
           roles: roles,
+          ministries: ministries,
           churches: churches,
           email: email,
           password: bcrypt.hashSync(newPassword, 10),
@@ -454,6 +483,7 @@ export class UserService {
           userName: userName,
           gender: gender,
           roles: roles,
+          ministries: ministries,
           churches: churches,
           email: email,
           updatedAt: new Date(),

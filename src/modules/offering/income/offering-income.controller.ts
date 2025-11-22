@@ -69,7 +69,7 @@ export class OfferingIncomeController {
 
   //* CREATE
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser, UserRole.MinistryUser)
   @ApiCreatedResponse({
     description:
       '✅ Successfully created: The record has been successfully created and added to the system.',

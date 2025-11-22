@@ -5,6 +5,7 @@ import {
   OneToMany,
   JoinColumn,
   PrimaryGeneratedColumn,
+  ManyToMany,
 } from 'typeorm';
 
 import { RecordStatus } from '../../../common/enums/record-status.enum';
@@ -96,6 +97,9 @@ export class Ministry {
   //* Relations (Array)
   @OneToMany(() => MinistryMember, (ministryMember) => ministryMember.ministry)
   members: MinistryMember[];
+
+  @ManyToMany(() => User, (user) => user.ministries)
+  users: User[];
 
   //* Relations(FK)
   @ManyToOne(() => Church, (church) => church.ministries)

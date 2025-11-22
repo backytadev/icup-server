@@ -12,6 +12,7 @@ import {
 
 import { RecordStatus } from '../../../common/enums/record-status.enum';
 import { Church } from '../../../modules/church/entities/church.entity';
+import { Ministry } from '../../../modules/ministry/entities/ministry.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -75,6 +76,14 @@ export class User {
     inverseJoinColumn: { name: 'church_id' },
   })
   churches: Church[];
+
+  @ManyToMany(() => Ministry, (ministry) => ministry.users)
+  @JoinTable({
+    name: 'user_ministry',
+    joinColumn: { name: 'user_id' },
+    inverseJoinColumn: { name: 'ministry_id' },
+  })
+  ministries: Ministry[];
 
   //? Internal Functions
   @BeforeInsert()

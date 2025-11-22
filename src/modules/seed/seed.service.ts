@@ -7,6 +7,8 @@ import {
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { RelationType } from '@/common/enums/relation-type.enum';
+
 import { UserService } from '@/modules/user/user.service';
 import { ZoneService } from '@/modules/zone/zone.service';
 import { ChurchService } from '@/modules/church/church.service';
@@ -38,9 +40,11 @@ import { dataDisciples } from '@/modules/seed/data/seed-disciples';
 import { dataCopastors } from '@/modules/seed/data/seed-copastors';
 import { dataPreachers } from '@/modules/seed/data/seed-preachers';
 import { dataSupervisors } from '@/modules/seed/data/seed-supervisor';
+import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { dataFamilyGroups } from '@/modules/seed/data/seed-family-group';
 import { dataOfferingIncome } from '@/modules/seed/data/seed-offering-income';
 import { dataOfferingExpenses } from '@/modules/seed/data/seed-offering-expenses';
+import { MinistryMember } from '@/modules/ministry/entities/ministry-member.entity';
 import { ExternalDonor } from '@/modules/external-donor/entities/external-donor.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
@@ -52,6 +56,12 @@ export class SeedService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
+
+    @InjectRepository(Ministry)
+    private readonly ministryRepository: Repository<Church>,
+
+    @InjectRepository(MinistryMember)
+    private readonly ministryMemberRepository: Repository<MinistryMember>,
 
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
@@ -106,6 +116,10 @@ export class SeedService {
 
   async runSeed(): Promise<string> {
     const queryChurches = this.churchRepository.createQueryBuilder('churches');
+    const queryMinistryMember =
+      this.ministryMemberRepository.createQueryBuilder('ministry-member');
+    const queryMinistries =
+      this.ministryRepository.createQueryBuilder('ministries');
     const queryMembers = this.memberRepository.createQueryBuilder('members');
     const queryPastors = this.pastorRepository.createQueryBuilder('pastors');
     const queryCopastor =
@@ -130,6 +144,9 @@ export class SeedService {
       this.offeringExpenseRepository.createQueryBuilder('offeringExpense');
 
     try {
+      await this.churchRepository.query(`DELETE FROM user_churches`);
+      await queryMinistryMember.delete().where({}).execute();
+      await queryMinistries.delete().where({}).execute();
       await queryDisciples.delete().where({}).execute();
       await queryFamilyGroups.delete().where({}).execute();
       await queryPreachers.delete().where({}).execute();
@@ -256,7 +273,15 @@ export class SeedService {
           ? (copastor.theirPastor = pastor[1]?.id)
           : (copastor.theirPastor = pastor[2]?.id);
 
-      promisesCopastor.push(this.copastorService.create(copastor, user));
+      promisesCopastor.push(
+        this.copastorService.create(
+          {
+            ...copastor,
+            relationType: RelationType.OnlyRelatedHierarchicalCover,
+          },
+          user,
+        ),
+      );
     });
 
     await Promise.all(promisesCopastor);
@@ -268,6 +293,7 @@ export class SeedService {
           residenceDistrict: 'ASC',
         },
       },
+      relations: ['theirPastor', 'theirChurch'],
     });
 
     supervisors.forEach((supervisor, index) => {
@@ -295,7 +321,15 @@ export class SeedService {
 
       supervisor.theirCopastor = copastor[copastorIndex]?.id;
 
-      promisesSupervisor.push(this.supervisorService.create(supervisor, user));
+      promisesSupervisor.push(
+        this.supervisorService.create(
+          {
+            ...supervisor,
+            relationType: RelationType.OnlyRelatedHierarchicalCover,
+          },
+          user,
+        ),
+      );
     });
 
     await Promise.all(promisesSupervisor);
@@ -307,6 +341,7 @@ export class SeedService {
           residenceDistrict: 'ASC',
         },
       },
+      relations: ['theirCopastor', 'theirPastor', 'theirChurch'],
     });
 
     zones.forEach((zone, index) => {
@@ -358,7 +393,15 @@ export class SeedService {
 
       preacher.theirSupervisor = allSupervisors[supervisorIndex]?.id;
 
-      promisesPreacher.push(this.preacherService.create(preacher, user));
+      promisesPreacher.push(
+        this.preacherService.create(
+          {
+            ...preacher,
+            relationType: RelationType.OnlyRelatedHierarchicalCover,
+          },
+          user,
+        ),
+      );
     });
 
     await Promise.all(promisesPreacher);
@@ -370,6 +413,12 @@ export class SeedService {
           residenceDistrict: 'ASC',
         },
       },
+      relations: [
+        'theirSupervisor',
+        'theirCopastor',
+        'theirPastor',
+        'theirChurch',
+      ],
     });
 
     async function crateHousesSorted(
@@ -482,7 +531,16 @@ export class SeedService {
       if (range) {
         disciple.theirFamilyGroup = allFamilyGroups[range.groupIndex]?.id;
       }
-      promisesDisciple.push(this.discipleService.create(disciple, user));
+
+      promisesPreacher.push(
+        this.discipleService.create(
+          {
+            ...disciple,
+            relationType: RelationType.OnlyRelatedHierarchicalCover,
+          },
+          user,
+        ),
+      );
     });
 
     await Promise.all(promisesDisciple);

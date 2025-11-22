@@ -54,7 +54,7 @@ export class AuthService {
           createdAt: false,
           updatedAt: false,
         },
-        relations: ['churches'],
+        relations: ['churches', 'ministries'],
       });
 
       if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -96,6 +96,14 @@ export class AuthService {
           abbreviatedChurchName: ch.abbreviatedChurchName,
           churchCode: ch.churchCode,
         })),
+        ministries: user.ministries.map((m) => ({
+          id: m.id,
+          ministryType: m.ministryType,
+          customMinistryName: m.customMinistryName,
+          ministryCode: m.ministryCode,
+          serviceTimes: m.serviceTimes,
+        })),
+
         token: accessToken,
       });
     } catch (error) {

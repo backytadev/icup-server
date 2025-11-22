@@ -6,6 +6,7 @@ import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { MinistryController } from '@/modules/ministry/ministry.controller';
 
 import { AuthModule } from '@/modules/auth/auth.module';
+import { UserModule } from '@/modules/user/user.module';
 import { ChurchModule } from '@/modules/church/church.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
 import { MinistryMember } from '@/modules/ministry/entities/ministry-member.entity';
@@ -17,6 +18,7 @@ import { MinistryMember } from '@/modules/ministry/entities/ministry-member.enti
     TypeOrmModule.forFeature([Ministry, MinistryMember]),
     forwardRef(() => ChurchModule),
     forwardRef(() => PastorModule),
+    forwardRef(() => UserModule),
     AuthModule,
   ],
   exports: [TypeOrmModule, MinistryService],
