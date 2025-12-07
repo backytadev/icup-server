@@ -16,10 +16,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
+import { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { LoginUserDto } from '@/modules/auth/dto/login-user.dto';
-import { JwtPayload } from '@/modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {

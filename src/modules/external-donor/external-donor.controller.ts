@@ -22,11 +22,11 @@ import { SkipThrottle } from '@nestjs/throttler';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
-import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { Auth } from '@/common/decorators/auth.decorator';
+import { GetUser } from '@/common/decorators/get-user.decorator';
 
 import { User } from '@/modules/user/entities/user.entity';
-import { UserRole } from '@/modules/auth/enums/user-role.enum';
 
 import { UpdateExternalDonorDto } from '@/modules/external-donor/dto/update-external-donor.dto';
 

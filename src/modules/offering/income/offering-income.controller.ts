@@ -31,9 +31,9 @@ import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto'
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
 import { OfferingIncomeCreationSubType } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 
-import { UserRole } from '@/modules/auth/enums/user-role.enum';
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
-import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { Auth } from '@/common/decorators/auth.decorator';
+import { GetUser } from '@/common/decorators/get-user.decorator';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { InactivateOfferingDto } from '@/modules/offering/shared/dto/inactivate-offering.dto';

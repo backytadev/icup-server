@@ -34,9 +34,9 @@ import { UpdateSupervisorDto } from '@/modules/supervisor/dto/update-supervisor.
 import { SupervisorSearchType } from '@/modules/supervisor/enums/supervisor-search-type.enum';
 import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.num';
 
-import { UserRole } from '@/modules/auth/enums/user-role.enum';
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
-import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { Auth } from '@/common/decorators/auth.decorator';
+import { GetUser } from '@/common/decorators/get-user.decorator';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';

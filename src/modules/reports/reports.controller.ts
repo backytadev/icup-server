@@ -26,7 +26,10 @@ import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { Auth } from '@/common/decorators/auth.decorator';
+
+import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
+import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
 
 import { ReportsService } from '@/modules/reports/reports.service';
 
@@ -161,7 +164,7 @@ export class ReportsController {
   }
 
   //* CHURCHES BY TERM REPORT
-  @Get('churches/:term')
+  @Get('churches/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -182,13 +185,9 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getChurchesByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() query: ChurchSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getChurchesByTerm(
-      term,
-      searchTypeAndPaginationDto,
-    );
+    const pdfDoc = await this.reportsService.getChurchesByFilters(query);
 
     response.setHeader('Content-Type', 'application/pdf');
     response.setHeader(
@@ -1059,7 +1058,7 @@ export class ReportsController {
   }
 
   //* USERS BY TERM REPORT
-  @Get('users/:term')
+  @Get('users/search')
   @Auth()
   @ApiOkResponse({
     description:
@@ -1080,13 +1079,9 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getUsersByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() query: UserSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getUsersByTerm(
-      term,
-      searchTypeAndPaginationDto,
-    );
+    const pdfDoc = await this.reportsService.getUsersByFilters(query);
 
     response.setHeader('Content-Type', 'application/pdf');
     response.setHeader(

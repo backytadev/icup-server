@@ -1,4 +1,4 @@
-import { UserRoleNames } from '@/modules/auth/enums/user-role.enum';
+import { UserRoleNames } from '@/common/enums/user-role.enum';
 
 export const getRoleNamesInSpanish = (validUserRoles: string[]): string => {
   return validUserRoles

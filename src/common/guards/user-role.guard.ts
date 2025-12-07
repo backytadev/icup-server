@@ -9,8 +9,8 @@ import { Observable } from 'rxjs';
 import { Reflector } from '@nestjs/core';
 
 import { User } from '@/modules/user/entities/user.entity';
-import { META_ROLES } from '@/modules/auth/decorators/role-protected.decorator';
-import { getRoleNamesInSpanish } from '@/modules/auth/helpers/get-role-names-in-spanish.helper';
+import { META_ROLES } from '@/common/decorators/role-protected.decorator';
+import { getRoleNamesInSpanish } from '@/common/helpers/get-role-names-in-spanish.helper';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {

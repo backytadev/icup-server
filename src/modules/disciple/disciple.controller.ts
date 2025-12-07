@@ -34,9 +34,9 @@ import { CreateDiscipleDto } from '@/modules/disciple/dto/create-disciple.dto';
 import { DiscipleSearchType } from '@/modules/disciple/enums/disciple-search-type.enum';
 import { DiscipleSearchSubType } from '@/modules/disciple/enums/disciple-search-sub-type.enum';
 
-import { UserRole } from '@/modules/auth/enums/user-role.enum';
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
-import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { Auth } from '@/common/decorators/auth.decorator';
+import { GetUser } from '@/common/decorators/get-user.decorator';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';

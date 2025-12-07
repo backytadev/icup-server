@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { format } from 'date-fns';
 
-import { UserRoleNames } from '@/modules/auth/enums/user-role.enum';
+import { UserRoleNames } from '@/common/enums/user-role.enum';
 
 import {
   RecordOrder,
@@ -30,6 +30,12 @@ import { SearchType, SearchTypeNames } from '@/common/enums/search-types.enum';
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
+
+import { UserSearchType } from '@/modules/user/enums/user-search-type.enum';
+import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
+
+import { ChurchSearchType } from '@/modules/church/enums/church-search-type.enum';
+import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
 
 import {
   MemberType,
@@ -364,16 +370,13 @@ export class ReportsService {
   }
 
   //* CHURCHES REPORT BY TERM
-  async getChurchesByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getChurchesByFilters(
+    searchTypeAndPaginationDto: ChurchSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
-      searchTypeAndPaginationDto;
+    const { searchType, order, churchId, term } = searchTypeAndPaginationDto;
 
     try {
-      const churches: Church[] = await this.churchService.findByTerm(
-        term,
+      const churches: Church[] = await this.churchService.findByFilters(
         searchTypeAndPaginationDto,
       );
 
@@ -387,7 +390,7 @@ export class ReportsService {
       newTerm = term;
 
       //* By Founding Date
-      if (searchType === SearchType.FoundingDate) {
+      if (searchType === ChurchSearchType.FoundingDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -401,7 +404,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === ChurchSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -420,7 +423,7 @@ export class ReportsService {
         description: 'iglesias',
         searchTerm: `${newTerm}`,
         searchType: `${SearchTypeNames[searchType]}`,
-        searchSubType: SearchSubTypeNames[searchSubType] ?? 'S/N',
+        searchSubType: 'S/N',
         orderSearch: RecordOrderNames[order],
         churchName: churchId
           ? churches[0]?.theirMainChurch?.abbreviatedChurchName
@@ -2122,17 +2125,11 @@ export class ReportsService {
   }
 
   //* USERS REPORT BY TERM
-  async getUsersByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
-  ) {
-    const { searchType, searchSubType, order } = searchTypeAndPaginationDto;
+  async getUsersByFilters(query: UserSearchAndPaginationDto) {
+    const { searchType, order, term } = query;
 
     try {
-      const users: User[] = await this.userService.findByTerm(
-        term,
-        searchTypeAndPaginationDto,
-      );
+      const users: User[] = await this.userService.findByFilters(query);
 
       if (!users) {
         throw new NotFoundException(
@@ -2143,7 +2140,7 @@ export class ReportsService {
       let newTerm: string;
       newTerm = term;
 
-      if (searchType === SearchType.Gender) {
+      if (searchType === UserSearchType.Gender) {
         const genderTerm = term.toLowerCase();
         const validGenders = ['male', 'female'];
 
@@ -2154,7 +2151,7 @@ export class ReportsService {
         newTerm = `${GenderNames[genderTerm]}`;
       }
 
-      if (searchType === SearchType.Roles) {
+      if (searchType === UserSearchType.Roles) {
         const rolesArray = term.split('+');
 
         const rolesInSpanish = rolesArray
@@ -2170,7 +2167,7 @@ export class ReportsService {
         newTerm = `${rolesInSpanish}`;
       }
 
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === UserSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -2189,9 +2186,8 @@ export class ReportsService {
         description: 'usuarios',
         searchTerm: newTerm,
         searchType: SearchTypeNames[searchType],
-        searchSubType: SearchSubTypeNames[searchSubType] ?? 'S/N',
+        searchSubType: 'S/N',
         orderSearch: RecordOrderNames[order],
-
         data: users,
       });
 

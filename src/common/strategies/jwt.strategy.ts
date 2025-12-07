@@ -9,7 +9,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
 import { User } from '@/modules/user/entities/user.entity';
-import { JwtPayload } from '@/modules/auth/interfaces/jwt-payload.interface';
+import { JwtPayload } from '@/common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

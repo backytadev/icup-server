@@ -13,10 +13,10 @@ import {
 } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
+import { Auth } from '@/common/decorators/auth.decorator';
 import { ReportPaginationDto } from '@/common/dtos/report-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
 import { MetricsService } from '@/modules/metrics/metrics.service';
 import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.enum';
 
