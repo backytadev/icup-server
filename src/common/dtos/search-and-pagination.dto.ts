@@ -14,12 +14,31 @@ import { SearchType } from '@/common/enums/search-types.enum';
 import { SearchSubType } from '@/common/enums/search-sub-type.enum';
 
 export class SearchAndPaginationDto {
+  @ApiProperty({
+    example: 'john.doe',
+    description: 'The term to search for.',
+  })
+  @IsOptional()
+  term?: string;
+
+  @ApiProperty({
+    name: 'searchType',
+    enum: SearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: SearchType.FirstNames,
+  })
   @IsEnum(SearchType)
   @IsNotEmpty({ message: 'El tipo de búsqueda es requerido.' })
   @IsString()
   @IsOptional()
   searchType?: string;
 
+  @ApiProperty({
+    name: 'searchType',
+    enum: SearchSubType,
+    description: 'Choose one of the sub types to perform a search.',
+    example: SearchSubType.ByDiscipleFirstNames,
+  })
   @IsEnum(SearchSubType)
   @IsOptional()
   @IsString()
@@ -57,6 +76,7 @@ export class SearchAndPaginationDto {
   @Type(() => String)
   order?: string;
 
+  // * used for search all by churchId (review modules)
   @IsOptional()
   @IsString()
   @Type(() => String)

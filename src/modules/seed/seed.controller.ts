@@ -11,8 +11,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { SkipThrottle } from '@nestjs/throttler';
 
-import { UserRole } from '@/modules/auth/enums/user-role.enum';
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { Auth } from '@/common/decorators/auth.decorator';
 
 import { SeedService } from '@/modules/seed/seed.service';
 
