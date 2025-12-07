@@ -1,29 +1,18 @@
 import {
-  Logger,
   Injectable,
   NotFoundException,
   BadRequestException,
   UnauthorizedException,
-  InternalServerErrorException,
 } from '@nestjs/common';
-import { isUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsOrderValue, ILike, In, Raw, Repository } from 'typeorm';
+import { FindOptionsOrderValue, In, Repository } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
 
-import { UserRole, UserRoleNames } from '@/modules/auth/enums/user-role.enum';
-
-import { GenderNames } from '@/common/enums/gender.enum';
+import { BaseService } from '@/common/services/base.service';
+import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
-import { PaginationDto } from '@/common/dtos/pagination.dto';
-import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
-
-import {
-  UserSearchType,
-  UserSearchTypeNames,
-} from '@/modules/user/enums/user-search-type.enum';
 import { User } from '@/modules/user/entities/user.entity';
 import { Church } from '@/modules/church/entities/church.entity';
 import { Ministry } from '@/modules/ministry/entities/ministry.entity';
@@ -32,10 +21,12 @@ import { CreateUserDto } from '@/modules/user/dto/create-user.dto';
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto';
 import { InactivateUserDto } from '@/modules/user/dto/inactivate-user.dto';
 
-@Injectable()
-export class UserService {
-  private readonly logger = new Logger('UserService');
+import { UserRole } from '@/common/enums/user-role.enum';
+import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
+import { UserSearchStrategyFactory } from '@/modules/user/search/user-search-strategy.factory';
 
+@Injectable()
+export class UserService extends BaseService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
@@ -45,523 +36,214 @@ export class UserService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
 
-  //* CREATE USER
-  async create(createUserDto: CreateUserDto, user: User) {
-    const {
-      password,
-      churches: churchIds,
-      ministries: ministryIds,
-      ...userData
-    } = createUserDto;
+    private readonly searchStrategyFactory: UserSearchStrategyFactory,
+  ) {
+    super();
+  }
 
-    const churches = await this.churchRepository.find({
-      where: {
-        id: In(churchIds),
-        recordStatus: RecordStatus.Active,
-      },
-    });
-
-    const ministries = await this.ministryRepository.find({
-      where: {
-        id: In(ministryIds),
-        recordStatus: RecordStatus.Active,
-      },
-    });
-
+  //* Create
+  async create(body: CreateUserDto, user: User) {
     try {
-      const newUser = this.userRepository.create({
-        ...userData,
-        ministries: ministries,
-        churches: churches,
-        password: bcrypt.hashSync(password, 10),
-        createdBy: user,
-        createdAt: new Date(),
-      });
+      const data = await this.buildCreateData(body, user);
+      const newUser = this.userRepository.create(data);
 
       await this.userRepository.save(newUser);
       delete newUser.password;
-      return {
-        ...newUser,
-      };
+
+      return newUser;
     } catch (error) {
-      this.handleDBExceptions(error);
+      this.handleDBExceptions(error, {
+        email: 'El correo electrónico ya está en uso.',
+      });
     }
   }
 
-  //* FIND ALL (PAGINATED)
-  async findAll(paginationDto: PaginationDto): Promise<User[]> {
-    const { limit, offset = 0, order = 'ASC' } = paginationDto;
+  //* Find all
+  async findAll(query: PaginationDto): Promise<User[]> {
+    const { limit, offset = 0, order = 'ASC' } = query;
 
     try {
       const users = await this.userRepository.find({
-        where: { recordStatus: RecordStatus.Active },
+        where: { recordStatus: RecordStatus.Inactive },
         take: limit,
         skip: offset,
-        relations: ['updatedBy', 'createdBy', 'churches', 'churches'],
+        relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
         order: { createdAt: order as FindOptionsOrderValue },
       });
 
-      if (users.length === 0) {
-        throw new NotFoundException(
-          `No existen registros disponibles para mostrar.`,
-        );
-      }
-
-      return users;
+      return this.validateResult(users);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-
       this.handleDBExceptions(error);
     }
   }
 
-  //* FIND BY TERM
-  async findByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
-  ): Promise<User[]> {
-    const { searchType, limit, offset = 0, order } = searchTypeAndPaginationDto;
+  //* Find by filters
+  async findByFilters(query: UserSearchAndPaginationDto): Promise<User[]> {
+    const { term, searchType } = query;
 
-    if (!term) {
-      throw new BadRequestException(`El termino de búsqueda es requerido.`);
-    }
-
-    if (!searchType) {
-      throw new BadRequestException(`El tipo de búsqueda es requerido.`);
-    }
-
-    //? Find by first name --> Many
-    if (term && searchType === UserSearchType.FirstNames) {
-      const firstNames = term.replace(/\+/g, ' ');
-
-      try {
-        const users = await this.userRepository.find({
-          where: {
-            firstNames: ILike(`%${firstNames}%`),
-            recordStatus: RecordStatus.Active,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (users.length === 0) {
-          throw new NotFoundException(
-            `No se encontraron usuarios con estos nombres: ${firstNames}`,
-          );
-        }
-
-        return users;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //? Find by last name --> Many
-    if (term && searchType === UserSearchType.LastNames) {
-      const lastNames = term.replace(/\+/g, ' ');
-
-      try {
-        const users = await this.userRepository.find({
-          where: {
-            lastNames: ILike(`%${lastNames}%`),
-            recordStatus: RecordStatus.Active,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (users.length === 0) {
-          throw new NotFoundException(
-            `No se encontraron usuarios con estos apellidos: ${lastNames}`,
-          );
-        }
-
-        return users;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //? Find by full name --> Many
-    if (term && searchType === UserSearchType.FullNames) {
-      const firstNames = term.split('-')[0].replace(/\+/g, ' ');
-      const lastNames = term.split('-')[1].replace(/\+/g, ' ');
-
-      try {
-        const users = await this.userRepository.find({
-          where: {
-            firstNames: ILike(`%${firstNames}%`),
-            lastNames: ILike(`%${lastNames}%`),
-            recordStatus: RecordStatus.Active,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (users.length === 0) {
-          throw new NotFoundException(
-            `No se encontraron usuarios con estos nombres y apellidos: ${firstNames} ${lastNames}`,
-          );
-        }
-
-        return users;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //? Find by roles --> Many
-    if (term && searchType === UserSearchType.Roles) {
-      const rolesArray = term.split('+');
-
-      try {
-        const users = await this.userRepository.find({
-          where: {
-            roles: Raw((alias) => `ARRAY[:...rolesArray]::text[] && ${alias}`, {
-              rolesArray,
-            }),
-            recordStatus: RecordStatus.Active,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (users.length === 0) {
-          const rolesInSpanish = rolesArray
-            .map((role) => UserRoleNames[role] ?? role)
-            .join(' - ');
-
-          throw new NotFoundException(
-            `No se encontraron usuarios con estos roles: ${rolesInSpanish}`,
-          );
-        }
-
-        return users;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //? Find by gender --> Many
-    if (term && searchType === UserSearchType.Gender) {
-      const genderTerm = term.toLowerCase();
-      const validGenders = ['male', 'female'];
-
-      if (!validGenders.includes(genderTerm)) {
-        throw new BadRequestException(`Género no válido: ${term}`);
-      }
-
-      try {
-        const users = await this.userRepository.find({
-          where: {
-            gender: genderTerm,
-            recordStatus: RecordStatus.Active,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (users.length === 0) {
-          const genderInSpanish = GenderNames[term.toLowerCase()] ?? term;
-
-          throw new NotFoundException(
-            `No se encontraron usuarios con este género: ${genderInSpanish}`,
-          );
-        }
-
-        return users;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //? Find by status --> Many
-    if (term && searchType === UserSearchType.RecordStatus) {
-      const recordStatusTerm = term.toLowerCase();
-      const validRecordStatus = ['active', 'inactive'];
-
-      if (!validRecordStatus.includes(recordStatusTerm)) {
-        throw new BadRequestException(`Estado de registro no válido: ${term}`);
-      }
-
-      try {
-        const users = await this.userRepository.find({
-          where: {
-            recordStatus: recordStatusTerm,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (users.length === 0) {
-          const value = term === RecordStatus.Inactive ? 'Inactivo' : 'Activo';
-
-          throw new NotFoundException(
-            `No se encontraron usuarios con este estado de registro: ${value}`,
-          );
-        }
-
-        return users;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //! General Exceptions
-    if (
-      term &&
-      !Object.values(UserSearchType).includes(searchType as UserSearchType)
-    ) {
-      throw new BadRequestException(
-        `Tipos de búsqueda no validos, solo son validos: ${Object.values(UserSearchTypeNames).join(', ')}`,
-      );
-    }
-  }
-
-  //* UPDATE USER
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-    user: User,
-  ): Promise<User> {
-    const {
-      firstNames,
-      lastNames,
-      userName,
-      gender,
-      email,
-      roles,
-      ministries: ministriesId,
-      churches: churchesId,
-      recordStatus,
-      currentPassword,
-      newPassword,
-      userInactivationCategory,
-      userInactivationReason,
-    } = updateUserDto;
-
-    if (!isUUID(id)) {
-      throw new BadRequestException(`Not valid UUID`);
-    }
-
-    let churches: Church[] = undefined;
-    if (churchesId) {
-      churches = await this.churchRepository.find({
-        where: {
-          id: In(churchesId),
-          recordStatus: RecordStatus.Active,
-        },
-      });
-    }
-
-    let ministries: Ministry[] = undefined;
-    if (ministriesId) {
-      ministries = await this.ministryRepository.find({
-        where: {
-          id: In(ministriesId),
-          recordStatus: RecordStatus.Active,
-        },
-      });
-    }
-
-    const dataUser = await this.userRepository.findOne({
-      where: { id },
-      select: {
-        id: true,
-        firstNames: true,
-        lastNames: true,
-        roles: true,
-        recordStatus: true,
-        email: true,
-        gender: true,
-        password: true,
-      },
-      relations: ['churches'],
-    });
-
-    if (!dataUser) {
-      throw new NotFoundException(`Usuario con id: ${id} no fue encontrado.`);
-    }
-
-    if (
-      currentPassword &&
-      newPassword &&
-      !bcrypt.compareSync(currentPassword, dataUser.password)
-    ) {
-      throw new UnauthorizedException(
-        `La contraseña actual no coincide con la registrada en la base de datos.`,
-      );
-    }
-
-    if (
-      dataUser.recordStatus === RecordStatus.Active &&
-      recordStatus === RecordStatus.Inactive
-    ) {
-      throw new BadRequestException(
-        `No se puede actualizar un registro a "Inactivo", se debe eliminar.`,
-      );
-    }
-
-    if (newPassword) {
-      try {
-        const updateUser = await this.userRepository.preload({
-          id: id,
-          firstNames: firstNames,
-          lastNames: lastNames,
-          userName: userName,
-          gender: gender,
-          roles: roles,
-          ministries: ministries,
-          churches: churches,
-          email: email,
-          password: bcrypt.hashSync(newPassword, 10),
-          updatedAt: new Date(),
-          updatedBy: user,
-          inactivationCategory:
-            recordStatus === RecordStatus.Active
-              ? null
-              : userInactivationCategory,
-          inactivationReason:
-            recordStatus === RecordStatus.Active
-              ? null
-              : userInactivationReason,
-          recordStatus: recordStatus,
-        });
-
-        return await this.userRepository.save(updateUser);
-      } catch (error) {
-        this.handleDBExceptions(error);
-      }
-    }
-
-    if (!newPassword) {
-      try {
-        const updateUser = await this.userRepository.preload({
-          id: id,
-          firstNames: firstNames,
-          lastNames: lastNames,
-          userName: userName,
-          gender: gender,
-          roles: roles,
-          ministries: ministries,
-          churches: churches,
-          email: email,
-          updatedAt: new Date(),
-          updatedBy: user,
-          inactivationCategory:
-            recordStatus === RecordStatus.Active
-              ? null
-              : userInactivationCategory,
-          inactivationReason:
-            recordStatus === RecordStatus.Active
-              ? null
-              : userInactivationReason,
-          recordStatus: recordStatus,
-        });
-
-        return await this.userRepository.save(updateUser);
-      } catch (error) {
-        this.handleDBExceptions(error);
-      }
-    }
-  }
-
-  //! INACTIVATE USER
-  async delete(
-    id: string,
-    inactivateUserDto: InactivateUserDto,
-    user: User,
-  ): Promise<void> {
-    const { userInactivationCategory, userInactivationReason } =
-      inactivateUserDto;
-
-    if (!isUUID(id)) {
-      throw new BadRequestException(`UUID no valido`);
-    }
-
-    const dataUser = await this.userRepository.findOneBy({ id });
-
-    if (!dataUser) {
-      throw new NotFoundException(`Usuario con id: ${id} no fue encontrado.`);
-    }
-
-    if (dataUser.roles.includes(UserRole.SuperUser)) {
-      throw new BadRequestException(
-        `Usuario con rol "Super-Usuario" no puede ser eliminado.`,
-      );
-    }
+    if (!term) throw new BadRequestException('El término es requerido');
+    if (!searchType) throw new BadRequestException('searchType es requerido');
 
     try {
-      const deleteUser = await this.userRepository.preload({
-        id: dataUser.id,
+      const strategy = this.searchStrategyFactory.getStrategy(searchType);
+
+      return strategy.execute(query);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  //* Update
+  async update(id: string, dto: UpdateUserDto, user: User): Promise<User> {
+    await this.validateId(id);
+    const existingUser = await this.findUserOrFail(id);
+
+    if (dto.currentPassword && dto.newPassword) {
+      this.validateCurrentPassword(dto.currentPassword, existingUser.password);
+    }
+
+    const updateData = await this.buildUpdateData(dto, user);
+    const updatedUser = await this.userRepository.preload({
+      id,
+      ...updateData,
+    });
+
+    try {
+      return await this.userRepository.save(updatedUser);
+    } catch (error) {
+      this.handleDBExceptions(error, {
+        email: 'El correo electrónico ya está en uso.',
+      });
+    }
+  }
+
+  //* Delete
+  async delete(
+    id: string,
+    { userInactivationCategory, userInactivationReason }: InactivateUserDto,
+    admin: User,
+  ): Promise<void> {
+    await this.validateId(id);
+    const user = await this.findUserOrFail(id);
+    this.validateUserCanBeInactivated(user);
+
+    try {
+      const softDeleted = await this.userRepository.preload({
+        id,
         updatedAt: new Date(),
-        updatedBy: user,
+        updatedBy: admin,
         inactivationCategory: userInactivationCategory,
         inactivationReason: userInactivationReason,
         recordStatus: RecordStatus.Inactive,
       });
 
-      await this.userRepository.save(deleteUser);
+      await this.userRepository.save(softDeleted);
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
-  //? PRIVATE METHODS
-  // For future index errors or constrains with code.
-  private handleDBExceptions(error: any): never {
-    if (error.code === '23505') {
-      const detail = error.detail;
+  // ---------------------------------------------------------------------------------------------- //
+  //? Private methods
+  //* Validators
+  private validateCurrentPassword(raw: string, hashed: string) {
+    if (!bcrypt.compareSync(raw, hashed)) {
+      throw new UnauthorizedException(
+        `La contraseña actual no coincide con la registrada en la base de datos.`,
+      );
+    }
+  }
 
-      if (detail.includes('email')) {
-        throw new BadRequestException('El correo electrónico ya está en uso.');
-      }
+  private validateUserCanBeInactivated(user: User) {
+    if (user.roles.includes(UserRole.SuperUser)) {
+      throw new BadRequestException(
+        `Usuario con rol "Super-Usuario" no puede ser eliminado.`,
+      );
+    }
+  }
+
+  //* Finders
+  private async findActiveChurches(ids: string[]): Promise<Church[]> {
+    if (!ids?.length) return [];
+
+    return this.churchRepository.find({
+      where: { id: In(ids), recordStatus: RecordStatus.Active },
+    });
+  }
+
+  private async findActiveMinistries(ids: string[]): Promise<Ministry[]> {
+    if (!ids?.length) return [];
+
+    return this.ministryRepository.find({
+      where: { id: In(ids), recordStatus: RecordStatus.Active },
+    });
+  }
+
+  private async findUserOrFail(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['churches'],
+      select: [
+        'id',
+        'firstNames',
+        'lastNames',
+        'email',
+        'password',
+        'roles',
+        'recordStatus',
+        'gender',
+      ],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con id: ${id} no fue encontrado.`);
     }
 
-    this.logger.error(error);
+    return user;
+  }
 
-    throw new InternalServerErrorException(
-      'Sucedió un error inesperado, hable con el administrador.',
-    );
+  //* Builders
+  private async buildCreateData(dto: CreateUserDto, createdBy: User) {
+    const churches = await this.findActiveChurches(dto.churches);
+    const ministries = await this.findActiveMinistries(dto.ministries);
+
+    return {
+      ...dto,
+      password: bcrypt.hashSync(dto.password, 10),
+      churches,
+      ministries,
+      createdAt: new Date(),
+      createdBy,
+    };
+  }
+
+  private async buildUpdateData(
+    dto: UpdateUserDto,
+    user: User,
+  ): Promise<Promise<Partial<User>>> {
+    const {
+      recordStatus,
+      newPassword,
+      userInactivationCategory,
+      userInactivationReason,
+    } = dto;
+
+    const churches = await this.findActiveChurches(dto.churches);
+    const ministries = await this.findActiveMinistries(dto.ministries);
+
+    return {
+      ...dto,
+      ministries,
+      churches,
+      updatedAt: new Date(),
+      updatedBy: user,
+      password: newPassword ? bcrypt.hashSync(newPassword, 10) : undefined,
+      inactivationCategory:
+        recordStatus === RecordStatus.Active ? null : userInactivationCategory,
+      inactivationReason:
+        recordStatus === RecordStatus.Active ? null : userInactivationReason,
+      recordStatus,
+    };
   }
 }

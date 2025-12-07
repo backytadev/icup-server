@@ -17,7 +17,7 @@ import { RecordStatus } from '@/common/enums/record-status.enum';
 import { UserInactivationReason } from '@/modules/user/enums/user-inactivation-reason.enum';
 import { UserInactivationCategory } from '@/modules/user/enums/user-inactivation-category.enum';
 
-import { UserRole } from '@/modules/auth/enums/user-role.enum';
+import { UserRole } from '@/common/enums/user-role.enum';
 
 export class CreateUserDto {
   @ApiProperty({
