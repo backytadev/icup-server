@@ -17,9 +17,31 @@ import { MinistryModule } from '@/modules/ministry/ministry.module';
 import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 
+import { ChurchSearchStrategyFactory } from '@/modules/church/search/church-search-strategy.factory';
+
+import { AddressSearchStrategy } from '@/modules/church/search/strategies/address-search.strategy';
+import { DistrictSearchStrategy } from '@/modules/church/search/strategies/district-search.strategy';
+import { ProvinceSearchStrategy } from '@/modules/church/search/strategies/province-search.strategy';
+import { DepartmentSearchStrategy } from '@/modules/church/search/strategies/department-search.strategy';
+import { ChurchNameSearchStrategy } from '@/modules/church/search/strategies/church-name-search.strategy';
+import { UrbanSectorSearchStrategy } from '@/modules/church/search/strategies/urban-sector-search.strategy';
+import { RecordStatusSearchStrategy } from '@/modules/church/search/strategies/record-status-search.strategy';
+import { FoundingDateSearchStrategy } from '@/modules/church/search/strategies/founding-date-search.strategy';
+
 @Module({
   controllers: [ChurchController],
-  providers: [ChurchService],
+  providers: [
+    ChurchService,
+    ChurchNameSearchStrategy,
+    FoundingDateSearchStrategy,
+    DepartmentSearchStrategy,
+    ProvinceSearchStrategy,
+    DistrictSearchStrategy,
+    UrbanSectorSearchStrategy,
+    AddressSearchStrategy,
+    RecordStatusSearchStrategy,
+    ChurchSearchStrategyFactory,
+  ],
   imports: [
     TypeOrmModule.forFeature([Church]),
     AuthModule,
