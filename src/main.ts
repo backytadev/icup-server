@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from '@/app.module';
 import { SuperUserService } from '@/utils/create-super-user';
 
-import { ThrottlerExceptionFilter } from '@/modules/auth/filters/throttler-exception.filter';
+import { ThrottlerExceptionFilter } from '@/common/filters/throttler-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,12 +15,27 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  app.use(helmet());
+
+  app.use(cookieParser());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
     }),
   );
+
+  app.enableCors({
+    origin:
+      process.env.STAGE === 'prod'
+        ? process.env.URL_DOMAIN
+        : 'http://localhost:5173',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
+  app.useGlobalFilters(new ThrottlerExceptionFilter());
 
   // Config SuperUser
   const superUserService = app.get(SuperUserService);
@@ -63,21 +79,6 @@ async function bootstrap() {
   } else {
     console.log('Swagger documentation is disabled in this environment.');
   }
-
-  // CORS config
-  const { URL_DOMAIN, STAGE } = process.env;
-
-  app.enableCors({
-    origin: STAGE === 'prod' ? URL_DOMAIN : 'http://localhost:5173',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
-
-  // Use cookie-parser as global middleware
-  app.use(cookieParser());
-
-  // Register global filter
-  app.useGlobalFilters(new ThrottlerExceptionFilter());
 
   await app.listen(process.env.PORT);
   logger.log(`App running in port ${process.env.PORT}`);

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { SuperUserService } from '@/utils/create-super-user';
@@ -32,23 +32,32 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
 
 @Module({
   imports: [
-    ConfigModule.forRoot(), // Access to environment variables global in all modules
-    TypeOrmModule.forRoot({
-      ssl: process.env.STAGE === 'prod',
-      extra: {
-        ssl:
-          process.env.STAGE === 'prod' ? { rejectUnauthorized: false } : null,
-      },
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      entities: ['dist/modules/**/entities/*.js'],
-      migrations: ['dist/database/migrations/*.js'],
-      migrationsRun: true,
-      migrationsTableName: 'migrations',
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        ssl: config.get('STAGE') === 'prod',
+        extra: {
+          ssl:
+            config.get('STAGE') === 'prod'
+              ? { rejectUnauthorized: false }
+              : null,
+        },
+        type: 'postgres',
+        host: config.get('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get('DB_USERNAME'),
+        password: config.get('DB_PASSWORD'),
+        database: config.get('DB_NAME'),
+
+        entities: ['dist/modules/**/entities/*.js'],
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsRun: true,
+        migrationsTableName: 'migrations',
+      }),
     }),
     ThrottlerModule.forRoot([
       {
