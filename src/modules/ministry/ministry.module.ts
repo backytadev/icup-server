@@ -5,6 +5,7 @@ import { MinistryService } from '@/modules/ministry/ministry.service';
 import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 import { MinistryController } from '@/modules/ministry/ministry.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { ChurchModule } from '@/modules/church/church.module';
@@ -16,10 +17,11 @@ import { MinistryMember } from '@/modules/ministry/entities/ministry-member.enti
   providers: [MinistryService],
   imports: [
     TypeOrmModule.forFeature([Ministry, MinistryMember]),
+    AuthModule,
+    CommonModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => PastorModule),
     forwardRef(() => UserModule),
-    AuthModule,
   ],
   exports: [TypeOrmModule, MinistryService],
 })

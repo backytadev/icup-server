@@ -30,6 +30,7 @@ import { Auth } from '@/common/decorators/auth.decorator';
 
 import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
+import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-search-and-pagination.dto';
 
 import { ReportsService } from '@/modules/reports/reports.service';
 
@@ -224,7 +225,7 @@ export class ReportsController {
   }
 
   //* CHURCHES BY TERM REPORT
-  @Get('ministries/:term')
+  @Get('ministries/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -245,13 +246,9 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getMinistriesByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() query: MinistrySearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getMinistriesByTerm(
-      term,
-      searchTypeAndPaginationDto,
-    );
+    const pdfDoc = await this.reportsService.getMinistriesByFilters(query);
 
     response.setHeader('Content-Type', 'application/pdf');
     response.setHeader(

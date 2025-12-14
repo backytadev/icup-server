@@ -19,7 +19,6 @@ import {
   UpdateSwagger,
   DeleteSwagger,
 } from '@/common/swagger/swagger.decorator';
-import { PaginationDto } from '@/common/dtos/pagination.dto';
 
 import { UserRole } from '@/common/enums/user-role.enum';
 import { Auth } from '@/common/decorators/auth.decorator';
@@ -31,6 +30,7 @@ import { UserService } from '@/modules/user/user.service';
 import { CreateUserDto } from '@/modules/user/dto/create-user.dto';
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto';
 import { InactivateUserDto } from '@/modules/user/dto/inactivate-user.dto';
+import { UserPaginationOptionsDto } from '@/modules/user/dto/user-pagination.dto';
 import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
 
 @Controller('users')
@@ -52,7 +52,7 @@ export class UserController {
   @Get()
   @Auth()
   @FindAllSwagger({ description: 'Users retrieved successfully' })
-  findAll(@Query() query: PaginationDto): Promise<User[]> {
+  findAll(@Query() query: UserPaginationOptionsDto): Promise<User[]> {
     return this.userService.findAll(query);
   }
 

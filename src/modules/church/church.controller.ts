@@ -9,6 +9,9 @@ import {
   Controller,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
 import {
   CreateSwagger,
   DeleteSwagger,
@@ -16,25 +19,20 @@ import {
   SearchSwagger,
   UpdateSwagger,
 } from '@/common/swagger/swagger.decorator';
-import { SkipThrottle } from '@nestjs/throttler';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-
-import { PaginationDto } from '@/common/dtos/pagination.dto';
-import { InactivateChurchDto } from '@/modules/church/dto/inactivate-church.dto';
-
-import { ChurchPaginationDto } from '@/modules/church/dto/church-pagination.dto';
-import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
-
-import { User } from '@/modules/user/entities/user.entity';
-
 import { UserRole } from '@/common/enums/user-role.enum';
 import { Auth } from '@/common/decorators/auth.decorator';
 import { GetUser } from '@/common/decorators/get-user.decorator';
 
+import { User } from '@/modules/user/entities/user.entity';
+
 import { ChurchService } from '@/modules/church/church.service';
 import { Church } from '@/modules/church/entities/church.entity';
+
 import { CreateChurchDto } from '@/modules/church/dto/create-church.dto';
 import { UpdateChurchDto } from '@/modules/church/dto/update-church.dto';
+import { InactivateChurchDto } from '@/modules/church/dto/inactivate-church.dto';
+import { ChurchPaginationDto } from '@/modules/church/dto/church-pagination.dto';
+import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
 
 @Controller('churches')
 @ApiTags('Churches')
@@ -58,7 +56,7 @@ export class ChurchController {
   @Get('main-church')
   @Auth()
   @FindAllSwagger({ description: 'Main church retrieved successfully' })
-  findMainChurch(@Query() query: PaginationDto): Promise<Church[]> {
+  findMainChurch(@Query() query: ChurchPaginationDto): Promise<Church[]> {
     return this.churchService.findMainChurch(query);
   }
 

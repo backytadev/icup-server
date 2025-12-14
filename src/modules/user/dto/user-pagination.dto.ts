@@ -4,7 +4,7 @@ import { Transform } from 'class-transformer';
 
 import { BasePaginationDto } from '@/common/dtos/base-pagination.dto';
 
-export class ChurchPaginationOptionsDto {
+export class UserPaginationOptionsDto {
   @ApiProperty({
     name: 'isSimpleQuery',
     example: 'false',
@@ -20,7 +20,7 @@ export class ChurchPaginationOptionsDto {
   isSimpleQuery?: boolean;
 }
 
-export class ChurchPaginationDto extends IntersectionType(
+export class UserPaginationDto extends IntersectionType(
   BasePaginationDto,
-  ChurchPaginationOptionsDto,
+  UserPaginationOptionsDto,
 ) {}

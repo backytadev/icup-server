@@ -11,7 +11,6 @@ import { Church } from '@/modules/church/entities/church.entity';
 
 import { generateCodeChurch } from '@/modules/church/helpers/generate-code-church';
 import { churchDataFormatter } from '@/modules/church/helpers/church-data-formatter.helper';
-import { ChurchSearchStrategyFactory } from '@/modules/church/search/church-search-strategy.factory';
 
 import { CreateChurchDto } from '@/modules/church/dto/create-church.dto';
 import { UpdateChurchDto } from '@/modules/church/dto/update-church.dto';
@@ -19,6 +18,8 @@ import { InactivateChurchDto } from '@/modules/church/dto/inactivate-church.dto'
 
 import { BaseService } from '@/common/services/base.service';
 import { RecordStatus } from '@/common/enums/record-status.enum';
+
+import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
@@ -63,16 +64,16 @@ export class ChurchService extends BaseService {
     @InjectRepository(Disciple)
     private readonly discipleRepository: Repository<Disciple>,
 
-    private readonly searchStrategyFactory: ChurchSearchStrategyFactory,
+    private readonly searchStrategyFactory: SearchStrategyFactory,
   ) {
     super();
   }
 
   //* Create
-  async create(createChurchDto: CreateChurchDto, user: User): Promise<Church> {
+  async create(body: CreateChurchDto, user: User): Promise<Church> {
     try {
-      const mainChurch = await this.validateChurchCreation(createChurchDto);
-      const data = this.buildCreateData(createChurchDto, user, mainChurch);
+      const mainChurch = await this.validateChurchCreation(body);
+      const data = this.buildCreateData(body, user, mainChurch);
       const newChurch = this.churchRepository.create(data);
 
       return await this.churchRepository.save(newChurch);
@@ -85,8 +86,8 @@ export class ChurchService extends BaseService {
   }
 
   //* Find main church
-  async findMainChurch(paginationDto: PaginationDto): Promise<Church[]> {
-    const { limit = 1, offset = 0, order = 'ASC' } = paginationDto;
+  async findMainChurch(query: PaginationDto): Promise<Church[]> {
+    const { limit = 1, offset = 0, order = 'ASC' } = query;
 
     try {
       const mainChurch = await this.churchRepository.find({
@@ -103,19 +104,40 @@ export class ChurchService extends BaseService {
   }
 
   //* Find all
-  async findAll(paginationDto: PaginationDto): Promise<any[]> {
-    const { limit, offset = 0, order = 'ASC', isSimpleQuery } = paginationDto;
+  async findAll(query: PaginationDto): Promise<Church[]> {
+    const { limit, offset = 0, order = 'ASC', isSimpleQuery } = query;
 
     try {
       if (isSimpleQuery) {
-        return await this.findSimpleQuery(order as FindOptionsOrderValue);
+        return await this.findBasicQuery<Church>({
+          order: order as FindOptionsOrderValue,
+          mainRepository: this.churchRepository,
+          relations: [],
+        });
       }
 
-      return await this.findWithRelationsQuery(
+      return await this.findDetailedQuery<Church>({
         limit,
         offset,
-        order as FindOptionsOrderValue,
-      );
+        order: order as FindOptionsOrderValue,
+        mainRepository: this.churchRepository,
+        relations: [
+          'updatedBy',
+          'createdBy',
+          'anexes',
+          'zones',
+          'ministries',
+          'familyGroups',
+          'pastors.member',
+          'copastors.member',
+          'supervisors.member',
+          'preachers.member',
+          'disciples.member',
+        ],
+        moduleKey: 'churches',
+        formatterData: churchDataFormatter,
+        relationLoadStrategy: 'query',
+      });
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -129,26 +151,48 @@ export class ChurchService extends BaseService {
     if (!searchType) throw new BadRequestException('searchType es requerido');
 
     try {
-      const strategy = this.searchStrategyFactory.getStrategy(searchType);
+      const searchStrategy = this.searchStrategyFactory.getStrategy(
+        searchType as any,
+      );
 
-      return strategy.execute(query);
+      return searchStrategy.execute<Church>({
+        params: query,
+        relations: [
+          'anexes',
+          'zones',
+          'familyGroups',
+          'pastors.member',
+          'copastors.member',
+          'supervisors.member',
+          'preachers.member',
+          'disciples.member',
+          'updatedBy',
+          'createdBy',
+        ],
+        mainRepository: this.churchRepository,
+        moduleKey: 'churches',
+        formatterData: churchDataFormatter,
+        relationLoadStrategy: 'query',
+      });
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
   //* Update
-  async update(
-    id: string,
-    updateChurchDto: UpdateChurchDto,
-    user: User,
-  ): Promise<Church> {
+  async update(id: string, body: UpdateChurchDto, user: User): Promise<Church> {
     await this.validateId(id);
 
-    const church = await this.findChurchOrFail(id);
-    this.validateChurchUpdate(church, updateChurchDto);
+    const church = await this.findOrFail<Church>({
+      repository: this.churchRepository,
+      where: { id },
+      relations: ['theirMainChurch'],
+      moduleName: 'iglesia',
+    });
 
-    const { theirMainChurch } = updateChurchDto;
+    this.validateChurchUpdate(church, body);
+
+    const { theirMainChurch } = body;
     let newMainChurch: Church | null = null;
 
     if (
@@ -160,12 +204,7 @@ export class ChurchService extends BaseService {
     }
 
     try {
-      const payload = this.buildUpdateData(
-        church,
-        updateChurchDto,
-        user,
-        newMainChurch,
-      );
+      const payload = this.buildUpdateData(church, body, user, newMainChurch);
 
       const updatedChurch = await this.churchRepository.preload(payload);
       return await this.churchRepository.save(updatedChurch);
@@ -178,13 +217,15 @@ export class ChurchService extends BaseService {
   }
 
   //* Delete
-  async remove(
-    id: string,
-    inactivateChurchDto: InactivateChurchDto,
-    user: User,
-  ) {
+  async remove(id: string, query: InactivateChurchDto, user: User) {
     await this.validateId(id);
-    const church = await this.findChurchOrFail(id);
+
+    const church = await this.findOrFail<Church>({
+      repository: this.churchRepository,
+      where: { id },
+      relations: ['theirMainChurch'],
+      moduleName: 'iglesia',
+    });
 
     if (!church.isAnexe) {
       throw new BadRequestException(
@@ -192,7 +233,7 @@ export class ChurchService extends BaseService {
       );
     }
 
-    await this.inactivateChurch(church, inactivateChurchDto, user);
+    await this.inactivateChurch(church, query, user);
     await this.clearChurchRelations(church.id, user);
   }
 
@@ -309,65 +350,6 @@ export class ChurchService extends BaseService {
   }
 
   //* Finders and actions
-  private async findSimpleQuery(
-    order: FindOptionsOrderValue,
-  ): Promise<Church[]> {
-    const churches = await this.churchRepository.find({
-      where: { recordStatus: RecordStatus.Active },
-      order: { createdAt: order },
-    });
-
-    return this.validateResult(churches);
-  }
-
-  private async findWithRelationsQuery(
-    limit: number,
-    offset: number,
-    order: FindOptionsOrderValue,
-  ): Promise<any[]> {
-    const churches = await this.churchRepository.find({
-      where: { recordStatus: RecordStatus.Active },
-      take: limit,
-      skip: offset,
-      relations: [
-        'updatedBy',
-        'createdBy',
-        'anexes',
-        'zones',
-        'ministries',
-        'familyGroups',
-        'pastors.member',
-        'copastors.member',
-        'supervisors.member',
-        'preachers.member',
-        'disciples.member',
-      ],
-      relationLoadStrategy: 'query',
-      order: { createdAt: order },
-    });
-
-    this.validateResult(churches);
-
-    const mainChurch = await this.churchRepository.findOne({
-      where: { isAnexe: false, recordStatus: RecordStatus.Active },
-    });
-
-    return churchDataFormatter({ churches, mainChurch }) as any[];
-  }
-
-  private async findChurchOrFail(id: string): Promise<Church> {
-    const church = await this.churchRepository.findOne({
-      where: { id },
-      relations: ['theirMainChurch'],
-    });
-
-    if (!church) {
-      throw new NotFoundException(`No se encontró iglesia con id: ${id}`);
-    }
-
-    return church;
-  }
-
   private async clearChurchRelations(
     churchId: string,
     user: User,

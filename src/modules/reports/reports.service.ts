@@ -37,6 +37,9 @@ import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-p
 import { ChurchSearchType } from '@/modules/church/enums/church-search-type.enum';
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
 
+import { MinistrySearchType } from '@/modules/ministry/enums/ministry-search-type.enum';
+import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-search-and-pagination.dto';
+
 import {
   MemberType,
   MemberTypeNames,
@@ -483,18 +486,12 @@ export class ReportsService {
   }
 
   //* MINISTRIES REPORT BY TERM
-  async getMinistriesByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
-  ) {
-    const { searchType, searchSubType, order, churchId } =
-      searchTypeAndPaginationDto;
+  async getMinistriesByFilters(query: MinistrySearchAndPaginationDto) {
+    const { searchType, searchSubType, order, churchId, term } = query;
 
     try {
-      const ministries: Ministry[] = await this.ministryService.findByTerm(
-        term,
-        searchTypeAndPaginationDto,
-      );
+      const ministries: Ministry[] =
+        await this.ministryService.findByFilters(query);
 
       if (!ministries) {
         throw new NotFoundException(
@@ -506,7 +503,7 @@ export class ReportsService {
       newTerm = term;
 
       //* By Founding Date
-      if (searchType === SearchType.FoundingDate) {
+      if (searchType === MinistrySearchType.FoundingDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -520,7 +517,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === MinistrySearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
