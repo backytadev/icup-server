@@ -30,6 +30,7 @@ import { Auth } from '@/common/decorators/auth.decorator';
 
 import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
+import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search-and-pagination.dto';
 import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-search-and-pagination.dto';
 
 import { ReportsService } from '@/modules/reports/reports.service';
@@ -55,6 +56,7 @@ import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offe
 import { OfferingIncomeSearchSubType } from '@/modules/offering/income/enums/offering-income-search-sub-type.enum';
 import { OfferingExpenseSearchSubType } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
 
+//  todo: use and replace for common decorator for this controller
 @ApiTags('Reports')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
@@ -322,10 +324,9 @@ export class ReportsController {
   async getPastorsByTerm(
     @Res() response: Response,
     @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: PastorSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getPastorsByTerm(
-      term,
+    const pdfDoc = await this.reportsService.getPastorsByFilters(
       searchTypeAndPaginationDto,
     );
 

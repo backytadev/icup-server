@@ -40,6 +40,9 @@ import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search
 import { MinistrySearchType } from '@/modules/ministry/enums/ministry-search-type.enum';
 import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-search-and-pagination.dto';
 
+import { PastorSearchType } from '@/modules/pastor/enums/pastor-search-type.enum';
+import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search-and-pagination.dto';
+
 import {
   MemberType,
   MemberTypeNames,
@@ -598,16 +601,13 @@ export class ReportsService {
   }
 
   //* PASTORS REPORT BY TERM
-  async getPastorsByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getPastorsByFilters(
+    searchTypeAndPaginationDto: PastorSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
-      searchTypeAndPaginationDto;
+    const { searchType, order, churchId, term } = searchTypeAndPaginationDto;
 
     try {
-      const pastors: Pastor[] = await this.pastorService.findByTerm(
-        term,
+      const pastors: Pastor[] = await this.pastorService.findByFilters(
         searchTypeAndPaginationDto,
       );
 
@@ -627,7 +627,7 @@ export class ReportsService {
       }
 
       //* By Birth Date
-      if (searchType === SearchType.BirthDate) {
+      if (searchType === PastorSearchType.BirthDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -641,7 +641,7 @@ export class ReportsService {
       }
 
       //* By Birth Month
-      if (searchType === SearchType.BirthMonth) {
+      if (searchType === PastorSearchType.BirthMonth) {
         const monthNames = {
           january: 'Enero',
           february: 'Febrero',
@@ -661,7 +661,7 @@ export class ReportsService {
       }
 
       //* By Gender
-      if (searchType === SearchType.Gender) {
+      if (searchType === PastorSearchType.Gender) {
         const genderTerm = term.toLowerCase();
         const validGenders = ['male', 'female'];
 
@@ -673,7 +673,7 @@ export class ReportsService {
       }
 
       //* By Marital Status
-      if (searchType === SearchType.MaritalStatus) {
+      if (searchType === PastorSearchType.MaritalStatus) {
         const maritalStatusTerm = term.toLowerCase();
         const validMaritalStatus = [
           'single',
@@ -691,7 +691,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === PastorSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -710,7 +710,7 @@ export class ReportsService {
         description: 'pastores',
         searchTerm: newTerm,
         searchType: SearchTypeNames[searchType],
-        searchSubType: SearchSubTypeNames[searchSubType] ?? 'S/N',
+        searchSubType: 'S/N',
         orderSearch: RecordOrderNames[order],
         churchName: churchId
           ? pastors[0]?.theirChurch?.abbreviatedChurchName

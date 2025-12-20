@@ -5,6 +5,7 @@ import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { PastorService } from '@/modules/pastor/pastor.service';
 import { PastorController } from '@/modules/pastor/pastor.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { ChurchModule } from '@/modules/church/church.module';
@@ -25,6 +26,7 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     AuthModule,
     MemberModule,
     MinistryModule,
+    CommonModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => CopastorModule),
     forwardRef(() => SupervisorModule),
