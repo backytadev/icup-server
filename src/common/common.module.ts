@@ -14,9 +14,13 @@ import { MinistryTypeSearchStrategy } from '@/common/strategies/search/options/m
 import { RecordStatusSearchStrategy } from '@/common/strategies/search/options/record-status-search.strategy';
 import { MinistryCustomNameSearchStrategy } from '@/common/strategies/search/options/ministry-custom-name-search.strategy';
 
-import { FirstNameSearchStrategy } from '@/common/strategies/search/options/first-names-search.strategy';
+import { GenderSearchStrategy } from '@/common/strategies/search/options/gender-search.strategy';
 import { LastNameSearchStrategy } from '@/common/strategies/search/options/last-names-search.strategy';
 import { FullNameSearchStrategy } from '@/common/strategies/search/options/full-names-search.strategy';
+import { BirthDateSearchStrategy } from '@/common/strategies/search/options/birth-date-search.strategy';
+import { FirstNameSearchStrategy } from '@/common/strategies/search/options/first-names-search.strategy';
+import { BirthMonthSearchStrategy } from '@/common/strategies/search/options/birth-month-search.strategy';
+import { MaritalStatusSearchStrategy } from '@/common/strategies/search/options/marital-status-search.strategy';
 
 @Module({
   providers: [
@@ -31,6 +35,11 @@ import { FullNameSearchStrategy } from '@/common/strategies/search/options/full-
 
     ChurchNameSearchStrategy,
     ChurchNameSearchStrategy,
+
+    GenderSearchStrategy,
+    MaritalStatusSearchStrategy,
+    BirthDateSearchStrategy,
+    BirthMonthSearchStrategy,
 
     MinistryTypeSearchStrategy,
     MinistryCustomNameSearchStrategy,

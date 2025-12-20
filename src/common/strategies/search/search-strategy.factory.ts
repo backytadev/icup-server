@@ -16,6 +16,10 @@ import { MinistryTypeSearchStrategy } from '@/common/strategies/search/options/m
 import { FirstNameSearchStrategy } from '@/common/strategies/search/options/first-names-search.strategy';
 import { LastNameSearchStrategy } from '@/common/strategies/search/options/last-names-search.strategy';
 import { FullNameSearchStrategy } from '@/common/strategies/search/options/full-names-search.strategy';
+import { MaritalStatusSearchStrategy } from '@/common/strategies/search/options/marital-status-search.strategy';
+import { GenderSearchStrategy } from '@/common/strategies/search/options/gender-search.strategy';
+import { BirthDateSearchStrategy } from '@/common/strategies/search/options/birth-date-search.strategy';
+import { BirthMonthSearchStrategy } from '@/common/strategies/search/options/birth-month-search.strategy';
 
 @Injectable()
 export class SearchStrategyFactory {
@@ -30,6 +34,12 @@ export class SearchStrategyFactory {
     private readonly district: DistrictSearchStrategy,
     private readonly urbanSector: UrbanSectorSearchStrategy,
     private readonly address: AddressSearchStrategy,
+
+    private readonly maritalStatus: MaritalStatusSearchStrategy,
+    private readonly gender: GenderSearchStrategy,
+    private readonly birthDate: BirthDateSearchStrategy,
+    private readonly birthMonth: BirthMonthSearchStrategy,
+
     private readonly recordStatus: RecordStatusSearchStrategy,
 
     private readonly firstNames: FirstNameSearchStrategy,
@@ -49,6 +59,14 @@ export class SearchStrategyFactory {
         return this.ministryCustomName;
       case SearchType.FoundingDate:
         return this.foundingDate;
+      case SearchType.MaritalStatus:
+        return this.maritalStatus;
+      case SearchType.Gender:
+        return this.gender;
+      case SearchType.BirthDate:
+        return this.birthDate;
+      case SearchType.BirthMonth:
+        return this.birthMonth;
       case SearchType.Country || SearchType.ResidenceCountry:
         return this.country;
       case SearchType.Department || SearchType.ResidenceDepartment:
@@ -73,7 +91,7 @@ export class SearchStrategyFactory {
 
       default:
         throw new BadRequestException(
-          `Tipos de búsqueda no validos, solo son validos: ${Object.values(SearchTypeNames).join(', ')}`,
+          `Tipos de búsqueda no valido, $${SearchTypeNames[type]} (${type})`,
         );
     }
   }

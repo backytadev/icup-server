@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsOrderValue, ILike } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { FindOptionsOrderValue } from 'typeorm';
 
+import { GenderNames } from '@/common/enums/gender.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
-
 import { SearchStrategyProps } from '@/common/interfaces/search-strategy-props.interface';
 import { SearchStrategy } from '@/common/strategies/search/search-strategy.interface';
 
 @Injectable()
-export class AddressSearchStrategy implements SearchStrategy {
+export class GenderSearchStrategy implements SearchStrategy {
   async execute<T>({
     params,
     church,
@@ -20,10 +24,19 @@ export class AddressSearchStrategy implements SearchStrategy {
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
+    const genderTerm = term.toLowerCase();
+    const validGenders = ['male', 'female'];
+
+    if (!validGenders.includes(genderTerm)) {
+      throw new BadRequestException(`Género no válido: ${term}`);
+    }
+
     const data = await mainRepository.find({
       where: {
-        ...(church && { theirChurch: church }),
-        address: ILike(`%${term}%`),
+        theirChurch: church,
+        member: {
+          gender: genderTerm,
+        },
         recordStatus: RecordStatus.Active,
       } as any,
       take: limit,
@@ -33,22 +46,16 @@ export class AddressSearchStrategy implements SearchStrategy {
       order: { createdAt: order as FindOptionsOrderValue } as any,
     });
 
-    let mainChurch = null;
-    if (moduleKey === 'churches') {
-      mainChurch = await mainRepository.findOne({
-        where: { isAnexe: false, recordStatus: RecordStatus.Active } as any,
-      });
-    }
-
     if (data.length === 0) {
+      const genderInSpanish = GenderNames[term.toLowerCase()] ?? term;
+
       throw new NotFoundException(
-        `No se encontraron ${moduleName} con esta dirección: ${term}`,
+        `No se encontraron ${moduleName} con este género: ${genderInSpanish} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
       );
     }
 
     return formatterData({
       [moduleKey]: data,
-      ...(mainChurch && { mainChurch }),
     });
   }
 }

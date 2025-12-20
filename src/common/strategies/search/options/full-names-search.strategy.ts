@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsOrderValue, ILike, In } from 'typeorm';
+import { FindOptionsOrderValue, In, Raw } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { SearchStrategyProps } from '@/common/interfaces/search-strategy-props.interface';
@@ -22,29 +22,61 @@ export class FullNameSearchStrategy implements SearchStrategy {
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
-    const firstNames = term.split('-')[0].replace(/\+/g, ' ');
-    const lastNames = term.split('-')[1].replace(/\+/g, ' ');
+    const [rawFirst, rawLast] = term.split('-');
 
-    const persons = await personRepository.find({
-      where: {
-        theirChurch: church,
-        member: {
-          firstNames: ILike(`%${firstNames}%`),
-          lastNames: ILike(`%${lastNames}%`),
+    const firstNames = rawFirst.replace(/\+/g, ' ');
+    const lastNames = rawLast.replace(/\+/g, ' ');
+
+    let idsToSearch: string[] | undefined = undefined;
+
+    if (personRepository) {
+      const persons = await personRepository.find({
+        where: {
+          theirChurch: church,
+          member: {
+            firstNames: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:firstTerm))`,
+              { firstTerm: `%${firstNames.toLowerCase()}%` },
+            ),
+            lastNames: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:lastTerm))`,
+              { lastTerm: `%${lastNames.toLowerCase()}%` },
+            ),
+          },
+          recordStatus: RecordStatus.Active,
         },
-        recordStatus: RecordStatus.Active,
-      },
-      order: { createdAt: order as FindOptionsOrderValue },
-    });
+        order: { createdAt: order as FindOptionsOrderValue },
+      });
 
-    const personsId = persons.map((person) => person?.id);
+      idsToSearch = persons.map((p: any) => p.id);
+    }
+
+    const where: any = {
+      theirChurch: church,
+      recordStatus: RecordStatus.Active,
+    };
+
+    if (idsToSearch) {
+      where[computedKey] = In(idsToSearch);
+    } else {
+      where.member = {
+        firstNames: Raw(
+          (alias) =>
+            `unaccent(lower(${alias})) ILIKE unaccent(lower(:firstTerm))`,
+          { firstTerm: `%${firstNames.toLowerCase()}%` },
+        ),
+        lastNames: Raw(
+          (alias) =>
+            `unaccent(lower(${alias})) ILIKE unaccent(lower(:lastTerm))`,
+          { lastTerm: `%${lastNames.toLowerCase()}%` },
+        ),
+      };
+    }
 
     const data = await mainRepository.find({
-      where: {
-        theirChurch: church,
-        [computedKey]: In(personsId),
-        recordStatus: RecordStatus.Active,
-      } as any,
+      where,
       take: limit,
       skip: offset,
       relations,
@@ -54,9 +86,14 @@ export class FullNameSearchStrategy implements SearchStrategy {
 
     if (data.length === 0) {
       throw new NotFoundException(
-        `No se encontraron ${moduleName} con los nombres de su ${personName}: ${lastNames} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
+        `No se encontraron ${moduleName} con los nombres y apellidos de su ${
+          personName ?? 'miembro'
+        }: ${firstNames} ${lastNames} y con esta iglesia: ${
+          church ? church.abbreviatedChurchName : 'Todas las iglesias'
+        }`,
       );
     }
+
     return formatterData({
       [moduleKey]: data,
     });

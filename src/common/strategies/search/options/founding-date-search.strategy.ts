@@ -16,6 +16,7 @@ export class FoundingDateSearchStrategy implements SearchStrategy {
     moduleKey,
     formatterData,
     relationLoadStrategy = 'join',
+    moduleName,
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
@@ -53,7 +54,7 @@ export class FoundingDateSearchStrategy implements SearchStrategy {
       const toDate = dateFormatterToDDMMYYYY(toTimestamp);
 
       throw new NotFoundException(
-        `No se encontraron registros con este rango de fechas: ${fromDate} - ${toDate}` +
+        `No se encontraron ${moduleName} con este rango de fechas: ${fromDate} - ${toDate}` +
           (church
             ? ` y con esta iglesia: ${church.abbreviatedChurchName}`
             : ''),

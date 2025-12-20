@@ -171,6 +171,7 @@ export class ChurchService extends BaseService {
         ],
         mainRepository: this.churchRepository,
         moduleKey: 'churches',
+        moduleName: 'iglesias',
         formatterData: churchDataFormatter,
         relationLoadStrategy: 'query',
       });

@@ -6,11 +6,12 @@ import {
 import { FindOptionsOrderValue } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { SearchStrategyProps } from '@/common/interfaces/search-strategy-props.interface';
+import { MaritalStatusNames } from '@/common/enums/marital-status.enum';
 import { SearchStrategy } from '@/common/strategies/search/search-strategy.interface';
+import { SearchStrategyProps } from '@/common/interfaces/search-strategy-props.interface';
 
 @Injectable()
-export class RecordStatusSearchStrategy implements SearchStrategy {
+export class MaritalStatusSearchStrategy implements SearchStrategy {
   async execute<T>({
     params,
     church,
@@ -23,17 +24,27 @@ export class RecordStatusSearchStrategy implements SearchStrategy {
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
-    const recordStatusTerm = term.toLowerCase();
-    const validRecordStatus = ['active', 'inactive'];
+    const maritalStatusTerm = term.toLowerCase();
 
-    if (!validRecordStatus.includes(recordStatusTerm)) {
-      throw new BadRequestException(`Estado de registro no válido: ${term}`);
+    const validMaritalStatus = [
+      'single',
+      'married',
+      'widowed',
+      'divorced',
+      'other',
+    ];
+
+    if (!validMaritalStatus.includes(maritalStatusTerm)) {
+      throw new BadRequestException(`Estado Civil no válido: ${term}`);
     }
 
     const data = await mainRepository.find({
       where: {
-        ...(church && { theirChurch: church }),
-        recordStatus: recordStatusTerm,
+        theirChurch: church,
+        member: {
+          maritalStatus: maritalStatusTerm,
+        },
+        recordStatus: RecordStatus.Active,
       } as any,
       take: limit,
       skip: offset,
@@ -42,24 +53,17 @@ export class RecordStatusSearchStrategy implements SearchStrategy {
       order: { createdAt: order as FindOptionsOrderValue } as any,
     });
 
-    let mainChurch = null;
-    if (moduleKey === 'churches') {
-      mainChurch = await mainRepository.findOne({
-        where: { isAnexe: false, recordStatus: RecordStatus.Active } as any,
-      });
-    }
-
     if (data.length === 0) {
-      const value = term === RecordStatus.Inactive ? 'Inactivo' : 'Activo';
+      const maritalStatusInSpanish =
+        MaritalStatusNames[term.toLowerCase()] ?? term;
 
       throw new NotFoundException(
-        `No se encontraron ${moduleName} con este estado de registro: ${value}`,
+        `No se encontraron ${moduleName} con este estado civil: ${maritalStatusInSpanish} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
       );
     }
 
     return formatterData({
       [moduleKey]: data,
-      ...(mainChurch && { mainChurch }),
     });
   }
 }

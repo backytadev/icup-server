@@ -15,6 +15,7 @@ export class ProvinceSearchStrategy implements SearchStrategy {
     moduleKey,
     formatterData,
     relationLoadStrategy = 'join',
+    moduleName,
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
@@ -40,7 +41,7 @@ export class ProvinceSearchStrategy implements SearchStrategy {
 
     if (data.length === 0) {
       throw new NotFoundException(
-        `No se encontraron registros con esta provincia: ${term}`,
+        `No se encontraron ${moduleName} con esta provincia: ${term}`,
       );
     }
 

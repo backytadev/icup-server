@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsOrderValue, ILike, In } from 'typeorm';
+import { FindOptionsOrderValue, In, Raw } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { SearchStrategyProps } from '@/common/interfaces/search-strategy-props.interface';
@@ -25,25 +25,47 @@ export class FirstNameSearchStrategy implements SearchStrategy {
 
     const firstNames = term.replace(/\+/g, ' ');
 
-    const persons = await personRepository.find({
-      where: {
-        theirChurch: church,
-        member: {
-          firstNames: ILike(`%${firstNames}%`),
-        },
-        recordStatus: RecordStatus.Active,
-      },
-      order: { createdAt: order as FindOptionsOrderValue },
-    });
+    let idsToSearch: string[] | undefined = undefined;
 
-    const personsId = persons.map((person) => person?.id);
+    if (personRepository) {
+      const persons = await personRepository.find({
+        where: {
+          theirChurch: church,
+          member: {
+            // firstNames: ILike(`%${firstNames}%`),
+            firstNames: Raw(
+              (alias) =>
+                `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+              { searchTerm: `%${firstNames.toLowerCase()}%` },
+            ),
+          },
+          recordStatus: RecordStatus.Active,
+        },
+        order: { createdAt: order as FindOptionsOrderValue },
+      });
+
+      idsToSearch = persons.map((p) => p.id);
+    }
+
+    const where: any = {
+      theirChurch: church,
+      recordStatus: RecordStatus.Active,
+    };
+
+    if (idsToSearch) {
+      where[computedKey] = In(idsToSearch);
+    } else {
+      where.member = {
+        firstNames: Raw(
+          (alias) =>
+            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+          { searchTerm: `%${firstNames.toLowerCase()}%` },
+        ),
+      };
+    }
 
     const data = await mainRepository.find({
-      where: {
-        theirChurch: church,
-        [computedKey]: In(personsId),
-        recordStatus: RecordStatus.Active,
-      } as any,
+      where,
       take: limit,
       skip: offset,
       relations,
@@ -53,9 +75,11 @@ export class FirstNameSearchStrategy implements SearchStrategy {
 
     if (data.length === 0) {
       throw new NotFoundException(
-        `No se encontraron ${moduleName} con los nombres de su ${personName}: ${firstNames} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
+        `No se encontraron ${moduleName} con los nombres de su ${personName ? personName : 'persona'}: ${firstNames} ` +
+          `y con esta iglesia: ${church ? church.abbreviatedChurchName : 'Todas las iglesias'}`,
       );
     }
+
     return formatterData({
       [moduleKey]: data,
     });

@@ -16,6 +16,7 @@ export class DepartmentSearchStrategy implements SearchStrategy {
     moduleKey,
     formatterData,
     relationLoadStrategy = 'join',
+    moduleName,
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
@@ -41,7 +42,7 @@ export class DepartmentSearchStrategy implements SearchStrategy {
 
     if (data.length === 0) {
       throw new NotFoundException(
-        `No se encontraron registros con este departamento: ${term}`,
+        `No se encontraron ${moduleName} con este departamento: ${term}`,
       );
     }
 
