@@ -65,7 +65,9 @@ export class PastorController {
   @Get('search')
   @Auth()
   @SearchSwagger({ description: 'Pastor search completed successfully' })
-  findByTerm(@Query() query: PastorSearchAndPaginationDto): Promise<Pastor[]> {
+  findByFilters(
+    @Query() query: PastorSearchAndPaginationDto,
+  ): Promise<Pastor[]> {
     return this.pastorService.findByFilters(query);
   }
 

@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
 
 import { AddressSearchStrategy } from '@/common/strategies/search/options/address-search.strategy';
-import { CountrySearchStrategy } from '@/common/strategies/search/options/country-search.strategy';
+import { OriginCountrySearchStrategy } from '@/common/strategies/search/options/origin-country-search.strategy';
 import { ProvinceSearchStrategy } from '@/common/strategies/search/options/province-search.strategy';
 import { DistrictSearchStrategy } from '@/common/strategies/search/options/district-search.strategy';
 import { DepartmentSearchStrategy } from '@/common/strategies/search/options/department-search.strategy';
@@ -15,6 +15,7 @@ import { RecordStatusSearchStrategy } from '@/common/strategies/search/options/r
 import { MinistryCustomNameSearchStrategy } from '@/common/strategies/search/options/ministry-custom-name-search.strategy';
 
 import { GenderSearchStrategy } from '@/common/strategies/search/options/gender-search.strategy';
+import { CountrySearchStrategy } from '@/common/strategies/search/options/country-search.strategy';
 import { LastNameSearchStrategy } from '@/common/strategies/search/options/last-names-search.strategy';
 import { FullNameSearchStrategy } from '@/common/strategies/search/options/full-names-search.strategy';
 import { BirthDateSearchStrategy } from '@/common/strategies/search/options/birth-date-search.strategy';
@@ -25,6 +26,7 @@ import { MaritalStatusSearchStrategy } from '@/common/strategies/search/options/
 @Module({
   providers: [
     CountrySearchStrategy,
+    OriginCountrySearchStrategy,
     AddressSearchStrategy,
     ProvinceSearchStrategy,
     DistrictSearchStrategy,

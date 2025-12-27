@@ -73,7 +73,16 @@ export class ChurchService extends BaseService {
   async create(body: CreateChurchDto, user: User): Promise<Church> {
     try {
       const mainChurch = await this.validateChurchCreation(body);
-      const data = this.buildCreateData(body, user, mainChurch);
+      const data = this.buildCreateEntityData({
+        user,
+        extraProps: {
+          ...body,
+          theirMainChurch: mainChurch,
+          isAnexe: !!mainChurch,
+          churchCode: generateCodeChurch(body.abbreviatedChurchName),
+        },
+      });
+
       const newChurch = this.churchRepository.create(data);
 
       return await this.churchRepository.save(newChurch);
@@ -148,7 +157,8 @@ export class ChurchService extends BaseService {
     const { term, searchType } = query;
 
     if (!term) throw new BadRequestException('El término es requerido');
-    if (!searchType) throw new BadRequestException('searchType es requerido');
+    if (!searchType)
+      throw new BadRequestException('El tipo de búsqueda es requerido');
 
     try {
       const searchStrategy = this.searchStrategyFactory.getStrategy(
@@ -205,7 +215,29 @@ export class ChurchService extends BaseService {
     }
 
     try {
-      const payload = this.buildUpdateData(church, body, user, newMainChurch);
+      const payload = this.buildUpdateEntityData({
+        entityId: church.id,
+        user,
+        extraProps: {
+          ...body,
+          churchCode:
+            body.abbreviatedChurchName !== church.abbreviatedChurchName
+              ? generateCodeChurch(body.abbreviatedChurchName)
+              : church.churchCode,
+          theirMainChurch: newMainChurch ?? church.theirMainChurch,
+          updatedAt: new Date(),
+          updatedBy: user,
+          inactivationCategory:
+            body.recordStatus === RecordStatus.Active
+              ? null
+              : body.churchInactivationCategory,
+          inactivationReason:
+            body.recordStatus === RecordStatus.Active
+              ? null
+              : body.churchInactivationReason,
+          recordStatus: body.recordStatus,
+        },
+      });
 
       const updatedChurch = await this.churchRepository.preload(payload);
       return await this.churchRepository.save(updatedChurch);
@@ -218,7 +250,7 @@ export class ChurchService extends BaseService {
   }
 
   //* Delete
-  async remove(id: string, query: InactivateChurchDto, user: User) {
+  async remove(id: string, dto: InactivateChurchDto, user: User) {
     await this.validateId(id);
 
     const church = await this.findOrFail<Church>({
@@ -234,8 +266,27 @@ export class ChurchService extends BaseService {
       );
     }
 
-    await this.inactivateChurch(church, query, user);
-    await this.clearChurchRelations(church.id, user);
+    await this.inactivateEntity({
+      entity: church,
+      user,
+      entityRepository: this.churchRepository,
+      extraProps: {
+        inactivationCategory: dto.churchInactivationCategory,
+        inactivationReason: dto.churchInactivationReason,
+        recordStatus: RecordStatus.Inactive,
+      },
+    });
+
+    await this.cleanSubordinateRelations(church, user, [
+      { repo: this.ministryRepository, relation: 'theirChurch' },
+      { repo: this.pastorRepository, relation: 'theirChurch' },
+      { repo: this.copastorRepository, relation: 'theirChurch' },
+      { repo: this.supervisorRepository, relation: 'theirChurch' },
+      { repo: this.zoneRepository, relation: 'theirChurch' },
+      { repo: this.preacherRepository, relation: 'theirChurch' },
+      { repo: this.familyGroupRepository, relation: 'theirChurch' },
+      { repo: this.discipleRepository, relation: 'theirChurch' },
+    ]);
   }
 
   // ---------------------------------------------------------------------------------------------- //
@@ -348,121 +399,5 @@ export class ChurchService extends BaseService {
     }
 
     return newMainChurch;
-  }
-
-  //* Finders and actions
-  private async clearChurchRelations(
-    churchId: string,
-    user: User,
-  ): Promise<void> {
-    const repositories = [
-      this.ministryRepository,
-      this.pastorRepository,
-      this.copastorRepository,
-      this.supervisorRepository,
-      this.zoneRepository,
-      this.preacherRepository,
-      this.familyGroupRepository,
-      this.discipleRepository,
-    ];
-
-    const now = new Date();
-
-    try {
-      await Promise.all(
-        repositories.map(async (repo: any) => {
-          const items = await repo.find({
-            relations: ['theirChurch'],
-          });
-
-          const filtered = items.filter(
-            (item: any) => item?.theirChurch?.id === churchId,
-          );
-
-          await Promise.all(
-            filtered.map(async (item: any) => {
-              await repo.update(item.id, {
-                theirChurch: null,
-                updatedAt: now,
-                updatedBy: user,
-              });
-            }),
-          );
-        }),
-      );
-    } catch (error) {
-      this.handleDBExceptions(error);
-    }
-  }
-
-  private async inactivateChurch(
-    church: Church,
-    dto: InactivateChurchDto,
-    user: User,
-  ): Promise<void> {
-    try {
-      const updated = await this.churchRepository.preload({
-        id: church.id,
-        updatedAt: new Date(),
-        updatedBy: user,
-        inactivationCategory: dto.churchInactivationCategory,
-        inactivationReason: dto.churchInactivationReason,
-        recordStatus: RecordStatus.Inactive,
-      });
-
-      await this.churchRepository.save(updated);
-    } catch (error) {
-      this.handleDBExceptions(error);
-    }
-  }
-
-  //* Builders
-  private buildCreateData(
-    dto: CreateChurchDto,
-    createdBy: User,
-    mainChurch: Church | null,
-  ): Partial<Church> {
-    const { abbreviatedChurchName } = dto;
-
-    return {
-      ...dto,
-      isAnexe: !!mainChurch,
-      churchCode: generateCodeChurch(abbreviatedChurchName),
-      theirMainChurch: mainChurch,
-      createdAt: new Date(),
-      createdBy,
-    };
-  }
-
-  private buildUpdateData(
-    church: Church,
-    updateDto: UpdateChurchDto,
-    user: User,
-    mainChurch: Church | null,
-  ): Partial<Church> {
-    const {
-      recordStatus,
-      churchInactivationCategory,
-      churchInactivationReason,
-    } = updateDto;
-
-    return {
-      id: church.id,
-      ...updateDto,
-      churchCode:
-        updateDto.abbreviatedChurchName !== church.abbreviatedChurchName
-          ? generateCodeChurch(updateDto.abbreviatedChurchName)
-          : church.churchCode,
-      theirMainChurch: mainChurch ?? church.theirMainChurch,
-      updatedAt: new Date(),
-      updatedBy: user,
-      inactivationCategory:
-        recordStatus === RecordStatus.Active
-          ? null
-          : churchInactivationCategory,
-      inactivationReason:
-        recordStatus === RecordStatus.Active ? null : churchInactivationReason,
-      recordStatus,
-    };
   }
 }

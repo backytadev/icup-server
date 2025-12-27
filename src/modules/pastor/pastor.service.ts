@@ -3,7 +3,6 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { isUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrderValue, Repository } from 'typeorm';
 
@@ -23,8 +22,6 @@ import { RecordStatus } from '@/common/enums/record-status.enum';
 import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
 
 import { createMinistryMember } from '@/common/helpers/create-ministry-member';
-import { updateMinistryMember } from '@/common/helpers/update-ministry-member';
-import { validationExistsChangesMinistryMember } from '@/common/helpers/validation-exists-changes-ministry-member';
 
 import { Zone } from '@/modules/zone/entities/zone.entity';
 import { User } from '@/modules/user/entities/user.entity';
@@ -80,26 +77,35 @@ export class PastorService extends BaseService {
     super();
   }
 
-  //* Create pastor
-  async create(createPastorDto: CreatePastorDto, user: User): Promise<Pastor> {
+  //* Create
+  async create(body: CreatePastorDto, user: User): Promise<Pastor> {
     try {
-      const { church } = await this.validatePastorCreation(createPastorDto);
+      const { church } = await this.validatePastorCreation(body);
 
-      const memberData = this.buildMemberData(createPastorDto);
+      const memberData = this.buildMemberData(body);
       const newMember = this.memberRepository.create(memberData);
       await this.memberRepository.save(newMember);
 
-      const pastorData = this.buildCreatePastorData(
-        createPastorDto,
+      const pastorData = this.buildCreateEntityData({
         user,
-        church,
-        newMember,
-      );
+        extraProps: {
+          ...body,
+          theirChurch: church,
+          relationType: body.relationType ?? null,
+        },
+        member: {
+          ...newMember,
+          conversionDate: body.conversionDate ?? null,
+          email: body.email ?? null,
+          phoneNumber: body.phoneNumber ?? null,
+        },
+      });
+
       const newPastor = this.pastorRepository.create(pastorData);
 
-      if (createPastorDto.theirMinistries?.length > 0) {
+      if (body.theirMinistries?.length > 0) {
         await createMinistryMember({
-          theirMinistries: createPastorDto.theirMinistries,
+          theirMinistries: body.theirMinistries,
           ministryRepository: this.ministryRepository,
           ministryMemberRepository: this.ministryMemberRepository,
           newMember,
@@ -167,7 +173,8 @@ export class PastorService extends BaseService {
     const { term, searchType, churchId } = query;
 
     if (!term) throw new BadRequestException('El término es requerido');
-    if (!searchType) throw new BadRequestException('searchType es requerido');
+    if (!searchType)
+      throw new BadRequestException('El tipo de búsqueda es requerido');
 
     try {
       const church = await this.findOrFail<Church>({
@@ -175,6 +182,8 @@ export class PastorService extends BaseService {
         where: { id: churchId },
         moduleName: 'iglesia',
       });
+
+      console.log(searchType);
 
       const searchStrategy = this.searchStrategyFactory.getStrategy(
         searchType as any,
@@ -213,11 +222,7 @@ export class PastorService extends BaseService {
   }
 
   //* Update
-  async update(
-    id: string,
-    updateDto: UpdatePastorDto,
-    user: User,
-  ): Promise<Pastor> {
+  async update(id: string, body: UpdatePastorDto, user: User): Promise<Pastor> {
     await this.validateId(id);
 
     const pastor = await this.findOrFail<Pastor>({
@@ -233,123 +238,127 @@ export class PastorService extends BaseService {
       moduleName: 'pastor',
     });
 
-    this.validateRequiredRoles(updateDto.roles as MemberRole[]);
-    this.validateRoleHierarchy(pastor, updateDto.roles as MemberRole[]);
-    this.validateRecordStatusUpdate(
+    this.validateRequiredRoles(body.roles as MemberRole[], [MemberRole.Pastor]);
+
+    this.validateRoleHierarchy({
+      memberRoles: pastor.member.roles as MemberRole[],
+      rolesToAssign: body.roles as MemberRole[],
+      config: {
+        mainRole: MemberRole.Pastor,
+        forbiddenRoles: [
+          MemberRole.Copastor,
+          MemberRole.Supervisor,
+          MemberRole.Preacher,
+          MemberRole.Treasurer,
+          MemberRole.Disciple,
+        ],
+        breakStrictRoles: [],
+        hierarchyOrder: [
+          MemberRole.Disciple,
+          MemberRole.Preacher,
+          MemberRole.Supervisor,
+          MemberRole.Copastor,
+          MemberRole.Pastor,
+        ],
+      },
+    });
+
+    this.validateRecordStatusUpdate(pastor, body.recordStatus as RecordStatus);
+
+    const { church, mustUpdateMember } = await this.resolveChurchRelation(
       pastor,
-      updateDto.recordStatus as RecordStatus,
+      body,
     );
 
-    const { church, memberToUpdate } = await this.resolveChurchRelation(
-      pastor,
-      updateDto,
-    );
+    const savedMember = await this.updateEntityMember({
+      entity: pastor,
+      dto: body,
+      mustUpdateMember,
+      memberRepository: this.memberRepository,
+    });
 
-    const savedMember = await this.updatePastorMember(
-      pastor,
-      memberToUpdate,
-      updateDto,
-    );
-
-    const payload = this.buildUpdatePastorPayload(
-      pastor,
-      updateDto,
+    const payload = this.buildUpdateEntityData({
+      entityId: pastor.id,
       user,
-      savedMember,
-      church,
-    );
+      savedMember: {
+        ...savedMember,
+        conversionDate: body.conversionDate ?? null,
+        email: body.email ?? null,
+        phoneNumber: body.phoneNumber ?? null,
+      },
+      extraProps: {
+        ...body,
+        theirChurch: church,
+        relationType: body.relationType ?? null,
+        inactivationCategory:
+          body.recordStatus === RecordStatus.Active
+            ? null
+            : body.memberInactivationCategory,
+        inactivationReason:
+          body.recordStatus === RecordStatus.Active
+            ? null
+            : body.memberInactivationReason,
+        recordStatus: body.recordStatus,
+      },
+    });
 
     const updatedPastor = await this.pastorRepository.preload(payload);
 
-    await this.updatePastorMinistriesIfNeeded(
-      pastor,
-      updateDto.theirMinistries,
+    await this.updateMinistriesIfNeeded({
+      entity: pastor,
+      theirMinistries: body.theirMinistries,
       savedMember,
       user,
-    );
+      ministryRepository: this.ministryRepository,
+      ministryMemberRepository: this.ministryMemberRepository,
+    });
 
     await this.updateSubordinateRelationsIfChurchChanged(pastor, church, user);
 
     return await this.pastorRepository.save(updatedPastor);
   }
 
+  //* Delete
   async remove(
     id: string,
-    inactivateMemberDto: InactivateMemberDto,
+    dto: InactivateMemberDto,
     user: User,
   ): Promise<void> {
-    const pastor = await this.validatePastorToRemove(id);
+    await this.validateId(id);
 
-    await this.inactivatePastor(pastor, inactivateMemberDto, user);
+    const pastor = await this.findOrFail<Pastor>({
+      repository: this.pastorRepository,
+      where: { id },
+      relations: [],
+      moduleName: 'pastor',
+    });
 
-    await this.cleanSubordinateRelations(pastor, user);
+    await this.inactivateEntity({
+      entity: pastor,
+      user,
+      entityRepository: this.pastorRepository,
+      extraProps: {
+        inactivationCategory: dto.memberInactivationCategory,
+        inactivationReason: dto.memberInactivationReason,
+        recordStatus: RecordStatus.Inactive,
+      },
+    });
+
+    await this.cleanSubordinateRelations(pastor, user, [
+      { repo: this.ministryRepository, relation: 'theirPastor' },
+      { repo: this.copastorRepository, relation: 'theirPastor' },
+      { repo: this.supervisorRepository, relation: 'theirPastor' },
+      { repo: this.zoneRepository, relation: 'theirPastor' },
+      { repo: this.preacherRepository, relation: 'theirPastor' },
+      { repo: this.familyGroupRepository, relation: 'theirPastor' },
+      { repo: this.discipleRepository, relation: 'theirPastor' },
+    ]);
   }
 
   // ---------------------------------------------------------------------------------------------- //
 
   //? Private methods
   //* Validations
-  private validateRequiredRoles(roles: MemberRole[]): void {
-    if (!roles)
-      throw new BadRequestException(
-        `Los roles son requeridos para actualizar el Pastor.`,
-      );
-
-    if (!roles.some((role) => ['disciple', 'pastor'].includes(role))) {
-      throw new BadRequestException(
-        `Los roles deben incluir "discípulo" y "pastor".`,
-      );
-    }
-  }
-
-  private validateRoleHierarchy(pastor: Pastor, roles: MemberRole[]): void {
-    const forbiddenIfPastor = [
-      MemberRole.Copastor,
-      MemberRole.Supervisor,
-      MemberRole.Preacher,
-      MemberRole.Treasurer,
-      MemberRole.Disciple,
-    ];
-
-    const isStrictPastor =
-      pastor.member.roles.includes(MemberRole.Pastor) &&
-      !pastor.member.roles.some((r: any) => forbiddenIfPastor.includes(r));
-
-    if (isStrictPastor && roles.some((r) => forbiddenIfPastor.includes(r))) {
-      throw new BadRequestException(
-        `No se puede asignar un rol inferior sin pasar por la jerarquía: [discípulo, predicador, supervisor, copastor, pastor]`,
-      );
-    }
-  }
-
-  private validateRecordStatusUpdate(
-    pastor: Pastor,
-    newStatus: RecordStatus,
-  ): void {
-    if (
-      pastor.recordStatus === RecordStatus.Active &&
-      newStatus === RecordStatus.Inactive
-    ) {
-      throw new BadRequestException(
-        `No se puede actualizar un registro a "Inactivo", se debe eliminar.`,
-      );
-    }
-  }
-
-  private async validatePastorToRemove(id: string): Promise<Pastor> {
-    if (!isUUID(id)) {
-      throw new BadRequestException('UUID no valido.');
-    }
-
-    const pastor = await this.pastorRepository.findOneBy({ id });
-
-    if (!pastor) {
-      throw new NotFoundException(`Pastor con id: ${id} no fue encontrado.`);
-    }
-
-    return pastor;
-  }
-
   private async validatePastorCreation(
     dto: CreatePastorDto,
   ): Promise<{ church: Church }> {
@@ -402,9 +411,9 @@ export class PastorService extends BaseService {
   private async resolveChurchRelation(
     pastor: Pastor,
     dto: UpdatePastorDto,
-  ): Promise<{ church: Church; memberToUpdate: boolean }> {
+  ): Promise<{ church: Church; mustUpdateMember: boolean }> {
     if (pastor.theirChurch?.id === dto.theirChurch) {
-      return { church: pastor.theirChurch, memberToUpdate: true };
+      return { church: pastor.theirChurch, mustUpdateMember: true };
     }
 
     if (!dto.theirChurch) {
@@ -428,26 +437,7 @@ export class PastorService extends BaseService {
       );
     }
 
-    return { church: newChurch, memberToUpdate: true };
-  }
-
-  private async updatePastorMember(
-    pastor: Pastor,
-    updateMember: boolean,
-    dto: UpdatePastorDto,
-  ): Promise<Member> {
-    if (!updateMember) return pastor.member;
-
-    const updatedMember = await this.memberRepository.preload({
-      id: pastor.member.id,
-      ...dto,
-      numberChildren: +dto.numberChildren,
-      conversionDate: dto.conversionDate ?? null,
-      email: dto.email ?? null,
-      phoneNumber: dto.phoneNumber ?? null,
-    });
-
-    return await this.memberRepository.save(updatedMember);
+    return { church: newChurch, mustUpdateMember: true };
   }
 
   private async updateSubordinateRelationsIfChurchChanged(
@@ -487,156 +477,5 @@ export class PastorService extends BaseService {
         );
       }),
     );
-  }
-
-  private async updatePastorMinistriesIfNeeded(
-    pastor: Pastor,
-    theirMinistries: any[],
-    savedMember: Member,
-    user: User,
-  ) {
-    const hasChanges = validationExistsChangesMinistryMember({
-      memberEntity: pastor,
-      theirMinistries,
-    });
-
-    if (!hasChanges) return;
-
-    await updateMinistryMember({
-      theirMinistries,
-      ministryRepository: this.ministryRepository,
-      ministryMemberRepository: this.ministryMemberRepository,
-      savedMember,
-      user,
-    });
-  }
-
-  private async inactivatePastor(
-    pastor: Pastor,
-    dto: InactivateMemberDto,
-    user: User,
-  ): Promise<void> {
-    const { memberInactivationCategory, memberInactivationReason } = dto;
-
-    try {
-      const updatedPastor = await this.pastorRepository.preload({
-        id: pastor.id,
-        updatedAt: new Date(),
-        updatedBy: user,
-        inactivationCategory: memberInactivationCategory,
-        inactivationReason: memberInactivationReason,
-        recordStatus: RecordStatus.Inactive,
-      });
-
-      await this.pastorRepository.save(updatedPastor);
-    } catch (error) {
-      this.handleDBExceptions(error);
-    }
-  }
-
-  private async cleanSubordinateRelations(
-    pastor: Pastor,
-    user: User,
-  ): Promise<void> {
-    const repositories = [
-      this.ministryRepository,
-      this.copastorRepository,
-      this.supervisorRepository,
-      this.zoneRepository,
-      this.preacherRepository,
-      this.familyGroupRepository,
-      this.discipleRepository,
-    ];
-
-    try {
-      await Promise.all(
-        repositories.map(async (repo: any) => {
-          const items = await repo.find({
-            relations: ['theirPastor'],
-          });
-
-          const filtered = items.filter(
-            (i: any) => i?.theirPastor?.id === pastor.id,
-          );
-
-          await Promise.all(
-            filtered.map(async (item: any) => {
-              await repo.update(item.id, {
-                theirPastor: null,
-                updatedAt: new Date(),
-                updatedBy: user,
-              });
-            }),
-          );
-        }),
-      );
-    } catch (error) {
-      this.handleDBExceptions(error);
-    }
-  }
-
-  //* Builders
-  private buildMemberData(dto: CreatePastorDto): Partial<Member> {
-    return {
-      firstNames: dto.firstNames,
-      lastNames: dto.lastNames,
-      gender: dto.gender,
-      originCountry: dto.originCountry,
-      birthDate: dto.birthDate,
-      maritalStatus: dto.maritalStatus,
-      numberChildren: +dto.numberChildren,
-      conversionDate: dto.conversionDate ?? null,
-      email: dto.email ?? null,
-      phoneNumber: dto.phoneNumber ?? null,
-      residenceCountry: dto.residenceCountry,
-      residenceDepartment: dto.residenceDepartment,
-      residenceProvince: dto.residenceProvince,
-      residenceDistrict: dto.residenceDistrict,
-      residenceUrbanSector: dto.residenceUrbanSector,
-      residenceAddress: dto.residenceAddress,
-      referenceAddress: dto.referenceAddress,
-      roles: dto.roles,
-    };
-  }
-
-  private buildCreatePastorData(
-    dto: CreatePastorDto,
-    user: User,
-    church: Church,
-    member: Member,
-  ): Partial<Pastor> {
-    return {
-      member,
-      theirChurch: church,
-      relationType: dto.relationType ?? null,
-      createdAt: new Date(),
-      createdBy: user,
-    };
-  }
-
-  private buildUpdatePastorPayload(
-    pastor: Pastor,
-    dto: UpdatePastorDto,
-    user: User,
-    savedMember: Member,
-    church: Church,
-  ): Partial<Pastor> {
-    return {
-      id: pastor.id,
-      member: savedMember,
-      theirChurch: church,
-      relationType: dto.relationType ?? null,
-      updatedAt: new Date(),
-      updatedBy: user,
-      inactivationCategory:
-        dto.recordStatus === RecordStatus.Active
-          ? null
-          : dto.memberInactivationCategory,
-      inactivationReason:
-        dto.recordStatus === RecordStatus.Active
-          ? null
-          : dto.memberInactivationReason,
-      recordStatus: dto.recordStatus,
-    };
   }
 }

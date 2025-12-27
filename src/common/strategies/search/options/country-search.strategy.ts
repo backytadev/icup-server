@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsOrderValue, Raw } from 'typeorm';
+import { FindOptionsOrderValue, FindOptionsWhere, Raw } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
@@ -20,19 +20,10 @@ export class CountrySearchStrategy implements SearchStrategy {
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
+    const where = this.buildWhere(moduleKey, term, church);
+
     const data = await mainRepository.find({
-      where: {
-        theirChurch: church,
-        member: {
-          // originCountry: ILike(`%${term}%`),
-          originCountry: Raw(
-            (alias) =>
-              `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
-            { searchTerm: `%${term.toLowerCase()}%` },
-          ),
-        },
-        recordStatus: RecordStatus.Active,
-      } as any,
+      where,
       take: limit,
       skip: offset,
       relations,
@@ -49,5 +40,38 @@ export class CountrySearchStrategy implements SearchStrategy {
     return formatterData({
       [moduleKey]: data,
     });
+  }
+
+  private buildWhere(
+    moduleKey: string,
+    term: string,
+    church: any,
+  ): FindOptionsWhere<any> {
+    const baseWhere: any = {
+      ...(church && { theirChurch: church }),
+      recordStatus: RecordStatus.Active,
+    };
+
+    if (moduleKey === 'ministries' || moduleKey === 'churches') {
+      return {
+        ...baseWhere,
+        country: Raw(
+          (alias) =>
+            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+          { searchTerm: `%${term.toLowerCase()}%` },
+        ),
+      };
+    }
+
+    return {
+      ...baseWhere,
+      member: {
+        residenceCountry: Raw(
+          (alias) =>
+            `unaccent(lower(${alias})) ILIKE unaccent(lower(:searchTerm))`,
+          { searchTerm: `%${term.toLowerCase()}%` },
+        ),
+      },
+    };
   }
 }

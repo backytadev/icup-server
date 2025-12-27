@@ -10,7 +10,7 @@ import { ProvinceSearchStrategy } from '@/common/strategies/search/options/provi
 import { DistrictSearchStrategy } from '@/common/strategies/search/options/district-search.strategy';
 import { UrbanSectorSearchStrategy } from '@/common/strategies/search/options/urban-sector-search.strategy';
 import { RecordStatusSearchStrategy } from '@/common/strategies/search/options/record-status-search.strategy';
-import { CountrySearchStrategy } from '@/common/strategies/search/options/country-search.strategy';
+import { OriginCountrySearchStrategy } from '@/common/strategies/search/options/origin-country-search.strategy';
 import { MinistryCustomNameSearchStrategy } from '@/common/strategies/search/options/ministry-custom-name-search.strategy';
 import { MinistryTypeSearchStrategy } from '@/common/strategies/search/options/ministry-type-search.strategy';
 import { FirstNameSearchStrategy } from '@/common/strategies/search/options/first-names-search.strategy';
@@ -20,6 +20,7 @@ import { MaritalStatusSearchStrategy } from '@/common/strategies/search/options/
 import { GenderSearchStrategy } from '@/common/strategies/search/options/gender-search.strategy';
 import { BirthDateSearchStrategy } from '@/common/strategies/search/options/birth-date-search.strategy';
 import { BirthMonthSearchStrategy } from '@/common/strategies/search/options/birth-month-search.strategy';
+import { CountrySearchStrategy } from '@/common/strategies/search/options/country-search.strategy';
 
 @Injectable()
 export class SearchStrategyFactory {
@@ -28,6 +29,7 @@ export class SearchStrategyFactory {
     private readonly ministryCustomName: MinistryCustomNameSearchStrategy,
     private readonly ministryType: MinistryTypeSearchStrategy,
     private readonly foundingDate: FoundingDateSearchStrategy,
+    private readonly originCountry: OriginCountrySearchStrategy,
     private readonly country: CountrySearchStrategy,
     private readonly department: DepartmentSearchStrategy,
     private readonly province: ProvinceSearchStrategy,
@@ -67,17 +69,25 @@ export class SearchStrategyFactory {
         return this.birthDate;
       case SearchType.BirthMonth:
         return this.birthMonth;
-      case SearchType.Country || SearchType.ResidenceCountry:
+      case SearchType.OriginCountry:
+        return this.originCountry;
+      case SearchType.Country:
+      case SearchType.ResidenceCountry:
         return this.country;
-      case SearchType.Department || SearchType.ResidenceDepartment:
+      case SearchType.Department:
+      case SearchType.ResidenceDepartment:
         return this.department;
-      case SearchType.Province || SearchType.ResidenceProvince:
+      case SearchType.Province:
+      case SearchType.ResidenceProvince:
         return this.province;
-      case SearchType.District || SearchType.ResidenceDistrict:
+      case SearchType.District:
+      case SearchType.ResidenceDistrict:
         return this.district;
-      case SearchType.UrbanSector || SearchType.ResidenceUrbanSector:
+      case SearchType.UrbanSector:
+      case SearchType.ResidenceUrbanSector:
         return this.urbanSector;
-      case SearchType.Address || SearchType.ResidenceAddress:
+      case SearchType.Address:
+      case SearchType.ResidenceAddress:
         return this.address;
       case SearchType.RecordStatus:
         return this.recordStatus;

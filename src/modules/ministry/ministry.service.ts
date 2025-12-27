@@ -53,7 +53,17 @@ export class MinistryService extends BaseService {
     try {
       const { pastor, church } = await this.validateMinistryCreation(body);
 
-      const data = this.buildCreateMinistryData(body, user, pastor, church);
+      const data = this.buildCreateEntityData({
+        user,
+        extraProps: {
+          ...body,
+          theirPastor: pastor,
+          theirChurch: church,
+          email: body.email ?? null,
+          phoneNumber: body.phoneNumber ?? null,
+          ministryCode: generateCodeMinistry(body.customMinistryName),
+        },
+      });
 
       const newMinistry = this.ministryRepository.create(data);
 
@@ -112,7 +122,8 @@ export class MinistryService extends BaseService {
     const { term, searchType, searchSubType, churchId } = query;
 
     if (!term) throw new BadRequestException('El término es requerido');
-    if (!searchType) throw new BadRequestException('searchType es requerido');
+    if (!searchType)
+      throw new BadRequestException('El tipo de búsqueda es requerido');
 
     try {
       const church = await this.findOrFail<Church>({
@@ -166,11 +177,40 @@ export class MinistryService extends BaseService {
       moduleName: 'ministerio',
     });
 
-    await this.validateMinistryUpdate(ministry, body);
+    this.validateRecordStatusUpdate(
+      ministry,
+      body.recordStatus as RecordStatus,
+    );
+
     const newRelations = await this.resolveRelations(ministry, body);
 
     try {
-      const payload = this.buildUpdateData(ministry, body, user, newRelations);
+      const payload = this.buildUpdateEntityData({
+        entityId: ministry.id,
+        user,
+        extraProps: {
+          ...body,
+          email: body.email ?? null,
+          phoneNumber: body.phoneNumber ?? null,
+          ministryCode:
+            body.customMinistryName !== ministry.customMinistryName
+              ? generateCodeMinistry(body.customMinistryName)
+              : ministry.ministryCode,
+          theirPastor: newRelations.pastor,
+          theirChurch: newRelations.church,
+          updatedAt: new Date(),
+          updatedBy: user,
+          inactivationCategory:
+            body.recordStatus === RecordStatus.Active
+              ? null
+              : body.ministryInactivationCategory,
+          inactivationReason:
+            body.recordStatus === RecordStatus.Active
+              ? null
+              : body.ministryInactivationReason,
+          recordStatus: body.recordStatus,
+        },
+      });
 
       const updatedMinistry = await this.ministryRepository.preload(payload);
       return await this.ministryRepository.save(updatedMinistry);
@@ -182,10 +222,8 @@ export class MinistryService extends BaseService {
   }
 
   //* Delete
-  async remove(id: string, query: InactivateMinistryDto, user: User) {
+  async remove(id: string, dto: InactivateMinistryDto, user: User) {
     await this.validateId(id);
-
-    console.log(id);
 
     const ministry = await this.findOrFail<Ministry>({
       repository: this.ministryRepository,
@@ -194,7 +232,16 @@ export class MinistryService extends BaseService {
       moduleName: 'ministerio',
     });
 
-    await this.inactivateMinistry(ministry, query, user);
+    await this.inactivateEntity({
+      entity: ministry,
+      user,
+      entityRepository: this.ministryRepository,
+      extraProps: {
+        inactivationCategory: dto.ministryInactivationCategory,
+        inactivationReason: dto.ministryInactivationReason,
+        recordStatus: RecordStatus.Inactive,
+      },
+    });
   }
 
   // ---------------------------------------------------------------------------------------------- //
@@ -202,9 +249,9 @@ export class MinistryService extends BaseService {
   //? Private methods
   //* Validations
   private async validateMinistryCreation(
-    dto: CreateMinistryDto,
+    createDto: CreateMinistryDto,
   ): Promise<{ pastor: Pastor; church: Church }> {
-    const { theirPastor, ministryType } = dto;
+    const { theirPastor, ministryType } = createDto;
 
     if (!theirPastor) {
       throw new NotFoundException(
@@ -272,22 +319,6 @@ export class MinistryService extends BaseService {
     return { pastor, church };
   }
 
-  private async validateMinistryUpdate(
-    ministry: Ministry,
-    updateDto: UpdateMinistryDto,
-  ): Promise<void> {
-    const { recordStatus } = updateDto;
-
-    if (
-      ministry.recordStatus === RecordStatus.Active &&
-      recordStatus === RecordStatus.Inactive
-    ) {
-      throw new BadRequestException(
-        `No se puede actualizar el registro a "Inactivo", se debe eliminar.`,
-      );
-    }
-  }
-
   //* Finders and actions
   private resolvePersonContext(searchSubType?: MinistrySearchSubType) {
     if (!searchSubType) return {};
@@ -304,29 +335,6 @@ export class MinistryService extends BaseService {
 
       default:
         throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
-  }
-
-  private async inactivateMinistry(
-    ministry: Ministry,
-    dto: InactivateMinistryDto,
-    user: User,
-  ): Promise<void> {
-    try {
-      const updatedMinistry = await this.ministryRepository.preload({
-        id: ministry.id,
-        updatedAt: new Date(),
-        updatedBy: user,
-        inactivationCategory: dto.ministryInactivationCategory,
-        inactivationReason: dto.ministryInactivationReason,
-        theirPastor: null,
-        theirChurch: null,
-        recordStatus: RecordStatus.Inactive,
-      });
-
-      await this.ministryRepository.save(updatedMinistry);
-    } catch (error) {
-      this.handleDBExceptions(error);
     }
   }
 
@@ -398,62 +406,5 @@ export class MinistryService extends BaseService {
     }
 
     return { pastor: newPastor, church };
-  }
-
-  //* Builders
-  private buildCreateMinistryData(
-    dto: CreateMinistryDto,
-    user: User,
-    pastor: Pastor,
-    church: Church,
-  ): Partial<Ministry> {
-    const { customMinistryName } = dto;
-
-    return {
-      ...dto,
-      email: dto.email ?? null,
-      phoneNumber: dto.phoneNumber ?? null,
-      ministryCode: generateCodeMinistry(customMinistryName),
-      theirChurch: church,
-      theirPastor: pastor,
-      createdAt: new Date(),
-      createdBy: user,
-    };
-  }
-
-  private buildUpdateData(
-    ministry: Ministry,
-    updateDto: UpdateMinistryDto,
-    user: User,
-    relations: { pastor: Pastor; church: Church },
-  ): Partial<Ministry> {
-    const {
-      recordStatus,
-      ministryInactivationCategory,
-      ministryInactivationReason,
-      customMinistryName,
-    } = updateDto;
-
-    return {
-      id: ministry.id,
-      ...updateDto,
-      ministryCode:
-        customMinistryName !== ministry.customMinistryName
-          ? generateCodeMinistry(customMinistryName)
-          : ministry.ministryCode,
-      theirPastor: relations.pastor,
-      theirChurch: relations.church,
-      updatedAt: new Date(),
-      updatedBy: user,
-      inactivationCategory:
-        recordStatus === RecordStatus.Active
-          ? null
-          : ministryInactivationCategory,
-      inactivationReason:
-        recordStatus === RecordStatus.Active
-          ? null
-          : ministryInactivationReason,
-      recordStatus,
-    };
   }
 }

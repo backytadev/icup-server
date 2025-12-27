@@ -43,6 +43,9 @@ import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-
 import { PastorSearchType } from '@/modules/pastor/enums/pastor-search-type.enum';
 import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search-and-pagination.dto';
 
+import { CopastorSearchType } from '@/modules/copastor/enums/copastor-search-type.enum';
+import { CoPastorSearchAndPaginationDto } from '@/modules/copastor/dto/copastor-search-and-pagination.dto';
+
 import {
   MemberType,
   MemberTypeNames,
@@ -773,16 +776,14 @@ export class ReportsService {
   }
 
   //* COPASTORS REPORT BY TERM
-  async getCopastorsByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getCopastorsByFilters(
+    searchTypeAndPaginationDto: CoPastorSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
+    const { searchType, searchSubType, order, churchId, term } =
       searchTypeAndPaginationDto;
 
     try {
-      const copastors: Copastor[] = await this.copastorService.findByTerm(
-        term,
+      const copastors: Copastor[] = await this.copastorService.findByFilters(
         searchTypeAndPaginationDto,
       );
 
@@ -802,7 +803,7 @@ export class ReportsService {
       }
 
       //* By Birth Date
-      if (searchType === SearchType.BirthDate) {
+      if (searchType === CopastorSearchType.BirthDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -816,7 +817,7 @@ export class ReportsService {
       }
 
       //* By Birth Month
-      if (searchType === SearchType.BirthMonth) {
+      if (searchType === CopastorSearchType.BirthMonth) {
         const monthNames = {
           january: 'Enero',
           february: 'Febrero',
@@ -836,7 +837,7 @@ export class ReportsService {
       }
 
       //* By Gender
-      if (searchType === SearchType.Gender) {
+      if (searchType === CopastorSearchType.Gender) {
         const genderTerm = term.toLowerCase();
         const validGenders = ['male', 'female'];
 
@@ -848,7 +849,7 @@ export class ReportsService {
       }
 
       //* By Marital Status
-      if (searchType === SearchType.MaritalStatus) {
+      if (searchType === CopastorSearchType.MaritalStatus) {
         const maritalStatusTerm = term.toLowerCase();
         const validMaritalStatus = [
           'single',
@@ -866,7 +867,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === CopastorSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 

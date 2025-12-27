@@ -32,6 +32,7 @@ import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-p
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
 import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search-and-pagination.dto';
 import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-search-and-pagination.dto';
+import { CoPastorSearchAndPaginationDto } from '@/modules/copastor/dto/copastor-search-and-pagination.dto';
 
 import { ReportsService } from '@/modules/reports/reports.service';
 
@@ -406,13 +407,11 @@ export class ReportsController {
     required: false,
   })
   @ApiProduces('application/pdf')
-  async getCopastorsByTerm(
+  async getCopastorsByFilters(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: CoPastorSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getCopastorsByTerm(
-      term,
+    const pdfDoc = await this.reportsService.getCopastorsByFilters(
       searchTypeAndPaginationDto,
     );
 

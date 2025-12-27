@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsOrderValue, ILike } from 'typeorm';
+import { FindOptionsOrderValue, FindOptionsWhere, ILike } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
@@ -20,12 +20,10 @@ export class AddressSearchStrategy implements SearchStrategy {
   }: SearchStrategyProps<T>): Promise<T[]> {
     const { limit, offset, order, term } = params;
 
+    const where = this.buildWhere(moduleKey, term, church);
+
     const data = await mainRepository.find({
-      where: {
-        ...(church && { theirChurch: church }),
-        address: ILike(`%${term}%`),
-        recordStatus: RecordStatus.Active,
-      } as any,
+      where,
       take: limit,
       skip: offset,
       relations,
@@ -50,5 +48,30 @@ export class AddressSearchStrategy implements SearchStrategy {
       [moduleKey]: data,
       ...(mainChurch && { mainChurch }),
     });
+  }
+
+  private buildWhere(
+    moduleKey: string,
+    term: string,
+    church: any,
+  ): FindOptionsWhere<any> {
+    const baseWhere: any = {
+      ...(church && { theirChurch: church }),
+      recordStatus: RecordStatus.Active,
+    };
+
+    if (moduleKey === 'ministries' || moduleKey === 'churches') {
+      return {
+        ...baseWhere,
+        address: ILike(`%${term}%`),
+      };
+    }
+
+    return {
+      ...baseWhere,
+      member: {
+        residenceAddress: ILike(`%${term}%`),
+      },
+    };
   }
 }

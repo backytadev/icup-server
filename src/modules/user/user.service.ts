@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -83,7 +82,8 @@ export class UserService extends BaseService {
     const { term, searchType } = query;
 
     if (!term) throw new BadRequestException('El término es requerido');
-    if (!searchType) throw new BadRequestException('searchType es requerido');
+    if (!searchType)
+      throw new BadRequestException('El tipo de búsqueda es requerido');
 
     try {
       const strategy = this.searchStrategyFactory.getStrategy(searchType);
@@ -97,7 +97,23 @@ export class UserService extends BaseService {
   //* Update
   async update(id: string, dto: UpdateUserDto, user: User): Promise<User> {
     await this.validateId(id);
-    const existingUser = await this.findUserOrFail(id);
+
+    const existingUser = await this.findOrFail<User>({
+      repository: this.userRepository,
+      where: { id },
+      relations: ['churches'],
+      select: [
+        'id',
+        'firstNames',
+        'lastNames',
+        'email',
+        'password',
+        'roles',
+        'recordStatus',
+        'gender',
+      ],
+      moduleName: 'usuario',
+    });
 
     if (dto.currentPassword && dto.newPassword) {
       this.validateCurrentPassword(dto.currentPassword, existingUser.password);
@@ -125,7 +141,24 @@ export class UserService extends BaseService {
     admin: User,
   ): Promise<void> {
     await this.validateId(id);
-    const user = await this.findUserOrFail(id);
+
+    const user = await this.findOrFail<User>({
+      repository: this.userRepository,
+      where: { id },
+      relations: ['churches'],
+      select: [
+        'id',
+        'firstNames',
+        'lastNames',
+        'email',
+        'password',
+        'roles',
+        'recordStatus',
+        'gender',
+      ],
+      moduleName: 'usuario',
+    });
+
     this.validateUserCanBeInactivated(user);
 
     try {
@@ -178,29 +211,6 @@ export class UserService extends BaseService {
     return this.ministryRepository.find({
       where: { id: In(ids), recordStatus: RecordStatus.Active },
     });
-  }
-
-  private async findUserOrFail(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      relations: ['churches'],
-      select: [
-        'id',
-        'firstNames',
-        'lastNames',
-        'email',
-        'password',
-        'roles',
-        'recordStatus',
-        'gender',
-      ],
-    });
-
-    if (!user) {
-      throw new NotFoundException(`Usuario con id: ${id} no fue encontrado.`);
-    }
-
-    return user;
   }
 
   //* Builders

@@ -6,6 +6,7 @@ import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { CopastorService } from '@/modules/copastor/copastor.service';
 import { CopastorController } from '@/modules/copastor/copastor.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
@@ -23,6 +24,10 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
   providers: [CopastorService],
   imports: [
     TypeOrmModule.forFeature([Copastor]),
+    MemberModule,
+    MinistryModule,
+    AuthModule,
+    CommonModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => PastorModule),
     forwardRef(() => SupervisorModule),
@@ -31,9 +36,6 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     forwardRef(() => FamilyGroupModule),
     forwardRef(() => DiscipleModule),
     forwardRef(() => OfferingIncomeModule),
-    MemberModule,
-    MinistryModule,
-    AuthModule,
   ],
   exports: [TypeOrmModule, CopastorService],
 })
