@@ -385,6 +385,46 @@ export class MetricsService {
     }
   }
 
+  async getExpenseMonthlyDetailBySubType(
+    paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    const { churchId, endMonth, type, startMonth, year } = paginationDto;
+    const yearVale = +year;
+
+    const startMonthDate = new Date(`${startMonth} 1, ${yearVale}`);
+    const endMonthDate = new Date(`${endMonth} 1, ${yearVale}`);
+
+    const startDate = startOfMonth(startMonthDate);
+    const endDate = endOfMonth(endMonthDate);
+
+    try {
+      const church = await this.churchRepository.findOne({
+        where: {
+          id: churchId,
+          recordStatus: RecordStatus.Active,
+        },
+      });
+
+      if (!church) return [];
+
+      const offeringExpenses = await this.offeringExpenseRepository.find({
+        where: {
+          church: church,
+          type: type,
+          date: Between(startDate, endDate),
+          recordStatus: RecordStatus.Active,
+        },
+        relations: ['church'],
+      });
+
+      return ComparativeOfferingExpensesBySubTypeFormatter({
+        offeringExpenses,
+      }) as any;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
   //? FIND BY TERM
   async findByTerm(
     term: string,
@@ -3993,6 +4033,7 @@ export class MetricsService {
       }
     }
 
+    //todo:  tomar de aqui la refencia para la data
     //* Comparative offering expenses by sub type
     if (
       term &&

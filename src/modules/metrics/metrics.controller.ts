@@ -94,6 +94,22 @@ export class MetricsController {
     return this.metricsService.getExpenseMonthlyDetailByType(paginationDto);
   }
 
+  @Get('/balance/expenses/monthly-detail-by-sub-type')
+  @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
+  })
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  getExpenseMonthlyDetailBySubType(
+    @Query() paginationDto: ReportPaginationDto,
+  ): Promise<any> {
+    return this.metricsService.getExpenseMonthlyDetailBySubType(paginationDto);
+  }
+
   // todo: revisar esto al final para quitar y ver la doc si algo se mueve
   //? FIND BY TERM
   @Get(':term')
