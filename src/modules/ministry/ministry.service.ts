@@ -242,6 +242,11 @@ export class MinistryService extends BaseService {
         recordStatus: RecordStatus.Inactive,
       },
     });
+
+    await this.cleanSubordinateRelations(ministry, user, [
+      { repo: this.churchRepository, relation: 'theirMinistry' },
+      { repo: this.pastorRepository, relation: 'theirMinistry' },
+    ]);
   }
 
   // ---------------------------------------------------------------------------------------------- //

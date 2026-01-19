@@ -8,6 +8,7 @@ import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { SupervisorService } from '@/modules/supervisor/supervisor.service';
 import { SupervisorController } from '@/modules/supervisor/supervisor.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
 import { ChurchModule } from '@/modules/church/church.module';
@@ -24,6 +25,10 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
   providers: [SupervisorService],
   imports: [
     TypeOrmModule.forFeature([Supervisor]),
+    CommonModule,
+    MemberModule,
+    MinistryModule,
+    AuthModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => PastorModule),
     forwardRef(() => CopastorModule),
@@ -32,9 +37,6 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     forwardRef(() => FamilyGroupModule),
     forwardRef(() => DiscipleModule),
     forwardRef(() => OfferingIncomeModule),
-    MemberModule,
-    MinistryModule,
-    AuthModule,
   ],
   exports: [TypeOrmModule, SupervisorService],
 })

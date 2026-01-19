@@ -183,8 +183,6 @@ export class PastorService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      console.log(searchType);
-
       const searchStrategy = this.searchStrategyFactory.getStrategy(
         searchType as any,
       );

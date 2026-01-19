@@ -8,6 +8,7 @@ import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { PreacherService } from '@/modules/preacher/preacher.service';
 import { PreacherController } from '@/modules/preacher/preacher.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
 import { ChurchModule } from '@/modules/church/church.module';
@@ -25,6 +26,10 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
   imports: [
     TypeOrmModule.forFeature([Preacher]),
     forwardRef(() => ChurchModule),
+    MemberModule,
+    MinistryModule,
+    AuthModule,
+    CommonModule,
     forwardRef(() => PastorModule),
     forwardRef(() => CopastorModule),
     forwardRef(() => SupervisorModule),
@@ -32,9 +37,6 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     forwardRef(() => FamilyGroupModule),
     forwardRef(() => DiscipleModule),
     forwardRef(() => OfferingIncomeModule),
-    MemberModule,
-    MinistryModule,
-    AuthModule,
   ],
   exports: [TypeOrmModule, PreacherService],
 })

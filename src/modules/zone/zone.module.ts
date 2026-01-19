@@ -5,6 +5,7 @@ import { Zone } from '@/modules/zone/entities/zone.entity';
 import { ZoneService } from '@/modules/zone/zone.service';
 import { ZoneController } from '@/modules/zone/zone.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { ChurchModule } from '@/modules/church/church.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
@@ -19,6 +20,8 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
   providers: [ZoneService],
   imports: [
     TypeOrmModule.forFeature([Zone]),
+    AuthModule,
+    CommonModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => PastorModule),
     forwardRef(() => CopastorModule),
@@ -26,7 +29,6 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
     forwardRef(() => PreacherModule),
     forwardRef(() => FamilyGroupModule),
     forwardRef(() => DiscipleModule),
-    AuthModule,
   ],
   exports: [TypeOrmModule, ZoneService],
 })

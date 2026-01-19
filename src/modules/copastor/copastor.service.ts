@@ -27,7 +27,7 @@ import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
 import { createMinistryMember } from '@/common/helpers/create-ministry-member';
 import { raiseLevelMinistryMember } from '@/common/helpers/raise-level-ministry-member';
 
-import { MemberType } from '@/modules/offering/income/enums/member-type.enum';
+import { MemberOfferingType } from '@/modules/offering/income/enums/member-offering-type.enum';
 
 import { Zone } from '@/modules/zone/entities/zone.entity';
 import { User } from '@/modules/user/entities/user.entity';
@@ -246,6 +246,7 @@ export class CopastorService extends BaseService {
       where: { id },
       relations: [
         'theirChurch',
+        'theirPastor',
         'member',
         'member.ministries',
         'member.ministries.ministry',
@@ -517,8 +518,6 @@ export class CopastorService extends BaseService {
     church: Church;
     mustUpdateMember: boolean;
   }> {
-    console.log(dto);
-
     if (copastor.theirPastor?.id === dto.theirPastor) {
       return {
         pastor: copastor.theirPastor,
@@ -675,7 +674,7 @@ export class CopastorService extends BaseService {
       offeringsByOldCopastor.map(async (offering) => {
         await this.offeringIncomeRepository.update(offering.id, {
           copastor: null,
-          memberType: MemberType.Pastor,
+          memberType: MemberOfferingType.Pastor,
           pastor: savedPastor,
           updatedAt: new Date(),
           updatedBy: user,

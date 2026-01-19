@@ -12,6 +12,8 @@ export enum FamilyGroupSearchType {
   UrbanSector = 'urban_sector',
   Address = 'address',
   RecordStatus = 'record_status',
+  MostPopulatedFamilyGroups = 'most_populated_family_groups',
+  LessPopulatedFamilyGroups = 'less_populated_family_groups',
 }
 
 export const FamilyGroupSearchTypeNames: Record<FamilyGroupSearchType, string> =
@@ -29,4 +31,8 @@ export const FamilyGroupSearchTypeNames: Record<FamilyGroupSearchType, string> =
     [FamilyGroupSearchType.UrbanSector]: 'Sector Urbano',
     [FamilyGroupSearchType.Address]: 'Dirección',
     [FamilyGroupSearchType.RecordStatus]: 'Estado de registro',
+    [FamilyGroupSearchType.MostPopulatedFamilyGroups]:
+      'Grupos Familiares mas poblados',
+    [FamilyGroupSearchType.LessPopulatedFamilyGroups]:
+      'Grupos Familiares menos poblados',
   };

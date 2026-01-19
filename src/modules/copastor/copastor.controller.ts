@@ -92,8 +92,8 @@ export class CopastorController {
   @Delete(':id')
   @Auth(UserRole.SuperUser)
   @DeleteSwagger({
-    description: 'Ministry deleted successfully',
-    paramDescription: 'Ministry UUID to delete',
+    description: 'Co-Pastor deleted successfully',
+    paramDescription: 'Co-Pastor UUID to delete',
   })
   remove(
     @Param('id') id: string,

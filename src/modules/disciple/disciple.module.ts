@@ -7,6 +7,7 @@ import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { DiscipleService } from '@/modules/disciple/disciple.service';
 import { DiscipleController } from '@/modules/disciple/disciple.controller';
 
+import { CommonModule } from '@/common/common.module';
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { ChurchModule } from '@/modules/church/church.module';
 import { PastorModule } from '@/modules/pastor/pastor.module';
@@ -23,6 +24,10 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
   providers: [DiscipleService],
   imports: [
     TypeOrmModule.forFeature([Disciple]),
+    MinistryModule,
+    MemberModule,
+    AuthModule,
+    CommonModule,
     forwardRef(() => ChurchModule),
     forwardRef(() => PastorModule),
     forwardRef(() => CopastorModule),
@@ -31,9 +36,6 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
     forwardRef(() => PreacherModule),
     forwardRef(() => FamilyGroupModule),
     forwardRef(() => OfferingIncomeModule),
-    MinistryModule,
-    MemberModule,
-    AuthModule,
   ],
   exports: [TypeOrmModule, DiscipleService],
 })
