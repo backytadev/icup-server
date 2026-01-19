@@ -4,7 +4,7 @@ import { OfferingIncomeCreationCategory } from '@/modules/offering/income/enums/
 import { OfferingIncomeCreationShiftType } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { MemberType } from '@/modules/offering/income/enums/member-type.enum';
+import { MemberOfferingType } from '@/modules/offering/income/enums/member-offering-type.enum';
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 import { OfferingInactivationReason } from '@/modules/offering/shared/enums/offering-inactivation-reason.enum';
 
@@ -250,7 +250,7 @@ export const dataOfferingIncome: SeedDataOfferingIncome = {
     subType: OfferingIncomeCreationSubType.ChurchGround,
     category: OfferingIncomeCreationCategory.InternalDonation,
     amount: getRandomAmount(300, 1000).toFixed(2),
-    memberType: MemberType.Disciple,
+    memberType: MemberOfferingType.Disciple,
     currency: CurrencyType.PEN,
     date,
     comments: undefined,
@@ -265,7 +265,7 @@ export const dataOfferingIncome: SeedDataOfferingIncome = {
     subType: OfferingIncomeCreationSubType.Special,
     category: OfferingIncomeCreationCategory.InternalDonation,
     amount: getRandomAmount(300, 1000).toFixed(2),
-    memberType: MemberType.Disciple,
+    memberType: MemberOfferingType.Disciple,
     currency: CurrencyType.PEN,
     date,
     comments: undefined,

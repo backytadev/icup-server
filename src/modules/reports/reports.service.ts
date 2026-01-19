@@ -46,10 +46,25 @@ import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search
 import { CopastorSearchType } from '@/modules/copastor/enums/copastor-search-type.enum';
 import { CoPastorSearchAndPaginationDto } from '@/modules/copastor/dto/copastor-search-and-pagination.dto';
 
+import { PreacherSearchType } from '@/modules/preacher/enums/preacher-search-type.enum';
+import { PreacherSearchAndPaginationDto } from '@/modules/preacher/dto/preacher-search-and-pagination.dto';
+
+import { ZoneSearchType } from '@/modules/zone/enums/zone-search-type.enum';
+import { ZoneSearchAndPaginationDto } from '@/modules/zone/dto/zone-search-and-pagination.dto';
+
+import { FamilyGroupSearchType } from '@/modules/family-group/enums/family-group-search-type.enum';
+import { FamilyGroupSearchAndPaginationDto } from '@/modules/family-group/dto/family-group-search-and-pagination.dto';
+
+import { DiscipleSearchType } from '@/modules/disciple/enums/disciple-search-type.enum';
+import { DiscipleSearchAndPaginationDto } from '@/modules/disciple/dto/disciple-search-and-pagination.dto';
+
+import { SupervisorSearchType } from '@/modules/supervisor/enums/supervisor-search-type.enum';
+import { SupervisorSearchAndPaginationDto } from '@/modules/supervisor/dto/supervisor-search-and-pagination.dto';
+
 import {
-  MemberType,
-  MemberTypeNames,
-} from '@/modules/offering/income/enums/member-type.enum';
+  MemberOfferingType,
+  MemberOfferingTypeNames,
+} from '@/modules/offering/income/enums/member-offering-type.enum';
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
 import { OfferingIncomeCreationSubType } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
@@ -271,13 +286,13 @@ export class ReportsService {
         date: offeringIncome?.date,
         memberType: offeringIncome?.memberType,
         memberFullName:
-          offeringIncome?.memberType === MemberType.Pastor
+          offeringIncome?.memberType === MemberOfferingType.Pastor
             ? `${offeringIncome?.pastor?.member?.firstNames} ${offeringIncome?.pastor?.member?.lastNames}`
-            : offeringIncome?.memberType === MemberType.Copastor
+            : offeringIncome?.memberType === MemberOfferingType.Copastor
               ? `${offeringIncome?.copastor?.member?.firstNames} ${offeringIncome?.copastor?.member?.lastNames}`
-              : offeringIncome?.memberType === MemberType.Supervisor
+              : offeringIncome?.memberType === MemberOfferingType.Supervisor
                 ? `${offeringIncome?.supervisor?.member?.firstNames} ${offeringIncome?.supervisor?.member?.lastNames}`
-                : offeringIncome?.memberType === MemberType.Preacher
+                : offeringIncome?.memberType === MemberOfferingType.Preacher
                   ? `${offeringIncome?.preacher?.member?.firstNames} ${offeringIncome?.preacher?.member?.lastNames}`
                   : `${offeringIncome?.disciple?.member?.firstNames} ${offeringIncome?.disciple?.member?.lastNames}`,
         externalDonorFullName: `${offeringIncome?.externalDonor?.firstNames} ${offeringIncome?.externalDonor?.lastNames}`,
@@ -949,18 +964,15 @@ export class ReportsService {
   }
 
   //* SUPERVISORS REPORT BY TERM
-  async getSupervisorsByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getSupervisorsByFilters(
+    searchTypeAndPaginationDto: SupervisorSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
+    const { searchType, searchSubType, order, churchId, term } =
       searchTypeAndPaginationDto;
 
     try {
-      const supervisors: Supervisor[] = await this.supervisorService.findByTerm(
-        term,
-        searchTypeAndPaginationDto,
-      );
+      const supervisors: Supervisor[] =
+        await this.supervisorService.findByFilters(searchTypeAndPaginationDto);
 
       if (!supervisors) {
         throw new NotFoundException(
@@ -978,7 +990,7 @@ export class ReportsService {
       }
 
       //* By birth Date
-      if (searchType === SearchType.BirthDate) {
+      if (searchType === SupervisorSearchType.BirthDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -992,7 +1004,7 @@ export class ReportsService {
       }
 
       //* By Birth Month
-      if (searchType === SearchType.BirthMonth) {
+      if (searchType === SupervisorSearchType.BirthMonth) {
         const monthNames = {
           january: 'Enero',
           february: 'Febrero',
@@ -1012,7 +1024,7 @@ export class ReportsService {
       }
 
       //* By Gender
-      if (searchType === SearchType.Gender) {
+      if (searchType === SupervisorSearchType.Gender) {
         const genderTerm = term.toLowerCase();
         const validGenders = ['male', 'female'];
 
@@ -1024,7 +1036,7 @@ export class ReportsService {
       }
 
       //* By Marital Status
-      if (searchType === SearchType.MaritalStatus) {
+      if (searchType === SupervisorSearchType.MaritalStatus) {
         const maritalStatusTerm = term.toLowerCase();
         const validMaritalStatus = [
           'single',
@@ -1042,7 +1054,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === SupervisorSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -1124,16 +1136,14 @@ export class ReportsService {
   }
 
   //* PREACHERS REPORT BY TERM
-  async getPreachersByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getPreachersByFilters(
+    searchTypeAndPaginationDto: PreacherSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
+    const { searchType, searchSubType, order, churchId, term } =
       searchTypeAndPaginationDto;
 
     try {
-      const preachers: Preacher[] = await this.preacherService.findByTerm(
-        term,
+      const preachers: Preacher[] = await this.preacherService.findByFilters(
         searchTypeAndPaginationDto,
       );
 
@@ -1153,7 +1163,7 @@ export class ReportsService {
       }
 
       //* By Birth Date
-      if (searchType === SearchType.BirthDate) {
+      if (searchType === PreacherSearchType.BirthDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -1167,7 +1177,7 @@ export class ReportsService {
       }
 
       //* By Birth Month
-      if (searchType === SearchType.BirthMonth) {
+      if (searchType === PreacherSearchType.BirthMonth) {
         const monthNames = {
           january: 'Enero',
           february: 'Febrero',
@@ -1187,7 +1197,7 @@ export class ReportsService {
       }
 
       //* By Gender
-      if (searchType === SearchType.Gender) {
+      if (searchType === PreacherSearchType.Gender) {
         const genderTerm = term.toLowerCase();
         const validGenders = ['male', 'female'];
 
@@ -1199,7 +1209,7 @@ export class ReportsService {
       }
 
       //* By Marital Status
-      if (searchType === SearchType.MaritalStatus) {
+      if (searchType === PreacherSearchType.MaritalStatus) {
         const maritalStatusTerm = term.toLowerCase();
         const validMaritalStatus = [
           'single',
@@ -1217,7 +1227,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === PreacherSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -1299,16 +1309,14 @@ export class ReportsService {
   }
 
   //* DISCIPLES REPORT BY TERM
-  async getDisciplesByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getDisciplesByFilters(
+    searchTypeAndPaginationDto: DiscipleSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
+    const { searchType, searchSubType, order, churchId, term } =
       searchTypeAndPaginationDto;
 
     try {
-      const disciples: Disciple[] = await this.discipleService.findByTerm(
-        term,
+      const disciples: Disciple[] = await this.discipleService.findByFilters(
         searchTypeAndPaginationDto,
       );
 
@@ -1328,7 +1336,7 @@ export class ReportsService {
       }
 
       //* By Birth Date
-      if (searchType === SearchType.BirthDate) {
+      if (searchType === DiscipleSearchType.BirthDate) {
         const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
 
         if (isNaN(fromTimestamp)) {
@@ -1342,7 +1350,7 @@ export class ReportsService {
       }
 
       //* By Birth Month
-      if (searchType === SearchType.BirthMonth) {
+      if (searchType === DiscipleSearchType.BirthMonth) {
         const monthNames = {
           january: 'Enero',
           february: 'Febrero',
@@ -1362,7 +1370,7 @@ export class ReportsService {
       }
 
       //* By Gender
-      if (searchType === SearchType.Gender) {
+      if (searchType === DiscipleSearchType.Gender) {
         const genderTerm = term.toLowerCase();
         const validGenders = ['male', 'female'];
 
@@ -1374,7 +1382,7 @@ export class ReportsService {
       }
 
       //* By Marital Status
-      if (searchType === SearchType.MaritalStatus) {
+      if (searchType === DiscipleSearchType.MaritalStatus) {
         const maritalStatusTerm = term.toLowerCase();
         const validMaritalStatus = [
           'single',
@@ -1392,7 +1400,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === DiscipleSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -1474,16 +1482,14 @@ export class ReportsService {
   }
 
   //* ZONES REPORT BY TERM
-  async getZonesByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  async getZonesByFilters(
+    searchTypeAndPaginationDto: ZoneSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
+    const { searchType, searchSubType, order, term, churchId } =
       searchTypeAndPaginationDto;
 
     try {
-      const zones: Zone[] = await this.zoneService.findByTerm(
-        term,
+      const zones: Zone[] = await this.zoneService.findByFilters(
         searchTypeAndPaginationDto,
       );
 
@@ -1503,7 +1509,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === ZoneSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -1586,18 +1592,14 @@ export class ReportsService {
 
   //* FAMILY GROUPS REPORT BY TERM
   async getFamilyGroupsByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+    searchTypeAndPaginationDto: FamilyGroupSearchAndPaginationDto,
   ) {
-    const { searchType, searchSubType, order, churchId } =
+    const { searchType, searchSubType, order, churchId, term } =
       searchTypeAndPaginationDto;
 
     try {
       const familyGroups: FamilyGroup[] =
-        await this.familyGroupService.findByTerm(
-          term,
-          searchTypeAndPaginationDto,
-        );
+        await this.familyGroupService.findByFilters(searchTypeAndPaginationDto);
 
       if (!familyGroups) {
         throw new NotFoundException(
@@ -1615,7 +1617,7 @@ export class ReportsService {
       }
 
       //* By Record Status
-      if (searchType === SearchType.RecordStatus) {
+      if (searchType === FamilyGroupSearchType.RecordStatus) {
         const recordStatusTerm = term.toLowerCase();
         const validRecordStatus = ['active', 'inactive'];
 
@@ -1861,7 +1863,7 @@ export class ReportsService {
         const [memberType, names] = term.split('&');
         const firstNames = names.replace(/\+/g, ' ');
 
-        newTerm = `${MemberTypeNames[memberType]} ~ ${firstNames}`;
+        newTerm = `${MemberOfferingTypeNames[memberType]} ~ ${firstNames}`;
       }
 
       //* By Contributor last names
@@ -1873,7 +1875,7 @@ export class ReportsService {
         const [memberType, names] = term.split('&');
         const lastNames = names.split('-')[0].replace(/\+/g, ' ');
 
-        newTerm = `${MemberTypeNames[memberType]} ~ ${lastNames}`;
+        newTerm = `${MemberOfferingTypeNames[memberType]} ~ ${lastNames}`;
       }
 
       //* By Contributor full names
@@ -1886,7 +1888,7 @@ export class ReportsService {
         const firstNames = names.split('-')[0].replace(/\+/g, ' ');
         const lastNames = names.split('-')[1].replace(/\+/g, ' ');
 
-        newTerm = `${MemberTypeNames[memberType]} ~ ${firstNames} ${lastNames}`;
+        newTerm = `${MemberOfferingTypeNames[memberType]} ~ ${firstNames} ${lastNames}`;
       }
 
       //* By Record Status

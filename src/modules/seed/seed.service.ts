@@ -145,6 +145,7 @@ export class SeedService {
 
     try {
       await this.churchRepository.query(`DELETE FROM user_churches`);
+      await this.churchRepository.query(`DELETE FROM user_ministry`);
       await queryMinistryMember.delete().where({}).execute();
       await queryMinistries.delete().where({}).execute();
       await queryDisciples.delete().where({}).execute();

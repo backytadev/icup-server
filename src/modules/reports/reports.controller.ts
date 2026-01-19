@@ -29,10 +29,15 @@ import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto'
 import { Auth } from '@/common/decorators/auth.decorator';
 
 import { UserSearchAndPaginationDto } from '@/modules/user/dto/user-search-and-pagination.dto';
+import { ZoneSearchAndPaginationDto } from '@/modules/zone/dto/zone-search-and-pagination.dto';
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
 import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search-and-pagination.dto';
 import { MinistrySearchAndPaginationDto } from '@/modules/ministry/dto/ministry-search-and-pagination.dto';
 import { CoPastorSearchAndPaginationDto } from '@/modules/copastor/dto/copastor-search-and-pagination.dto';
+import { PreacherSearchAndPaginationDto } from '@/modules/preacher/dto/preacher-search-and-pagination.dto';
+import { DiscipleSearchAndPaginationDto } from '@/modules/disciple/dto/disciple-search-and-pagination.dto';
+import { SupervisorSearchAndPaginationDto } from '@/modules/supervisor/dto/supervisor-search-and-pagination.dto';
+import { FamilyGroupSearchAndPaginationDto } from '@/modules/family-group/dto/family-group-search-and-pagination.dto';
 
 import { ReportsService } from '@/modules/reports/reports.service';
 
@@ -57,7 +62,6 @@ import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offe
 import { OfferingIncomeSearchSubType } from '@/modules/offering/income/enums/offering-income-search-sub-type.enum';
 import { OfferingExpenseSearchSubType } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
 
-//  todo: use and replace for common decorator for this controller
 @ApiTags('Reports')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
@@ -458,7 +462,7 @@ export class ReportsController {
   }
 
   //* SUPERVISORS BY TERM REPORT
-  @Get('supervisors/:term')
+  @Get('supervisors/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -494,11 +498,9 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getSupervisorsByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: SupervisorSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getSupervisorsByTerm(
-      term,
+    const pdfDoc = await this.reportsService.getSupervisorsByFilters(
       searchTypeAndPaginationDto,
     );
 
@@ -544,7 +546,7 @@ export class ReportsController {
   }
 
   //* PREACHERS BY TERM REPORT
-  @Get('preachers/:term')
+  @Get('preachers/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -580,11 +582,9 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getPreachersByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: PreacherSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getPreachersByTerm(
-      term,
+    const pdfDoc = await this.reportsService.getPreachersByFilters(
       searchTypeAndPaginationDto,
     );
 
@@ -664,13 +664,11 @@ export class ReportsController {
     required: false,
   })
   @ApiProduces('application/pdf')
-  async getDisciplesByTerm(
+  async getDisciplesByFilters(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: DiscipleSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getDisciplesByTerm(
-      term,
+    const pdfDoc = await this.reportsService.getDisciplesByFilters(
       searchTypeAndPaginationDto,
     );
 
@@ -716,7 +714,7 @@ export class ReportsController {
   }
 
   //* ZONES BY TERM REPORT
-  @Get('zones/:term')
+  @Get('zones/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -750,13 +748,11 @@ export class ReportsController {
     required: false,
   })
   @ApiProduces('application/pdf')
-  async getZonesByTerm(
+  async getZonesByFilters(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: ZoneSearchAndPaginationDto,
   ) {
-    const pdfDoc = await this.reportsService.getZonesByTerm(
-      term,
+    const pdfDoc = await this.reportsService.getZonesByFilters(
       searchTypeAndPaginationDto,
     );
 
@@ -840,10 +836,9 @@ export class ReportsController {
   async getFamilyGroupsByTerm(
     @Res() response: Response,
     @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: FamilyGroupSearchAndPaginationDto,
   ) {
     const pdfDoc = await this.reportsService.getFamilyGroupsByTerm(
-      term,
       searchTypeAndPaginationDto,
     );
 
