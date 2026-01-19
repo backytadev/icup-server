@@ -76,7 +76,7 @@ export class SearchAndPaginationDto {
   @Type(() => String)
   order?: string;
 
-  // * used for search all by churchId (review modules)
+  //* used for search all by churchId (review modules)
   @IsOptional()
   @IsString()
   @Type(() => String)
@@ -88,14 +88,15 @@ export class SearchAndPaginationDto {
   @Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   )
-  isNullFamilyGroup?: boolean;
+  withNullFamilyGroup?: boolean;
 
+  //* For supervisor module when search by copastor id and return supervisor with zone or not
   @IsOptional()
   @IsBoolean()
   @Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   )
-  isNullZone?: boolean;
+  withNullZone?: boolean;
 
   //* For Zones and Family groups in metrics
   @IsOptional()
