@@ -17,7 +17,7 @@ import {
   OfferingIncomeCreationCategory,
   OfferingIncomeCreationCategoryNames,
 } from '@/modules/offering/income/enums/offering-income-creation-category.enum';
-import { MemberTypeNames } from '@/modules/offering/income/enums/member-type.enum';
+import { MemberOfferingTypeNames } from '@/modules/offering/income/enums/member-offering-type.enum';
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
 
 interface ReceiptValues {
@@ -199,7 +199,7 @@ export const generateReceiptByOfferingIncomeId = (
         style: 'label',
       },
       {
-        text: `${MemberTypeNames[memberType]}`,
+        text: `${MemberOfferingTypeNames[memberType]}`,
         style: 'value',
       },
     ]);

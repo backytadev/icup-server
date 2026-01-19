@@ -27,9 +27,9 @@ import {
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 
 import {
-  MemberType,
-  MemberTypeNames,
-} from '@/modules/offering/income/enums/member-type.enum';
+  MemberOfferingType,
+  MemberOfferingTypeNames,
+} from '@/modules/offering/income/enums/member-offering-type.enum';
 import {
   ExchangeCurrencyTypes,
   ExchangeCurrencyTypesNames,
@@ -528,7 +528,7 @@ export class OfferingIncomeService {
         let disciple: Disciple;
 
         if (category === OfferingIncomeCreationCategory.InternalDonation) {
-          if (memberType === MemberType.Pastor) {
+          if (memberType === MemberOfferingType.Pastor) {
             pastor = await this.pastorRepository.findOne({
               where: { id: memberId },
               relations: ['member', 'theirChurch'],
@@ -548,7 +548,7 @@ export class OfferingIncomeService {
             });
           }
 
-          if (memberType === MemberType.Copastor) {
+          if (memberType === MemberOfferingType.Copastor) {
             copastor = await this.copastorRepository.findOne({
               where: { id: memberId },
               relations: ['member', 'theirPastor', 'theirChurch'],
@@ -567,7 +567,7 @@ export class OfferingIncomeService {
               },
             });
           }
-          if (memberType === MemberType.Supervisor) {
+          if (memberType === MemberOfferingType.Supervisor) {
             supervisor = await this.supervisorRepository.findOne({
               where: { id: memberId },
               relations: [
@@ -593,7 +593,7 @@ export class OfferingIncomeService {
             });
           }
 
-          if (memberType === MemberType.Preacher) {
+          if (memberType === MemberOfferingType.Preacher) {
             preacher = await this.preacherRepository.findOne({
               where: { id: memberId },
               relations: [
@@ -620,7 +620,7 @@ export class OfferingIncomeService {
             });
           }
 
-          if (memberType === MemberType.Disciple) {
+          if (memberType === MemberOfferingType.Disciple) {
             disciple = await this.discipleRepository.findOne({
               where: { id: memberId },
               relations: [
@@ -690,7 +690,7 @@ export class OfferingIncomeService {
 
           if (category === OfferingIncomeCreationCategory.InternalDonation) {
             throw new NotFoundException(
-              `Ya existe un registro con este Tipo: ${OfferingIncomeCreationSubTypeNames[subType]}, Iglesia: ${church.abbreviatedChurchName}, Categoría: ${OfferingIncomeCreationCategoryNames[category]}, Divisa: ${currency}, Tipo de miembro: ${MemberTypeNames[memberType]} (mismos nombres y apellidos) y Fecha: ${offeringDate}.`,
+              `Ya existe un registro con este Tipo: ${OfferingIncomeCreationSubTypeNames[subType]}, Iglesia: ${church.abbreviatedChurchName}, Categoría: ${OfferingIncomeCreationCategoryNames[category]}, Divisa: ${currency}, Tipo de miembro: ${MemberOfferingTypeNames[memberType]} (mismos nombres y apellidos) y Fecha: ${offeringDate}.`,
             );
           }
         }
@@ -746,7 +746,7 @@ export class OfferingIncomeService {
               zone: null,
               familyGroup: null,
               shift: null,
-              memberType: MemberType.ExternalDonor,
+              memberType: MemberOfferingType.ExternalDonor,
               category: category,
               externalDonor: newDonor,
               receiptCode: receiptCode,
@@ -810,7 +810,7 @@ export class OfferingIncomeService {
                 ? null
                 : memberType
                   ? memberType
-                  : MemberType.ExternalDonor,
+                  : MemberOfferingType.ExternalDonor,
             shift: !shift || shift === '' ? null : shift,
             category: category,
             externalDonor: externalDonor ?? null,
@@ -2500,7 +2500,7 @@ export class OfferingIncomeService {
       try {
         let offeringIncome: OfferingIncome[];
 
-        if (memberType === MemberType.ExternalDonor) {
+        if (memberType === MemberOfferingType.ExternalDonor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2537,7 +2537,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Pastor) {
+        if (memberType === MemberOfferingType.Pastor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2576,7 +2576,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Copastor) {
+        if (memberType === MemberOfferingType.Copastor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2615,7 +2615,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Supervisor) {
+        if (memberType === MemberOfferingType.Supervisor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2654,7 +2654,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Preacher) {
+        if (memberType === MemberOfferingType.Preacher) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2693,7 +2693,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Disciple) {
+        if (memberType === MemberOfferingType.Disciple) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2734,7 +2734,7 @@ export class OfferingIncomeService {
 
         if (offeringIncome.length === 0) {
           const memberTypeInSpanish =
-            MemberTypeNames[memberType.toLowerCase()] ?? memberType;
+            MemberOfferingTypeNames[memberType.toLowerCase()] ?? memberType;
           throw new NotFoundException(
             `No se encontraron ingresos de ofrendas (${OfferingIncomeSearchTypeNames[searchType]}) con este tipo de miembro: ${memberTypeInSpanish}, con estos nombres: ${firstNames} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
           );
@@ -2768,7 +2768,7 @@ export class OfferingIncomeService {
       try {
         let offeringIncome: OfferingIncome[];
 
-        if (memberType === MemberType.ExternalDonor) {
+        if (memberType === MemberOfferingType.ExternalDonor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2805,7 +2805,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Pastor) {
+        if (memberType === MemberOfferingType.Pastor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2844,7 +2844,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Copastor) {
+        if (memberType === MemberOfferingType.Copastor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2883,7 +2883,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Supervisor) {
+        if (memberType === MemberOfferingType.Supervisor) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2922,7 +2922,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Preacher) {
+        if (memberType === MemberOfferingType.Preacher) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -2961,7 +2961,7 @@ export class OfferingIncomeService {
           });
         }
 
-        if (memberType === MemberType.Disciple) {
+        if (memberType === MemberOfferingType.Disciple) {
           offeringIncome = await this.offeringIncomeRepository.find({
             where: {
               church: church,
@@ -3002,7 +3002,7 @@ export class OfferingIncomeService {
 
         if (offeringIncome.length === 0) {
           const memberTypeInSpanish =
-            MemberTypeNames[memberType.toLowerCase()] ?? memberType;
+            MemberOfferingTypeNames[memberType.toLowerCase()] ?? memberType;
           throw new NotFoundException(
             `No se encontraron ingresos de ofrendas (${OfferingIncomeSearchTypeNames[searchType]}) con este tipo de miembro: ${memberTypeInSpanish}, con estos apellidos: ${lastNames} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
           );
@@ -3038,7 +3038,7 @@ export class OfferingIncomeService {
       try {
         let offeringIncome: OfferingIncome[];
 
-        if (memberType === MemberType.ExternalDonor) {
+        if (memberType === MemberOfferingType.ExternalDonor) {
           offeringIncome = await this.offeringIncomeRepository
             .createQueryBuilder('offering')
             .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
@@ -3083,7 +3083,7 @@ export class OfferingIncomeService {
             .getMany();
         }
 
-        if (memberType === MemberType.Pastor) {
+        if (memberType === MemberOfferingType.Pastor) {
           offeringIncome = await this.offeringIncomeRepository
             .createQueryBuilder('offering')
             .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
@@ -3128,7 +3128,7 @@ export class OfferingIncomeService {
             .getMany();
         }
 
-        if (memberType === MemberType.Copastor) {
+        if (memberType === MemberOfferingType.Copastor) {
           offeringIncome = await this.offeringIncomeRepository
             .createQueryBuilder('offering')
             .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
@@ -3173,7 +3173,7 @@ export class OfferingIncomeService {
             .getMany();
         }
 
-        if (memberType === MemberType.Supervisor) {
+        if (memberType === MemberOfferingType.Supervisor) {
           offeringIncome = await this.offeringIncomeRepository
             .createQueryBuilder('offering')
             .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
@@ -3218,7 +3218,7 @@ export class OfferingIncomeService {
             .getMany();
         }
 
-        if (memberType === MemberType.Preacher) {
+        if (memberType === MemberOfferingType.Preacher) {
           offeringIncome = await this.offeringIncomeRepository
             .createQueryBuilder('offering')
             .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
@@ -3263,7 +3263,7 @@ export class OfferingIncomeService {
             .getMany();
         }
 
-        if (memberType === MemberType.Disciple) {
+        if (memberType === MemberOfferingType.Disciple) {
           offeringIncome = await this.offeringIncomeRepository
             .createQueryBuilder('offering')
             .leftJoinAndSelect('offering.updatedBy', 'updatedBy')
@@ -3310,7 +3310,7 @@ export class OfferingIncomeService {
 
         if (offeringIncome.length === 0) {
           const memberTypeInSpanish =
-            MemberTypeNames[memberType.toLowerCase()] ?? memberType;
+            MemberOfferingTypeNames[memberType.toLowerCase()] ?? memberType;
 
           throw new NotFoundException(
             `No se encontraron ingresos de ofrendas (${OfferingIncomeSearchTypeNames[searchType]}) con este tipo de miembro: ${memberTypeInSpanish}, con estos nombres y apellidos: ${firstNames} ${lastNames} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
@@ -3521,7 +3521,7 @@ export class OfferingIncomeService {
     }
 
     if (
-      memberType === MemberType.ExternalDonor &&
+      memberType === MemberOfferingType.ExternalDonor &&
       externalDonorId !== offering?.externalDonor?.id
     ) {
       throw new BadRequestException(
@@ -3530,7 +3530,7 @@ export class OfferingIncomeService {
     }
 
     if (
-      memberType === MemberType.Disciple &&
+      memberType === MemberOfferingType.Disciple &&
       memberId !== offering?.disciple?.id
     ) {
       throw new BadRequestException(
@@ -3538,14 +3538,17 @@ export class OfferingIncomeService {
       );
     }
 
-    if (memberType === MemberType.Pastor && memberId !== offering?.pastor?.id) {
+    if (
+      memberType === MemberOfferingType.Pastor &&
+      memberId !== offering?.pastor?.id
+    ) {
       throw new BadRequestException(
         `No se puede actualizar el Pastor que pertenece este registro.`,
       );
     }
 
     if (
-      memberType === MemberType.Copastor &&
+      memberType === MemberOfferingType.Copastor &&
       memberId !== offering?.copastor?.id
     ) {
       throw new BadRequestException(
@@ -3554,7 +3557,7 @@ export class OfferingIncomeService {
     }
 
     if (
-      memberType === MemberType.Supervisor &&
+      memberType === MemberOfferingType.Supervisor &&
       memberId !== offering?.supervisor?.id
     ) {
       throw new BadRequestException(
@@ -3563,7 +3566,7 @@ export class OfferingIncomeService {
     }
 
     if (
-      memberType === MemberType.Preacher &&
+      memberType === MemberOfferingType.Preacher &&
       memberId !== offering?.preacher?.id
     ) {
       throw new BadRequestException(
@@ -3601,35 +3604,35 @@ export class OfferingIncomeService {
       }
 
       let memberValue: Pastor | Copastor | Supervisor | Preacher | Disciple;
-      if (memberType === MemberType.Pastor) {
+      if (memberType === MemberOfferingType.Pastor) {
         memberValue = await this.pastorRepository.findOne({
           where: {
             id: memberId,
           },
         });
       }
-      if (memberType === MemberType.Copastor) {
+      if (memberType === MemberOfferingType.Copastor) {
         memberValue = await this.copastorRepository.findOne({
           where: {
             id: memberId,
           },
         });
       }
-      if (memberType === MemberType.Supervisor) {
+      if (memberType === MemberOfferingType.Supervisor) {
         memberValue = await this.supervisorRepository.findOne({
           where: {
             id: memberId,
           },
         });
       }
-      if (memberType === MemberType.Preacher) {
+      if (memberType === MemberOfferingType.Preacher) {
         memberValue = await this.preacherRepository.findOne({
           where: {
             id: memberId,
           },
         });
       }
-      if (memberType === MemberType.Disciple) {
+      if (memberType === MemberOfferingType.Disciple) {
         memberValue = await this.discipleRepository.findOne({
           where: {
             id: memberId,
@@ -3638,7 +3641,7 @@ export class OfferingIncomeService {
       }
 
       let externalDonor: ExternalDonor;
-      if (memberType === MemberType.ExternalDonor) {
+      if (memberType === MemberOfferingType.ExternalDonor) {
         externalDonor = await this.externalDonorRepository.findOne({
           where: {
             id: externalDonorId,
@@ -3789,7 +3792,7 @@ export class OfferingIncomeService {
           },
         });
 
-        if (memberType === MemberType.Pastor) {
+        if (memberType === MemberOfferingType.Pastor) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
               id: Not(id),
@@ -3804,7 +3807,7 @@ export class OfferingIncomeService {
             },
           });
         }
-        if (memberType === MemberType.Copastor) {
+        if (memberType === MemberOfferingType.Copastor) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
               id: Not(id),
@@ -3819,7 +3822,7 @@ export class OfferingIncomeService {
             },
           });
         }
-        if (memberType === MemberType.Supervisor) {
+        if (memberType === MemberOfferingType.Supervisor) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
               id: Not(id),
@@ -3834,7 +3837,7 @@ export class OfferingIncomeService {
             },
           });
         }
-        if (memberType === MemberType.Preacher) {
+        if (memberType === MemberOfferingType.Preacher) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
               id: Not(id),
@@ -3849,7 +3852,7 @@ export class OfferingIncomeService {
             },
           });
         }
-        if (memberType === MemberType.Disciple) {
+        if (memberType === MemberOfferingType.Disciple) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
               id: Not(id),
@@ -3864,7 +3867,7 @@ export class OfferingIncomeService {
             },
           });
         }
-        if (memberType === MemberType.ExternalDonor) {
+        if (memberType === MemberOfferingType.ExternalDonor) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
               id: Not(id),
@@ -3919,11 +3922,15 @@ export class OfferingIncomeService {
           church: church,
           familyGroup: familyGroup,
           zone: zone,
-          disciple: memberType === MemberType.Disciple ? memberValue : null,
-          preacher: memberType === MemberType.Preacher ? memberValue : null,
-          supervisor: memberType === MemberType.Supervisor ? memberValue : null,
-          copastor: memberType === MemberType.Copastor ? memberValue : null,
-          pastor: memberType === MemberType.Pastor ? memberValue : null,
+          disciple:
+            memberType === MemberOfferingType.Disciple ? memberValue : null,
+          preacher:
+            memberType === MemberOfferingType.Preacher ? memberValue : null,
+          supervisor:
+            memberType === MemberOfferingType.Supervisor ? memberValue : null,
+          copastor:
+            memberType === MemberOfferingType.Copastor ? memberValue : null,
+          pastor: memberType === MemberOfferingType.Pastor ? memberValue : null,
           externalDonor: externalDonor,
           updatedAt: new Date(),
           updatedBy: user,

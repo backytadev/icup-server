@@ -16,7 +16,7 @@ import { OfferingInactivationReason } from '@/modules/offering/shared/enums/offe
 
 import { Gender } from '@/common/enums/gender.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { MemberType } from '@/modules/offering/income/enums/member-type.enum';
+import { MemberOfferingType } from '@/modules/offering/income/enums/member-offering-type.enum';
 
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
 import { OfferingIncomeCreationSubType } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
@@ -211,7 +211,7 @@ export class CreateOfferingIncomeDto {
   recordStatus?: string;
 
   @ApiProperty({
-    example: MemberType.Pastor,
+    example: MemberOfferingType.Pastor,
   })
   @IsOptional()
   @IsString()

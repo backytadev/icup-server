@@ -11,7 +11,7 @@ import {
   OfferingIncomeCreationCategory,
   OfferingIncomeCreationCategoryNames,
 } from '@/modules/offering/income/enums/offering-income-creation-category.enum';
-import { MemberTypeNames } from '@/modules/offering/income/enums/member-type.enum';
+import { MemberOfferingTypeNames } from '@/modules/offering/income/enums/member-offering-type.enum';
 
 import { OfferingIncomeCreationSubTypeNames } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 import { OfferingIncomeByActivitiesDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-activities-formatter.helper';
@@ -672,7 +672,7 @@ export const getOfferingIncomeMetricsReport = (
                         : `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                       OfferingIncomeCreationCategoryNames[offering.category],
                       offering?.internalDonor?.memberType
-                        ? ` ${offering?.internalDonor?.memberFullName} (${MemberTypeNames[offering?.internalDonor?.memberType]})`
+                        ? ` ${offering?.internalDonor?.memberFullName} (${MemberOfferingTypeNames[offering?.internalDonor?.memberType]})`
                         : offering?.externalDonor?.donorId
                           ? ` ${offering?.externalDonor?.donorFullName} (Donador Externo)`
                           : '-',
@@ -1302,7 +1302,7 @@ export const getOfferingIncomeMetricsReport = (
                         : `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                       OfferingIncomeCreationCategoryNames[offering.category],
                       offering?.internalDonor?.memberType
-                        ? `${offering?.internalDonor?.memberFullName} (${MemberTypeNames[offering?.internalDonor?.memberType]})`
+                        ? `${offering?.internalDonor?.memberFullName} (${MemberOfferingTypeNames[offering?.internalDonor?.memberType]})`
                         : offering?.externalDonor?.donorId
                           ? ` ${offering?.externalDonor?.donorFullName} (Donador Externo)`
                           : '-',
@@ -1449,7 +1449,7 @@ export const getOfferingIncomeMetricsReport = (
                     `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                     OfferingIncomeCreationCategoryNames[offering.category],
                     offering?.memberType && !offering?.externalDonor?.donorId
-                      ? ` ${offering?.memberFullName} (${MemberTypeNames[offering?.memberType]})`
+                      ? ` ${offering?.memberFullName} (${MemberOfferingTypeNames[offering?.memberType]})`
                       : offering?.externalDonor?.donorId
                         ? ` ${offering?.memberFullName} (En General)`
                         : 'Actividades Pro-Terreno (En General)',
@@ -1728,7 +1728,7 @@ export const getOfferingIncomeMetricsReport = (
                       `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                       OfferingIncomeCreationCategoryNames[offering.category],
                       offering?.memberType
-                        ? ` ${offering?.memberFullName} (${MemberTypeNames[offering?.memberType]})`
+                        ? ` ${offering?.memberFullName} (${MemberOfferingTypeNames[offering?.memberType]})`
                         : '-',
                       offering.accumulatedOfferingPEN
                         ? `${offering.accumulatedOfferingPEN.toFixed(2)} PEN`

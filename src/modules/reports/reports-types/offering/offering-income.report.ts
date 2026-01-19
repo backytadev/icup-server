@@ -6,9 +6,9 @@ import { headerSection } from '@/modules/reports/sections/header.section';
 import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import {
-  MemberType,
-  MemberTypeNames,
-} from '@/modules/offering/income/enums/member-type.enum';
+  MemberOfferingType,
+  MemberOfferingTypeNames,
+} from '@/modules/offering/income/enums/member-offering-type.enum';
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 import { OfferingIncomeCreationTypeNames } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
 import { OfferingIncomeCreationCategoryNames } from '@/modules/offering/income/enums/offering-income-creation-category.enum';
@@ -130,19 +130,20 @@ export const getOfferingIncomeReport = (
               formatDateToLimaDayMonthYear(item?.date),
               `${item?.familyGroup?.familyGroupCode ?? '-'}`,
               `${item?.zone?.zoneName ?? '-'}`,
-              `${MemberTypeNames[item?.memberType] ?? '-'}
+              `${MemberOfferingTypeNames[item?.memberType] ?? '-'}
               ${
-                item?.memberType === MemberType.Pastor
+                item?.memberType === MemberOfferingType.Pastor
                   ? `${item?.pastor?.firstNames} ${item?.pastor?.lastNames}`
-                  : item?.memberType === MemberType.Copastor
+                  : item?.memberType === MemberOfferingType.Copastor
                     ? `${item?.copastor?.firstNames} ${item?.copastor?.lastNames}`
-                    : item?.memberType === MemberType.Supervisor
+                    : item?.memberType === MemberOfferingType.Supervisor
                       ? `${item?.supervisor?.firstNames} ${item?.supervisor?.lastNames}`
-                      : item?.memberType === MemberType.Preacher
+                      : item?.memberType === MemberOfferingType.Preacher
                         ? `${item?.preacher?.firstNames} ${item?.preacher?.lastNames}`
-                        : item?.memberType === MemberType.Disciple
+                        : item?.memberType === MemberOfferingType.Disciple
                           ? `${item?.disciple?.firstNames} ${item?.disciple?.lastNames}`
-                          : item?.memberType === MemberType.ExternalDonor
+                          : item?.memberType ===
+                              MemberOfferingType.ExternalDonor
                             ? `${item?.externalDonor?.firstNames} ${item?.externalDonor?.lastNames}`
                             : '-'
               }`,

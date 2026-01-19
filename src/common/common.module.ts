@@ -16,12 +16,19 @@ import { MinistryCustomNameSearchStrategy } from '@/common/strategies/search/opt
 
 import { GenderSearchStrategy } from '@/common/strategies/search/options/gender-search.strategy';
 import { CountrySearchStrategy } from '@/common/strategies/search/options/country-search.strategy';
+import { ZoneNameSearchStrategy } from '@/common/strategies/search/options/zone-name-search.strategy';
 import { LastNameSearchStrategy } from '@/common/strategies/search/options/last-names-search.strategy';
 import { FullNameSearchStrategy } from '@/common/strategies/search/options/full-names-search.strategy';
 import { BirthDateSearchStrategy } from '@/common/strategies/search/options/birth-date-search.strategy';
 import { FirstNameSearchStrategy } from '@/common/strategies/search/options/first-names-search.strategy';
 import { BirthMonthSearchStrategy } from '@/common/strategies/search/options/birth-month-search.strategy';
 import { MaritalStatusSearchStrategy } from '@/common/strategies/search/options/marital-status-search.strategy';
+import { FamilyGroupCodeSearchStrategy } from '@/common/strategies/search/options/family-group-code-search.strategy';
+import { FamilyGroupNameSearchStrategy } from '@/common/strategies/search/options/family-group-name-search.strategy';
+import { AvailablePreachersSearchStrategy } from '@/common/strategies/search/options/available-preachers-search.strategy';
+import { AvailableSupervisorsSearchStrategy } from '@/common/strategies/search/options/available-supervisors-search.strategy';
+import { FamilyGroupMostPopulatedSearchStrategy } from '@/common/strategies/search/options/family-group-most-populated.strategy';
+import { FamilyGroupLessPopulatedSearchStrategy } from '@/common/strategies/search/options/family-group-less-populated.strategy';
 
 @Module({
   providers: [
@@ -50,6 +57,13 @@ import { MaritalStatusSearchStrategy } from '@/common/strategies/search/options/
     LastNameSearchStrategy,
     FullNameSearchStrategy,
 
+    FamilyGroupMostPopulatedSearchStrategy,
+    FamilyGroupLessPopulatedSearchStrategy,
+    AvailableSupervisorsSearchStrategy,
+    AvailablePreachersSearchStrategy,
+    FamilyGroupCodeSearchStrategy,
+    FamilyGroupNameSearchStrategy,
+    ZoneNameSearchStrategy,
     SearchStrategyFactory,
   ],
   exports: [SearchStrategyFactory],
