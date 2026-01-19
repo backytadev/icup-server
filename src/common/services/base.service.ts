@@ -26,11 +26,16 @@ import { UpdateMinistriesMember } from '@/common/interfaces/build-update-entity-
 import { UpdateMinistriesIfNeeded } from '@/common/interfaces/update-ministries-if-needed.interface';
 
 import { User } from '@/modules/user/entities/user.entity';
+import { Zone } from '@/modules/zone/entities/zone.entity';
 import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { Church } from '@/modules/church/entities/church.entity';
 import { Member } from '@/modules/member/entities/member.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Ministry } from '@/modules/ministry/entities/ministry.entity';
+import { Preacher } from '@/modules/preacher/entities/preacher.entity';
+import { Disciple } from '@/modules/disciple/entities/disciple.entity';
+import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
+import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 
 export class BaseService {
   protected readonly logger = new Logger(this.constructor.name);
@@ -79,7 +84,16 @@ export class BaseService {
   }
 
   protected validateRecordStatusUpdate(
-    entity: Pastor | Copastor | Church | Ministry,
+    entity:
+      | Pastor
+      | Copastor
+      | Church
+      | Supervisor
+      | Preacher
+      | Disciple
+      | Ministry
+      | Zone
+      | FamilyGroup,
     newStatus: RecordStatus,
   ): void {
     if (
@@ -225,7 +239,16 @@ export class BaseService {
 
   //* Cleaners and Updaters
   protected async cleanSubordinateRelations(
-    entity: Church | Pastor | Copastor,
+    entity:
+      | Church
+      | Pastor
+      | Copastor
+      | Supervisor
+      | Preacher
+      | Disciple
+      | Zone
+      | FamilyGroup
+      | Ministry,
     user: User,
     relationGroups: { repo: Repository<any>; relation: string }[],
   ): Promise<void> {
@@ -393,7 +416,7 @@ export class BaseService {
     this.logger.error(error);
 
     throw new InternalServerErrorException(
-      error.response.message ??
+      error?.response?.message ??
         'Sucedió un error inesperado, hable con el administrador.',
     );
   }

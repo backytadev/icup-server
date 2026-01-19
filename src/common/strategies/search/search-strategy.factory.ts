@@ -21,6 +21,13 @@ import { GenderSearchStrategy } from '@/common/strategies/search/options/gender-
 import { BirthDateSearchStrategy } from '@/common/strategies/search/options/birth-date-search.strategy';
 import { BirthMonthSearchStrategy } from '@/common/strategies/search/options/birth-month-search.strategy';
 import { CountrySearchStrategy } from '@/common/strategies/search/options/country-search.strategy';
+import { ZoneNameSearchStrategy } from '@/common/strategies/search/options/zone-name-search.strategy';
+import { FamilyGroupCodeSearchStrategy } from '@/common/strategies/search/options/family-group-code-search.strategy';
+import { FamilyGroupNameSearchStrategy } from '@/common/strategies/search/options/family-group-name-search.strategy';
+import { AvailablePreachersSearchStrategy } from '@/common/strategies/search/options/available-preachers-search.strategy';
+import { AvailableSupervisorsSearchStrategy } from '@/common/strategies/search/options/available-supervisors-search.strategy';
+import { FamilyGroupLessPopulatedSearchStrategy } from '@/common/strategies/search/options/family-group-less-populated.strategy';
+import { FamilyGroupMostPopulatedSearchStrategy } from '@/common/strategies/search/options/family-group-most-populated.strategy';
 
 @Injectable()
 export class SearchStrategyFactory {
@@ -47,6 +54,17 @@ export class SearchStrategyFactory {
     private readonly firstNames: FirstNameSearchStrategy,
     private readonly lastNames: LastNameSearchStrategy,
     private readonly fullNames: FullNameSearchStrategy,
+
+    private readonly availableSupervisors: AvailableSupervisorsSearchStrategy,
+    private readonly availablePreachers: AvailablePreachersSearchStrategy,
+
+    private readonly zoneName: ZoneNameSearchStrategy,
+
+    private readonly familyGroupMostPopulated: FamilyGroupMostPopulatedSearchStrategy,
+    private readonly familyGroupLessPopulated: FamilyGroupLessPopulatedSearchStrategy,
+
+    private readonly familyGroupCode: FamilyGroupCodeSearchStrategy,
+    private readonly familyGroupName: FamilyGroupNameSearchStrategy,
   ) {}
 
   getStrategy(type: SearchType) {
@@ -98,6 +116,26 @@ export class SearchStrategyFactory {
         return this.lastNames;
       case SearchType.FullNames:
         return this.fullNames;
+
+      case SearchType.ZoneName:
+        return this.zoneName;
+
+      case SearchType.AvailablePreachersByZone:
+        return this.availablePreachers;
+
+      case SearchType.AvailableSupervisorsByCopastor:
+      case SearchType.AvailableSupervisorsByChurch:
+        return this.availableSupervisors;
+
+      case SearchType.MostPopulatedFamilyGroups:
+        return this.familyGroupMostPopulated;
+      case SearchType.LessPopulatedFamilyGroups:
+        return this.familyGroupLessPopulated;
+
+      case SearchType.FamilyGroupCode:
+        return this.familyGroupCode;
+      case SearchType.FamilyGroupName:
+        return this.familyGroupName;
 
       default:
         throw new BadRequestException(

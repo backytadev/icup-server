@@ -60,7 +60,12 @@ export class AddressSearchStrategy implements SearchStrategy {
       recordStatus: RecordStatus.Active,
     };
 
-    if (moduleKey === 'ministries' || moduleKey === 'churches') {
+    if (
+      moduleKey === 'ministries' ||
+      moduleKey === 'churches' ||
+      moduleKey === 'zones' ||
+      moduleKey === 'familyGroups'
+    ) {
       return {
         ...baseWhere,
         address: ILike(`%${term}%`),

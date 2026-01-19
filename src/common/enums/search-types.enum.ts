@@ -25,8 +25,9 @@ export enum SearchType {
 
   //* Disciple, Supervisor, Preacher, Family Group
   ZoneName = 'zone_name',
-  ZoneId = 'zone_id',
-  CopastorId = 'copastor_id',
+  AvailablePreachersByZone = 'available_preachers_by_zone',
+  AvailableSupervisorsByCopastor = 'available_supervisors_by_copastor',
+  AvailableSupervisorsByChurch = 'available_supervisors_by_church',
 
   //* Disciple, Supervisor, Preacher, Fam. Group,
   FamilyGroupCode = 'family_group_code',
@@ -162,8 +163,11 @@ export const SearchTypeNames: Record<SearchType, string> = {
   [SearchType.MaritalStatus]: 'Estado Civil',
 
   [SearchType.ZoneName]: 'Nombre de Zona',
-  [SearchType.ZoneId]: 'ID de Zona',
-  [SearchType.CopastorId]: 'ID de Copastor',
+  [SearchType.AvailablePreachersByZone]: 'Predicadores disponibles por Zona',
+  [SearchType.AvailableSupervisorsByCopastor]:
+    'Supervisors disponibles por co-pastor',
+  [SearchType.AvailableSupervisorsByChurch]:
+    'Supervisors disponibles por  iglesia',
 
   [SearchType.FamilyGroupCode]: 'Código de Grupo Familiar',
   [SearchType.FamilyGroupName]: 'Nombre de Grupo Familiar',

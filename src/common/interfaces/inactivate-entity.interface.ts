@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 
 import { User } from '@/modules/user/entities/user.entity';
+import { Zone } from '@/modules/zone/entities/zone.entity';
 import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { Church } from '@/modules/church/entities/church.entity';
 import { Ministry } from '@/modules/ministry/entities/ministry.entity';
@@ -8,6 +9,7 @@ import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
+import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 
 export interface InactivateEntity {
   entity:
@@ -17,6 +19,8 @@ export interface InactivateEntity {
     | Preacher
     | Disciple
     | Church
+    | Zone
+    | FamilyGroup
     | Ministry;
   user: User;
   entityRepository: Repository<any>;

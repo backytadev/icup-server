@@ -59,7 +59,12 @@ export class UrbanSectorSearchStrategy implements SearchStrategy {
       recordStatus: RecordStatus.Active,
     };
 
-    if (moduleKey === 'ministries' || moduleKey === 'churches') {
+    if (
+      moduleKey === 'ministries' ||
+      moduleKey === 'churches' ||
+      moduleKey === 'zones' ||
+      moduleKey === 'familyGroups'
+    ) {
       return {
         ...baseWhere,
         urbanSector: ILike(`%${term}%`),
