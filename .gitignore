@@ -34,5 +34,6 @@ lerna-debug.log*
 .vscode/*
 !.vscode/extensions.json
 
+CLAUDE.md
 
 

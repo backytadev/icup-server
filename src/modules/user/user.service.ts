@@ -9,10 +9,10 @@ import { FindOptionsOrderValue, In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { BaseService } from '@/common/services/base.service';
-import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
 import { User } from '@/modules/user/entities/user.entity';
+import { UserPaginationDto } from '@/modules/user/dto/user-pagination.dto';
 import { Church } from '@/modules/church/entities/church.entity';
 import { Ministry } from '@/modules/ministry/entities/ministry.entity';
 
@@ -59,15 +59,21 @@ export class UserService extends BaseService {
   }
 
   //* Find all
-  async findAll(query: PaginationDto): Promise<User[]> {
+  async findAll(query: UserPaginationDto): Promise<User[]> {
     const { limit, offset = 0, order = 'ASC' } = query;
 
     try {
       const users = await this.userRepository.find({
-        where: { recordStatus: RecordStatus.Inactive },
+        where: { recordStatus: RecordStatus.Active },
         take: limit,
         skip: offset,
-        relations: ['updatedBy', 'createdBy', 'churches', 'ministries'],
+        relations: [
+          'updatedBy',
+          'createdBy',
+          'churches',
+          'ministries',
+          'ministries.theirChurch',
+        ],
         order: { createdAt: order as FindOptionsOrderValue },
       });
 

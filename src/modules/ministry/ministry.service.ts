@@ -87,7 +87,14 @@ export class MinistryService extends BaseService {
           churchId: churchId,
           churchRepository: this.churchRepository,
           mainRepository: this.ministryRepository,
-          relations: [],
+          relations: [
+            'createdBy',
+            'theirChurch',
+            'theirPastor.member',
+            'members',
+            'members.member',
+            'members.ministry',
+          ],
         });
       }
 
@@ -243,10 +250,11 @@ export class MinistryService extends BaseService {
       },
     });
 
-    await this.cleanSubordinateRelations(ministry, user, [
-      { repo: this.churchRepository, relation: 'theirMinistry' },
-      { repo: this.pastorRepository, relation: 'theirMinistry' },
-    ]);
+    // revisar el flujo de eliminar para quitar relaciones en ministerio
+    // await this.cleanSubordinateRelations(ministry, user, [
+    //   { repo: this.churchRepository, relation: 'theirMinistry' },
+    //   { repo: this.pastorRepository, relation: 'theirMinistry' },
+    // ]);
   }
 
   // ---------------------------------------------------------------------------------------------- //
