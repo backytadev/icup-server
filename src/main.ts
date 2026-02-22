@@ -29,8 +29,12 @@ async function bootstrap() {
   app.enableCors({
     origin:
       process.env.STAGE === 'prod'
-        ? process.env.URL_DOMAIN
-        : 'http://localhost:5173',
+        ? [
+            process.env.URL_DOMAIN,
+            process.env.URL_TIME_DOMAIN,
+            process.env.URL_TEST_DOMAIN,
+          ]
+        : ['http://localhost:5173', 'http://localhost:5174'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -48,6 +52,15 @@ async function bootstrap() {
       .setDescription('ICUP Sever Endpoints')
       .setVersion('1.0')
       .addBearerAuth()
+      .addApiKey(
+        {
+          type: 'apiKey',
+          name: 'x-api-key',
+          in: 'header',
+          description: 'API key for public endpoints access',
+        },
+        'x-api-key',
+      )
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document, {
@@ -64,6 +77,7 @@ async function bootstrap() {
             'Disciples',
             'Offering Income',
             'Offering Expenses',
+            'Calendar Events',
             'Metrics',
             'Users',
             'External Donors',
