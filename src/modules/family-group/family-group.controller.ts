@@ -43,7 +43,7 @@ export class FamilyGroupController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
   @CreateSwagger({ description: 'Family group created successfully' })
   create(
     @Body() body: CreateFamilyGroupDto,
@@ -54,7 +54,13 @@ export class FamilyGroupController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.MembershipUser,
+    UserRole.AdminUser,
+    UserRole.User,
+    UserRole.TreasurerUser,
+  )
   @FindAllSwagger({ description: 'Family groups retrieved successfully' })
   findAll(@Query() paginationDto: PaginationDto): Promise<FamilyGroup[]> {
     return this.familyGroupService.findAll(paginationDto);
@@ -62,7 +68,13 @@ export class FamilyGroupController {
 
   //* Find by filters
   @Get('search')
-  @Auth()
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.MembershipUser,
+    UserRole.AdminUser,
+    UserRole.User,
+    UserRole.TreasurerUser,
+  )
   @SearchSwagger({ description: 'Family groups search completed successfully' })
   findByFilters(
     @Query() query: FamilyGroupSearchAndPaginationDto,
@@ -72,7 +84,7 @@ export class FamilyGroupController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
   @UpdateSwagger({
     description: 'Family group updated successfully',
     paramDescription: 'Family group UUID to update',
@@ -87,7 +99,7 @@ export class FamilyGroupController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'Family group deleted successfully',
     paramDescription: 'Family group UUID to delete',

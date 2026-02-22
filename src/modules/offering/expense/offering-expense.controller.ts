@@ -72,7 +72,7 @@ export class OfferingExpenseController {
 
   //* CREATE
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser, UserRole.AdminUser)
   @ApiCreatedResponse({
     description:
       '✅ Successfully created: The record has been successfully created and added to the system.',
@@ -86,7 +86,7 @@ export class OfferingExpenseController {
 
   //* FIND ALL
   @Get()
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser, UserRole.AdminUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
@@ -109,7 +109,7 @@ export class OfferingExpenseController {
 
   //* FIND BY TERM
   @Get(':term')
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser, UserRole.AdminUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
@@ -156,7 +156,7 @@ export class OfferingExpenseController {
 
   //* UPDATE
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser, UserRole.AdminUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The resource was successfully updated. The updated data is returned in the response.',
@@ -181,7 +181,7 @@ export class OfferingExpenseController {
 
   //! INACTIVATE
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser, UserRole.AdminUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The resource was successfully deleted. No content is returned.',

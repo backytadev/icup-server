@@ -73,7 +73,7 @@ export class ExternalDonorController {
 
   //* UPDATE
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The resource was successfully updated. The updated data is returned in the response.',

@@ -417,10 +417,11 @@ export class OfferingIncomeService {
         }
       }
 
-      //? Sunday School, Youth service, Church Ground, Special
+      //? Sunday School, Youth service, Teenager Service, Church Ground, Special
       if (
         subType === OfferingIncomeCreationSubType.SundaySchool ||
         subType === OfferingIncomeCreationSubType.YouthService ||
+        subType === OfferingIncomeCreationSubType.TeenagerService ||
         subType === OfferingIncomeCreationSubType.ChurchGround ||
         subType === OfferingIncomeCreationSubType.Special
       ) {
@@ -476,7 +477,8 @@ export class OfferingIncomeService {
 
         if (
           category === OfferingIncomeCreationCategory.OfferingBox &&
-          subType === OfferingIncomeCreationSubType.YouthService
+          (subType === OfferingIncomeCreationSubType.YouthService ||
+            subType === OfferingIncomeCreationSubType.TeenagerService)
         ) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
@@ -656,7 +658,8 @@ export class OfferingIncomeService {
 
           if (
             category === OfferingIncomeCreationCategory.OfferingBox &&
-            subType !== OfferingIncomeCreationSubType.YouthService
+            subType !== OfferingIncomeCreationSubType.YouthService &&
+            subType !== OfferingIncomeCreationSubType.TeenagerService
           ) {
             throw new NotFoundException(
               `Ya existe un registro con este Tipo: ${OfferingIncomeCreationSubTypeNames[subType]} (mismos datos), Iglesia: ${church.abbreviatedChurchName}, Categoría: ${OfferingIncomeCreationCategoryNames[category]}, Divisa: ${currency}, Turno: ${OfferingIncomeCreationShiftTypeNames[shift]} y Fecha: ${offeringDate}.`,
@@ -665,7 +668,8 @@ export class OfferingIncomeService {
 
           if (
             category === OfferingIncomeCreationCategory.OfferingBox &&
-            subType === OfferingIncomeCreationSubType.YouthService
+            (subType === OfferingIncomeCreationSubType.YouthService ||
+              subType === OfferingIncomeCreationSubType.TeenagerService)
           ) {
             throw new NotFoundException(
               `Ya existe un registro con este Tipo: ${OfferingIncomeCreationSubTypeNames[subType]} (mismos datos), Iglesia: ${church.abbreviatedChurchName}, Categoría: ${OfferingIncomeCreationCategoryNames[category]}, y Fecha: ${offeringDate}.`,
@@ -1357,6 +1361,7 @@ export class OfferingIncomeService {
         searchType === OfferingIncomeSearchType.GeneralVigil ||
         searchType === OfferingIncomeSearchType.GeneralEvangelism ||
         searchType === OfferingIncomeSearchType.YouthService ||
+        searchType === OfferingIncomeSearchType.TeenagerService ||
         searchType === OfferingIncomeSearchType.UnitedService ||
         searchType === OfferingIncomeSearchType.Activities ||
         searchType === OfferingIncomeSearchType.Special ||
@@ -2490,6 +2495,7 @@ export class OfferingIncomeService {
       (searchType === OfferingIncomeSearchType.Special ||
         searchType === OfferingIncomeSearchType.ChurchGround ||
         searchType === OfferingIncomeSearchType.YouthService ||
+        searchType === OfferingIncomeSearchType.TeenagerService ||
         searchType === OfferingIncomeSearchType.SundaySchool) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingByContributorFirstNames
@@ -2758,6 +2764,7 @@ export class OfferingIncomeService {
       (searchType === OfferingIncomeSearchType.Special ||
         searchType === OfferingIncomeSearchType.ChurchGround ||
         searchType === OfferingIncomeSearchType.YouthService ||
+        searchType === OfferingIncomeSearchType.TeenagerService ||
         searchType === OfferingIncomeSearchType.SundaySchool) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingByContributorLastNames
@@ -3026,6 +3033,7 @@ export class OfferingIncomeService {
       (searchType === OfferingIncomeSearchType.Special ||
         searchType === OfferingIncomeSearchType.ChurchGround ||
         searchType === OfferingIncomeSearchType.YouthService ||
+        searchType === OfferingIncomeSearchType.TeenagerService ||
         searchType === OfferingIncomeSearchType.SundaySchool) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingByContributorFullNames
@@ -3406,6 +3414,7 @@ export class OfferingIncomeService {
         OfferingIncomeSearchType.GeneralFasting ||
         OfferingIncomeSearchType.GeneralVigil ||
         OfferingIncomeSearchType.YouthService ||
+        OfferingIncomeSearchType.TeenagerService ||
         OfferingIncomeSearchType.UnitedService ||
         OfferingIncomeSearchType.Activities ||
         OfferingIncomeSearchType.Special ||
@@ -3694,6 +3703,30 @@ export class OfferingIncomeService {
 
       //* Youth Service
       if (subType === OfferingIncomeCreationSubType.YouthService) {
+        existsOffering = await this.offeringIncomeRepository.find({
+          where: {
+            id: Not(id),
+            type: type,
+            subType: subType,
+            category: category,
+            church: church,
+            date: new Date(date),
+            currency: currency,
+            shift: shift,
+            memberType: memberType,
+            pastor: memberValue as Pastor,
+            copastor: memberValue as Copastor,
+            supervisor: memberValue as Supervisor,
+            preacher: memberValue as Preacher,
+            disciple: memberValue as Disciple,
+            externalDonor: externalDonor,
+            recordStatus: RecordStatus.Active,
+          },
+        });
+      }
+
+      //* Teenager Service
+      if (subType === OfferingIncomeCreationSubType.TeenagerService) {
         existsOffering = await this.offeringIncomeRepository.find({
           where: {
             id: Not(id),
@@ -4118,6 +4151,8 @@ export class OfferingIncomeService {
             OfferingIncomeCreationSubType.UnitedService ||
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.YouthService ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.TeenagerService ||
           offeringIncome.subType === OfferingIncomeCreationSubType.Activities
         ) {
           offeringDestiny = await this.offeringIncomeRepository.findOne({
@@ -4429,6 +4464,7 @@ export class OfferingIncomeService {
       zonal_evangelism: 'EZ',
       sunday_school: 'ED',
       youth_service: 'CJ',
+      teenager_service: 'CA',
       united_service: 'CU',
       zonal_united_service: 'CUZ',
       activities: 'AC',

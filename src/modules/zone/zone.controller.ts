@@ -43,7 +43,7 @@ export class ZoneController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
   @CreateSwagger({ description: 'Zone created successfully' })
   create(@Body() body: CreateZoneDto, @GetUser() user: User): Promise<Zone> {
     return this.zoneService.create(body, user);
@@ -51,7 +51,12 @@ export class ZoneController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.MembershipUser,
+    UserRole.AdminUser,
+    UserRole.User,
+  )
   @FindAllSwagger({ description: 'Zones retrieved successfully' })
   findAll(@Query() query: ZonePaginationDto): Promise<Zone[]> {
     return this.zoneService.findAll(query);
@@ -59,7 +64,12 @@ export class ZoneController {
 
   //* Find by filters
   @Get('search')
-  @Auth()
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.MembershipUser,
+    UserRole.AdminUser,
+    UserRole.User,
+  )
   @SearchSwagger({ description: 'Zones search completed successfully' })
   findByFilters(@Query() query: ZoneSearchAndPaginationDto): Promise<Zone[]> {
     return this.zoneService.findByFilters(query);
@@ -67,7 +77,7 @@ export class ZoneController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
   @UpdateSwagger({
     description: 'Zone updated successfully',
     paramDescription: 'Zone UUID to update',
@@ -82,7 +92,7 @@ export class ZoneController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'Zone deleted successfully',
     paramDescription: 'Zone UUID to delete',

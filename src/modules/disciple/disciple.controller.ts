@@ -45,7 +45,7 @@ export class DiscipleController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
   @CreateSwagger({ description: 'Disciple created successfully' })
   create(
     @Body() body: CreateDiscipleDto,
@@ -56,7 +56,13 @@ export class DiscipleController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.MembershipUser,
+    UserRole.AdminUser,
+    UserRole.User,
+    UserRole.TreasurerUser,
+  )
   @FindAllSwagger({ description: 'Disciples retrieved successfully' })
   findAll(@Query() body: DisciplePaginationDto): Promise<Disciple[]> {
     return this.discipleService.findAll(body);
@@ -64,7 +70,13 @@ export class DiscipleController {
 
   //* Find by filters
   @Get('search')
-  @Auth()
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.MembershipUser,
+    UserRole.AdminUser,
+    UserRole.User,
+    UserRole.TreasurerUser,
+  )
   @SearchSwagger({ description: 'Disciples search completed successfully' })
   findByFilters(
     @Query() query: DiscipleSearchAndPaginationDto,
@@ -74,7 +86,7 @@ export class DiscipleController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
   @UpdateSwagger({
     description: 'Disciple updated successfully',
     paramDescription: 'Disciple UUID to update',
@@ -89,7 +101,7 @@ export class DiscipleController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'Disciple deleted successfully',
     paramDescription: 'Disciple UUID to delete',

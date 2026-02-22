@@ -61,7 +61,7 @@ export class FilesController {
 
   //* Upload file to cloudinary
   @Post('upload')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.TreasurerUser)
   @ApiOkResponse({
     description:
       '✅ Operation Successful: The images were successfully uploaded. The response includes the URLs of the uploaded images.',
@@ -116,7 +116,7 @@ export class FilesController {
 
   //! Destroy file to cloudinary
   @Delete(':publicId')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.TreasurerUser)
   @ApiOkResponse({
     description:
       '✅ Operation Successful: The requested image has been successfully deleted. No content is returned in the response.',

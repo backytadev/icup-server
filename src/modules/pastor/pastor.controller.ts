@@ -44,7 +44,7 @@ export class PastorController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Pastor created successfully' })
   create(
     @Body() body: CreatePastorDto,
@@ -55,7 +55,7 @@ export class PastorController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @FindAllSwagger({ description: 'Pastors retrieved successfully' })
   findAll(@Query() query: PastorPaginationDto): Promise<Pastor[]> {
     return this.pastorService.findAll(query);
@@ -63,7 +63,7 @@ export class PastorController {
 
   //* Find by filters
   @Get('search')
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Pastor search completed successfully' })
   findByFilters(
     @Query() query: PastorSearchAndPaginationDto,
@@ -73,7 +73,7 @@ export class PastorController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Pastor updated successfully',
     paramDescription: 'Pastor UUID to update',
@@ -88,7 +88,7 @@ export class PastorController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'Ministry deleted successfully',
     paramDescription: 'Ministry UUID to delete',

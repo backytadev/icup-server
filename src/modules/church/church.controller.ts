@@ -43,7 +43,7 @@ export class ChurchController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Church created successfully' })
   create(
     @Body() body: CreateChurchDto,
@@ -54,7 +54,7 @@ export class ChurchController {
 
   //* Find main church
   @Get('main-church')
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @FindAllSwagger({ description: 'Main church retrieved successfully' })
   findMainChurch(@Query() query: ChurchPaginationDto): Promise<Church[]> {
     return this.churchService.findMainChurch(query);
@@ -62,7 +62,7 @@ export class ChurchController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @FindAllSwagger({ description: 'Churches retrieved successfully' })
   findAll(@Query() query: ChurchPaginationDto): Promise<Church[]> {
     return this.churchService.findAll(query);
@@ -70,7 +70,7 @@ export class ChurchController {
 
   //* Find by filters
   @Get('search')
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Church search completed successfully' })
   findByTerm(@Query() query: ChurchSearchAndPaginationDto): Promise<Church[]> {
     return this.churchService.findByFilters(query);
@@ -78,7 +78,7 @@ export class ChurchController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Church updated successfully',
     paramDescription: 'Church UUID to update',
@@ -93,7 +93,7 @@ export class ChurchController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'Church deleted successfully',
     paramDescription: 'Church UUID to delete',

@@ -43,7 +43,7 @@ export class MinistryController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Ministry created successfully' })
   create(
     @Body() body: CreateMinistryDto,
@@ -54,7 +54,7 @@ export class MinistryController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @FindAllSwagger({ description: 'Ministries retrieved successfully' })
   findAll(@Query() query: MinistryPaginationDto): Promise<Ministry[]> {
     return this.ministryService.findAll(query);
@@ -62,7 +62,7 @@ export class MinistryController {
 
   //* Find by filters
   @Get('search')
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Ministry search completed successfully' })
   findByTerm(
     @Query() query: MinistrySearchAndPaginationDto,
@@ -72,7 +72,7 @@ export class MinistryController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Ministry updated successfully',
     paramDescription: 'Ministry UUID to update',
@@ -87,7 +87,7 @@ export class MinistryController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'Ministry deleted successfully',
     paramDescription: 'Ministry UUID to delete',

@@ -54,7 +54,7 @@ export class AuthService {
           createdAt: false,
           updatedAt: false,
         },
-        relations: ['churches', 'ministries'],
+        relations: ['churches', 'ministries', 'ministries.theirChurch'],
       });
 
       if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -102,6 +102,7 @@ export class AuthService {
           customMinistryName: m.customMinistryName,
           ministryCode: m.ministryCode,
           serviceTimes: m.serviceTimes,
+          theirChurch: m.theirChurch,
         })),
 
         token: accessToken,

@@ -42,7 +42,7 @@ export class UserController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @CreateSwagger({ description: 'User created successfully' })
   registerUser(@Body() body: CreateUserDto, @GetUser() user: User) {
     return this.userService.create(body, user);
@@ -50,7 +50,7 @@ export class UserController {
 
   //* Find all
   @Get()
-  @Auth()
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @FindAllSwagger({ description: 'Users retrieved successfully' })
   findAll(@Query() query: UserPaginationDto): Promise<User[]> {
     return this.userService.findAll(query);
@@ -66,7 +66,7 @@ export class UserController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @UpdateSwagger({
     description: 'User updated successfully',
     paramDescription: 'User UUID to update',
@@ -81,7 +81,7 @@ export class UserController {
 
   //* Delete
   @Delete(':id')
-  @Auth(UserRole.SuperUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
     description: 'User deleted successfully',
     paramDescription: 'User UUID to delete',
