@@ -1,5 +1,4 @@
-import { toZonedTime } from 'date-fns-tz';
-const timeZone = 'America/Lima';
+import { parseISO } from 'date-fns';
 
 import { normalizeMonth } from '@/common/helpers/normalize-name-months';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
@@ -91,8 +90,8 @@ export const IncomeAndExpensesComparativeFormatter = ({
   //* Filtrar los ingresos y gastos del año anterior por mes
   const previousYearDataByMonth = MONTH_NAMES.map((_, index) =>
     previousYearData.filter((offering) => {
-      const zonedDate = toZonedTime(offering.date, timeZone);
-      return zonedDate.getMonth() === index;
+      const date = parseISO(String(offering.date));
+      return date.getMonth() === index;
     }),
   );
 
@@ -127,8 +126,8 @@ export const IncomeAndExpensesComparativeFormatter = ({
   //* Filtrar los ingresos y gastos del año actual por mes
   const currentYearDataByMonth = MONTH_NAMES.map((_, index) =>
     currentYearData.filter((offering) => {
-      const zonedDate = toZonedTime(offering.date, timeZone);
-      return zonedDate.getMonth() === index;
+      const date = parseISO(String(offering.date));
+      return date.getMonth() === index;
     }),
   );
 

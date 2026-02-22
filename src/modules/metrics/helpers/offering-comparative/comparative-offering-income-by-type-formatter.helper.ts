@@ -1,5 +1,4 @@
-import { toZonedTime } from 'date-fns-tz';
-const timeZone = 'America/Lima';
+import { parseISO } from 'date-fns';
 
 import { normalizeMonth } from '@/common/helpers/normalize-name-months';
 import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
@@ -56,8 +55,8 @@ export const comparativeOfferingIncomeByTypeFormatter = ({
 
   const dataResult: OfferingIncomeComparativeByTypeDataResult[] =
     offeringIncome?.reduce((acc, offering) => {
-      const zonedDate = toZonedTime(offering.date, timeZone);
-      const offeringMonth = zonedDate.getMonth();
+      const date = parseISO(String(offering.date));
+      const offeringMonth = date.getMonth();
 
       const existing = acc.find(
         (item) => item?.month === MONTH_NAMES[offeringMonth],
