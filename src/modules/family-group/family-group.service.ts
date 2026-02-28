@@ -124,6 +124,7 @@ export class FamilyGroupService extends BaseService {
         order: order as FindOptionsOrderValue,
         churchId,
         mainRepository: this.familyGroupRepository,
+        churchRepository: this.churchRepository,
         relations: [
           'updatedBy',
           'createdBy',
@@ -246,13 +247,13 @@ export class FamilyGroupService extends BaseService {
       repository: this.familyGroupRepository,
       where: { id },
       relations: [],
-      moduleName: 'preacher',
+      moduleName: 'grupo familiar',
     });
 
     await this.inactivateEntity({
       entity: familyGroup,
       user,
-      entityRepository: this.preacherRepository,
+      entityRepository: this.familyGroupRepository,
       extraProps: {
         inactivationCategory: dto.familyGroupInactivationCategory,
         inactivationReason: dto.familyGroupInactivationReason,
@@ -261,8 +262,8 @@ export class FamilyGroupService extends BaseService {
     });
 
     await this.cleanSubordinateRelations(familyGroup, user, [
-      { repo: this.preacherRepository, relation: 'theirZone' },
-      { repo: this.discipleRepository, relation: 'theirZone' },
+      { repo: this.preacherRepository, relation: 'theirFamilyGroup' },
+      { repo: this.discipleRepository, relation: 'theirFamilyGroup' },
     ]);
   }
 
@@ -426,16 +427,16 @@ export class FamilyGroupService extends BaseService {
       case FamilyGroupSearchSubType.FamilyGroupBySupervisorLastNames:
       case FamilyGroupSearchSubType.FamilyGroupBySupervisorFullNames:
         return {
-          personRepository: this.copastorRepository,
+          personRepository: this.supervisorRepository,
           computedKey: 'theirSupervisor',
           personName: 'supervisor',
         };
 
-      case FamilyGroupSearchSubType.FamilyGroupBySupervisorFirstNames:
-      case FamilyGroupSearchSubType.FamilyGroupBySupervisorLastNames:
-      case FamilyGroupSearchSubType.FamilyGroupBySupervisorFullNames:
+      case FamilyGroupSearchSubType.FamilyGroupByPreacherFirstNames:
+      case FamilyGroupSearchSubType.FamilyGroupByPreacherLastNames:
+      case FamilyGroupSearchSubType.FamilyGroupByPreacherFullNames:
         return {
-          personRepository: this.copastorRepository,
+          personRepository: this.preacherRepository,
           computedKey: 'theirPreacher',
           personName: 'preacher',
         };
@@ -478,7 +479,6 @@ export class FamilyGroupService extends BaseService {
     return this.familyGroupRepository.save(updated);
   }
 
-  // todo: Revisar estos 2 bloques
   //* Change Family group preacher
   private async changeFamilyGroupPreacher(
     familyGroup: FamilyGroup,
@@ -494,33 +494,23 @@ export class FamilyGroupService extends BaseService {
     }
 
     if (familyGroup.theirPreacher) {
+      await this.detachFamilyGroupRelations(familyGroup, user);
       await this.detachPreacherRelations(familyGroup.theirPreacher, user);
     }
 
     await this.attachFamilyGroupRelations(familyGroup, newPreacher, user);
     await this.attachPreacherRelations(newPreacher, familyGroup, user);
 
-    this.updateSubordinatesByFamilyGroupChange(familyGroup, newPreacher);
+    await this.attachDisciplesToNewPreacher(newPreacher, familyGroup, user);
 
     const updated = this.familyGroupRepository.create({
       ...familyGroup,
+      theirPreacher: newPreacher,
       updatedAt: new Date(),
       updatedBy: user,
     });
 
     return this.familyGroupRepository.save(updated);
-  }
-
-  // todo: revisar podria estar mal (REVISAR)
-  private updateSubordinatesByFamilyGroupChange(
-    familyGroup: FamilyGroup,
-    preacher: Preacher,
-  ) {
-    familyGroup.theirChurch = preacher.theirChurch;
-    familyGroup.theirPastor = preacher.theirPastor;
-    familyGroup.theirCopastor = preacher.theirCopastor;
-    familyGroup.theirSupervisor = preacher.theirSupervisor;
-    familyGroup.theirZone = preacher.theirZone;
   }
 
   private async validateNewPreacher(preacherId: string): Promise<Preacher> {
@@ -717,5 +707,20 @@ export class FamilyGroupService extends BaseService {
       updatedAt: new Date(),
       updatedBy: user,
     });
+  }
+
+  private async attachDisciplesToNewPreacher(
+    preacher: Preacher,
+    familyGroup: FamilyGroup,
+    user: User,
+  ) {
+    await this.discipleRepository.update(
+      { theirFamilyGroup: { id: familyGroup.id } },
+      {
+        theirPreacher: preacher,
+        updatedAt: new Date(),
+        updatedBy: user,
+      },
+    );
   }
 }
