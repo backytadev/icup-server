@@ -389,10 +389,10 @@ export class MetricsService {
     paginationDto: ReportPaginationDto,
   ): Promise<any> {
     const { churchId, endMonth, type, startMonth, year } = paginationDto;
-    const yearVale = +year;
+    const yearValue = +year;
 
-    const startMonthDate = new Date(`${startMonth} 1, ${yearVale}`);
-    const endMonthDate = new Date(`${endMonth} 1, ${yearVale}`);
+    const startMonthDate = new Date(`${startMonth} 1, ${yearValue}`);
+    const endMonthDate = new Date(`${endMonth} 1, ${yearValue}`);
 
     const startDate = startOfMonth(startMonthDate);
     const endDate = endOfMonth(endMonthDate);

@@ -117,6 +117,7 @@ export class ZoneService extends BaseService {
         order: order as FindOptionsOrderValue,
         churchId,
         mainRepository: this.zoneRepository,
+        churchRepository: this.churchRepository,
         relations: [
           'updatedBy',
           'createdBy',
