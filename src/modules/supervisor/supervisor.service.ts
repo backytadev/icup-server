@@ -172,6 +172,7 @@ export class SupervisorService extends BaseService {
         order: order as FindOptionsOrderValue,
         churchId,
         mainRepository: this.supervisorRepository,
+        churchRepository: this.churchRepository,
         relations: [
           'updatedBy',
           'createdBy',
