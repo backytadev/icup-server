@@ -155,6 +155,7 @@ export class CopastorService extends BaseService {
         offset,
         order: order as FindOptionsOrderValue,
         churchId,
+        churchRepository: this.churchRepository,
         mainRepository: this.copastorRepository,
         relations: [
           'updatedBy',
