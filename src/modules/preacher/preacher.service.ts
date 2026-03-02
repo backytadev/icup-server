@@ -159,6 +159,7 @@ export class PreacherService extends BaseService {
         order: order as FindOptionsOrderValue,
         churchId,
         mainRepository: this.preacherRepository,
+        churchRepository: this.churchRepository,
         relations: [
           'updatedBy',
           'createdBy',
