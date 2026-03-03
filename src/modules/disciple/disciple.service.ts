@@ -167,6 +167,7 @@ export class DiscipleService extends BaseService {
         order: order as FindOptionsOrderValue,
         churchId,
         mainRepository: this.discipleRepository,
+        churchRepository: this.churchRepository,
         relations: [
           'updatedBy',
           'createdBy',
