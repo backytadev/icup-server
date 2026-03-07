@@ -29,6 +29,7 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 import { ExternalDonorModule } from '@/modules/external-donor/external-donor.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
+import { CalendarEventsModule } from '@/modules/calendar-events/calendar-events.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
     ExternalDonorModule,
     OfferingIncomeModule,
     OfferingExpenseModule,
+    CalendarEventsModule,
   ],
   providers: [
     SuperUserService,

@@ -52,3 +52,14 @@ export const DeleteSwagger = ({
     SwaggerResponses.ok(`${description}`),
     SwaggerResponses.defaultResponses(),
   );
+
+export const FindOneSwagger = ({
+  description = 'Resource retrieved successfully',
+  paramDescription = 'Unique identifier of the resource.',
+  paramExample = 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
+}: SwaggerResponseProps) =>
+  applyDecorators(
+    SwaggerResponses.param('id', paramDescription, paramExample),
+    SwaggerResponses.ok(`${description}`),
+    SwaggerResponses.defaultResponses(),
+  );

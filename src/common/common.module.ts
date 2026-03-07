@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { AddressSearchStrategy } from '@/common/strategies/search/options/address-search.strategy';
 import { OriginCountrySearchStrategy } from '@/common/strategies/search/options/origin-country-search.strategy';
@@ -43,7 +43,6 @@ import { FamilyGroupLessPopulatedSearchStrategy } from '@/common/strategies/sear
     RecordStatusSearchStrategy,
 
     ChurchNameSearchStrategy,
-    ChurchNameSearchStrategy,
 
     GenderSearchStrategy,
     MaritalStatusSearchStrategy,
@@ -64,8 +63,8 @@ import { FamilyGroupLessPopulatedSearchStrategy } from '@/common/strategies/sear
     FamilyGroupCodeSearchStrategy,
     FamilyGroupNameSearchStrategy,
     ZoneNameSearchStrategy,
-    SearchStrategyFactory,
+    MemberSearchStrategyFactory,
   ],
-  exports: [SearchStrategyFactory],
+  exports: [MemberSearchStrategyFactory],
 })
 export class CommonModule {}
