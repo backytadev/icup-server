@@ -2,20 +2,20 @@ import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 
 import { BaseSearchAndPaginationDto } from '@/common/dtos/base-search-and-pagination.dto';
+import { MemberSearchType } from '@/common/enums/member-search-type.enum';
 
-import { CopastorSearchType } from '@/modules/copastor/enums/copastor-search-type.enum';
 import { CopastorSearchSubType } from '@/modules/copastor/enums/copastor-search-sub-type.enum';
 
 export class CoPastorSearchOptionsDto {
   @ApiProperty({
     name: 'searchType',
-    enum: CopastorSearchType,
+    enum: MemberSearchType,
     description: 'Choose one of the types to perform a search.',
-    example: CopastorSearchType.FirstNames,
+    example: MemberSearchType.FirstNames,
   })
-  @IsEnum(CopastorSearchType)
+  @IsEnum(MemberSearchType)
   @IsNotEmpty()
-  searchType: CopastorSearchType;
+  searchType: MemberSearchType;
 
   @ApiProperty({
     name: 'searchSubType',

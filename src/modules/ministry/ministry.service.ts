@@ -26,10 +26,9 @@ import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 
 import { BaseService } from '@/common/services/base.service';
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { MinistryPaginationDto } from '@/modules/ministry/dto/ministry-pagination.dto';
-import { MinistrySearchSubType } from '@/modules/ministry/enums/ministry-search-sub-type.enum';
 
 @Injectable()
 export class MinistryService extends BaseService {
@@ -43,7 +42,7 @@ export class MinistryService extends BaseService {
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -139,11 +138,11 @@ export class MinistryService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+      });
 
       return await searchStrategy.execute<Ministry>({
         params: query,
@@ -249,12 +248,6 @@ export class MinistryService extends BaseService {
         recordStatus: RecordStatus.Inactive,
       },
     });
-
-    // revisar el flujo de eliminar para quitar relaciones en ministerio
-    // await this.cleanSubordinateRelations(ministry, user, [
-    //   { repo: this.churchRepository, relation: 'theirMinistry' },
-    //   { repo: this.pastorRepository, relation: 'theirMinistry' },
-    // ]);
   }
 
   // ---------------------------------------------------------------------------------------------- //
@@ -333,24 +326,6 @@ export class MinistryService extends BaseService {
   }
 
   //* Finders and actions
-  private resolvePersonContext(searchSubType?: MinistrySearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case MinistrySearchSubType.MinistryByPastorFirstNames:
-      case MinistrySearchSubType.MinistryByPastorLastNames:
-      case MinistrySearchSubType.MinistryByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
-  }
-
   private async resolveRelations(
     ministry: Ministry,
     updateDto: UpdateMinistryDto,

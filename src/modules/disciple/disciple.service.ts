@@ -13,12 +13,10 @@ import { RelationType } from '@/common/enums/relation-type.enum';
 import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
 
 import { BaseService } from '@/common/services/base.service';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 import { createMinistryMember } from '@/common/helpers/create-ministry-member';
 
 import { raiseLevelMinistryMember } from '@/common/helpers/raise-level-ministry-member';
-
-import { DiscipleSearchSubType } from '@/modules/disciple/enums/disciple-search-sub-type.enum';
 
 import { discipleDataFormatter } from '@/modules/disciple/helpers/disciple-data-formatter.helper';
 
@@ -82,7 +80,7 @@ export class DiscipleService extends BaseService {
     @InjectRepository(OfferingIncome)
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -208,11 +206,14 @@ export class DiscipleService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+        copastorRepository: this.copastorRepository,
+        supervisorRepository: this.supervisorRepository,
+        preacherRepository: this.preacherRepository,
+      });
 
       return await searchStrategy.execute<Disciple>({
         params: query,
@@ -448,60 +449,6 @@ export class DiscipleService extends BaseService {
         throw new BadRequestException(
           'Tipo de relación no válido para Discípulo.',
         );
-    }
-  }
-
-  //* Finders and actions
-  private resolvePersonContext(searchSubType?: DiscipleSearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case DiscipleSearchSubType.DiscipleByPastorFirstNames:
-      case DiscipleSearchSubType.DiscipleByPastorLastNames:
-      case DiscipleSearchSubType.DiscipleByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      case DiscipleSearchSubType.DiscipleByCopastorFirstNames:
-      case DiscipleSearchSubType.DiscipleByCopastorLastNames:
-      case DiscipleSearchSubType.DiscipleByCopastorFullNames:
-        return {
-          personRepository: this.copastorRepository,
-          computedKey: 'theirCopastor',
-          personName: 'co-pastor',
-        };
-
-      case DiscipleSearchSubType.DiscipleBySupervisorFirstNames:
-      case DiscipleSearchSubType.DiscipleBySupervisorLastNames:
-      case DiscipleSearchSubType.DiscipleBySupervisorFullNames:
-        return {
-          personRepository: this.supervisorRepository,
-          computedKey: 'theirSupervisor',
-          personName: 'supervisor',
-        };
-
-      case DiscipleSearchSubType.DiscipleByPreacherFirstNames:
-      case DiscipleSearchSubType.DiscipleByPreacherLastNames:
-      case DiscipleSearchSubType.DiscipleByPreacherFullNames:
-        return {
-          personRepository: this.preacherRepository,
-          computedKey: 'theirPreacher',
-          personName: 'preacher',
-        };
-
-      case DiscipleSearchSubType.ByDiscipleFirstNames:
-      case DiscipleSearchSubType.ByDiscipleLastNames:
-      case DiscipleSearchSubType.ByDiscipleFullNames:
-        return {
-          personRepository: null,
-          computedKey: '',
-          personName: '',
-        };
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
     }
   }
 
@@ -745,14 +692,14 @@ export class DiscipleService extends BaseService {
     const savedPreacher = await this.preacherRepository.save(newPreacher);
 
     const offerings = await this.offeringIncomeRepository.find({
-      where: { preacher: { id: disciple.id } },
+      where: { disciple: { id: disciple.id } },
     });
 
     await Promise.all(
       offerings.map((o) =>
         this.offeringIncomeRepository.update(o.id, {
-          preacher: null,
-          supervisor: savedPreacher,
+          disciple: null,
+          preacher: savedPreacher,
           memberType: MemberOfferingType.Preacher,
           updatedAt: new Date(),
           updatedBy: user,

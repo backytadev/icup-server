@@ -7,9 +7,7 @@ import { Repository, FindOptionsOrderValue } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { BaseService } from '@/common/services/base.service';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
-
-import { PreacherSearchSubType } from '@/modules/preacher/enums/preacher-search-sub-type.enum';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { preacherDataFormatter } from '@/modules/preacher/helpers/preacher-data-formatter.helper';
@@ -82,7 +80,7 @@ export class PreacherService extends BaseService {
     @InjectRepository(OfferingIncome)
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -200,11 +198,13 @@ export class PreacherService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+        copastorRepository: this.copastorRepository,
+        supervisorRepository: this.supervisorRepository,
+      });
 
       return await searchStrategy.execute<Preacher>({
         params: query,
@@ -537,50 +537,6 @@ export class PreacherService extends BaseService {
       supervisor: null,
       zone: null,
     };
-  }
-
-  private resolvePersonContext(searchSubType?: PreacherSearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case PreacherSearchSubType.PreacherByPastorFirstNames:
-      case PreacherSearchSubType.PreacherByPastorLastNames:
-      case PreacherSearchSubType.PreacherByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      case PreacherSearchSubType.PreacherByCopastorFirstNames:
-      case PreacherSearchSubType.PreacherByCopastorLastNames:
-      case PreacherSearchSubType.PreacherByCopastorFullNames:
-        return {
-          personRepository: this.copastorRepository,
-          computedKey: 'theirCopastor',
-          personName: 'co-pastor',
-        };
-
-      case PreacherSearchSubType.PreacherBySupervisorFirstNames:
-      case PreacherSearchSubType.PreacherBySupervisorLastNames:
-      case PreacherSearchSubType.PreacherBySupervisorFullNames:
-        return {
-          personRepository: this.supervisorRepository,
-          computedKey: 'theirSupervisor',
-          personName: 'supervisor',
-        };
-
-      case PreacherSearchSubType.ByPreacherFirstNames:
-      case PreacherSearchSubType.ByPreacherLastNames:
-      case PreacherSearchSubType.ByPreacherFullNames:
-        return {
-          personRepository: null,
-          computedKey: '',
-          personName: '',
-        };
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
   }
 
   private async resolvePreacherRelation(

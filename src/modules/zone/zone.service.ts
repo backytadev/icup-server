@@ -8,9 +8,7 @@ import { FindOptionsOrderValue, Repository } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { BaseService } from '@/common/services/base.service';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
-
-import { ZoneSearchSubType } from '@/modules/zone/enums/zone-search-sub-type.enum';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { zoneDataFormatter } from '@/modules/zone/helpers/zone-data-formatter.helper';
 
@@ -57,7 +55,7 @@ export class ZoneService extends BaseService {
     @InjectRepository(Disciple)
     private readonly discipleRepository: Repository<Disciple>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -152,11 +150,13 @@ export class ZoneService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+        copastorRepository: this.copastorRepository,
+        supervisorRepository: this.supervisorRepository,
+      });
 
       return await searchStrategy.execute<Zone>({
         params: query,
@@ -336,42 +336,6 @@ export class ZoneService extends BaseService {
   }
 
   //* Finders and actions
-  private resolvePersonContext(searchSubType?: ZoneSearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case ZoneSearchSubType.ZoneByPastorFirstNames:
-      case ZoneSearchSubType.ZoneByPastorLastNames:
-      case ZoneSearchSubType.ZoneByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      case ZoneSearchSubType.ZoneByCopastorFirstNames:
-      case ZoneSearchSubType.ZoneByCopastorLastNames:
-      case ZoneSearchSubType.ZoneByCopastorFullNames:
-        return {
-          personRepository: this.copastorRepository,
-          computedKey: 'theirCopastor',
-          personName: 'co-pastor',
-        };
-
-      case ZoneSearchSubType.ZoneBySupervisorFirstNames:
-      case ZoneSearchSubType.ZoneBySupervisorLastNames:
-      case ZoneSearchSubType.ZoneBySupervisorFullNames:
-        return {
-          personRepository: this.copastorRepository,
-          computedKey: 'theirSupervisor',
-          personName: 'supervisor',
-        };
-
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
-  }
-
   //* Basic
   private async updateZoneBasicInfo(
     zone: Zone,

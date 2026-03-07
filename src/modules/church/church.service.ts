@@ -19,7 +19,8 @@ import { InactivateChurchDto } from '@/modules/church/dto/inactivate-church.dto'
 import { BaseService } from '@/common/services/base.service';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
+import { MemberSearchType } from '@/common/enums/member-search-type.enum';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { ChurchSearchAndPaginationDto } from '@/modules/church/dto/church-search-and-pagination.dto';
@@ -64,7 +65,7 @@ export class ChurchService extends BaseService {
     @InjectRepository(Disciple)
     private readonly discipleRepository: Repository<Disciple>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -145,6 +146,12 @@ export class ChurchService extends BaseService {
         ],
         moduleKey: 'churches',
         formatterData: churchDataFormatter,
+        extraData: async () => {
+          const mainChurch = await this.churchRepository.findOne({
+            where: { isAnexe: false, recordStatus: RecordStatus.Active },
+          });
+          return mainChurch ? { mainChurch } : {};
+        },
         relationLoadStrategy: 'query',
       });
     } catch (error) {
@@ -162,7 +169,7 @@ export class ChurchService extends BaseService {
 
     try {
       const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
+        searchType as unknown as MemberSearchType,
       );
 
       return searchStrategy.execute<Church>({

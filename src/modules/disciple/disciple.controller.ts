@@ -75,7 +75,6 @@ export class DiscipleController {
     UserRole.MembershipUser,
     UserRole.AdminUser,
     UserRole.User,
-    UserRole.TreasurerUser,
   )
   @SearchSwagger({ description: 'Disciples search completed successfully' })
   findByFilters(

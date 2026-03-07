@@ -41,26 +41,21 @@ import { FamilyGroupSearchAndPaginationDto } from '@/modules/family-group/dto/fa
 
 import { ReportsService } from '@/modules/reports/reports.service';
 
+import { SearchType } from '@/common/enums/search-types.enum';
+
 import { UserSearchType } from '@/modules/user/enums/user-search-type.enum';
-import { ZoneSearchType } from '@/modules/zone/enums/zone-search-type.enum';
 import { ChurchSearchType } from '@/modules/church/enums/church-search-type.enum';
-import { PastorSearchType } from '@/modules/pastor/enums/pastor-search-type.enum';
 import { ZoneSearchSubType } from '@/modules/zone/enums/zone-search-sub-type.enum';
-import { MinistrySearchType } from '@/modules/ministry/enums/ministry-search-type.enum';
-import { PreacherSearchType } from '@/modules/preacher/enums/preacher-search-type.enum';
-import { CopastorSearchType } from '@/modules/copastor/enums/copastor-search-type.enum';
-import { DiscipleSearchType } from '@/modules/disciple/enums/disciple-search-type.enum';
-import { SupervisorSearchType } from '@/modules/supervisor/enums/supervisor-search-type.enum';
 import { CopastorSearchSubType } from '@/modules/copastor/enums/copastor-search-sub-type.enum';
 import { DiscipleSearchSubType } from '@/modules/disciple/enums/disciple-search-sub-type.enum';
 import { PreacherSearchSubType } from '@/modules/preacher/enums/preacher-search-sub-type.enum';
-import { FamilyGroupSearchType } from '@/modules/family-group/enums/family-group-search-type.enum';
-import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.num';
+import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.enum';
 import { FamilyGroupSearchSubType } from '@/modules/family-group/enums/family-group-search-sub-type.enum';
 import { OfferingIncomeSearchType } from '@/modules/offering/income/enums/offering-income-search-type.enum';
 import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
 import { OfferingIncomeSearchSubType } from '@/modules/offering/income/enums/offering-income-search-sub-type.enum';
 import { OfferingExpenseSearchSubType } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
+import { OfferingExpenseSearchAndPaginationDto } from '../offering/expense/dto/offering-expense-search-and-pagination.dto';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -246,9 +241,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: MinistrySearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: MinistrySearchType.MinistryType,
+    example: SearchType.MinistryType,
   })
   @ApiProduces('application/pdf')
   async getMinistriesByTerm(
@@ -299,7 +294,7 @@ export class ReportsController {
   }
 
   //* PASTORS BY TERM REPORT
-  @Get('pastors/:term')
+  @Get('pastors/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -313,9 +308,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: PastorSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: PastorSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'churchId',
@@ -328,7 +323,6 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getPastorsByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: PastorSearchAndPaginationDto,
   ) {
     const pdfDoc = await this.reportsService.getPastorsByFilters(
@@ -377,7 +371,7 @@ export class ReportsController {
   }
 
   //* COPASTORS BY TERM REPORT
-  @Get('copastors/:term')
+  @Get('copastors/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -391,9 +385,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: CopastorSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: CopastorSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'searchSubType',
@@ -476,9 +470,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: SupervisorSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: SupervisorSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'searchSubType',
@@ -560,9 +554,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: PreacherSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: PreacherSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'searchSubType',
@@ -630,7 +624,7 @@ export class ReportsController {
   }
 
   //* DISCIPLES BY TERM REPORT
-  @Get('disciples/:term')
+  @Get('disciples/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -644,9 +638,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: DiscipleSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: DiscipleSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'searchSubType',
@@ -728,9 +722,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: ZoneSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: ZoneSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'searchSubType',
@@ -799,7 +793,7 @@ export class ReportsController {
   }
 
   //* FAMILY GROUPS BY TERM REPORT
-  @Get('family-groups/:term')
+  @Get('family-groups/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -813,9 +807,9 @@ export class ReportsController {
   })
   @ApiQuery({
     name: 'searchType',
-    enum: FamilyGroupSearchType,
+    enum: SearchType,
     description: 'Choose one of the types to perform a search.',
-    example: FamilyGroupSearchType.FirstNames,
+    example: SearchType.FirstNames,
   })
   @ApiQuery({
     name: 'searchSubType',
@@ -835,7 +829,6 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getFamilyGroupsByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: FamilyGroupSearchAndPaginationDto,
   ) {
     const pdfDoc = await this.reportsService.getFamilyGroupsByTerm(
@@ -972,7 +965,7 @@ export class ReportsController {
   }
 
   //* OFFERING EXPENSES BY TERM REPORT
-  @Get('offering-expenses/:term')
+  @Get('offering-expenses/search')
   @Auth()
   @ApiParam({
     name: 'term',
@@ -1008,11 +1001,9 @@ export class ReportsController {
   @ApiProduces('application/pdf')
   async getOfferingExpensesByTerm(
     @Res() response: Response,
-    @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+    @Query() searchTypeAndPaginationDto: OfferingExpenseSearchAndPaginationDto,
   ) {
     const pdfDoc = await this.reportsService.getOfferingExpensesByTerm(
-      term,
       searchTypeAndPaginationDto,
     );
 

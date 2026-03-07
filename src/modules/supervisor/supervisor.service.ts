@@ -11,7 +11,6 @@ import { UpdateSupervisorDto } from '@/modules/supervisor/dto/update-supervisor.
 import { SupervisorPaginationDto } from '@/modules/supervisor/dto/supervisor-pagination.dto';
 import { SupervisorSearchAndPaginationDto } from '@/modules/supervisor/dto/supervisor-search-and-pagination.dto';
 
-import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.num';
 import { supervisorDataFormatter } from '@/modules/supervisor/helpers/supervisor-data-formatter.helper';
 
 import { MemberRole } from '@/common/enums/member-role.enum';
@@ -20,7 +19,7 @@ import { RecordStatus } from '@/common/enums/record-status.enum';
 import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
 
 import { BaseService } from '@/common/services/base.service';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { createMinistryMember } from '@/common/helpers/create-ministry-member';
 import { raiseLevelMinistryMember } from '@/common/helpers/raise-level-ministry-member';
@@ -80,7 +79,7 @@ export class SupervisorService extends BaseService {
     @InjectRepository(OfferingIncome)
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -215,10 +214,13 @@ export class SupervisorService extends BaseService {
       });
 
       const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
+        searchType,
       );
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+        copastorRepository: this.copastorRepository,
+      });
 
       return await searchStrategy.execute<Supervisor>({
         params: query,
@@ -476,41 +478,6 @@ export class SupervisorService extends BaseService {
   }
 
   //* Finders and actions
-  private resolvePersonContext(searchSubType?: SupervisorSearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case SupervisorSearchSubType.SupervisorByPastorFirstNames:
-      case SupervisorSearchSubType.SupervisorByPastorLastNames:
-      case SupervisorSearchSubType.SupervisorByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      case SupervisorSearchSubType.SupervisorByCopastorFirstNames:
-      case SupervisorSearchSubType.SupervisorByCopastorLastNames:
-      case SupervisorSearchSubType.SupervisorByCopastorFullNames:
-        return {
-          personRepository: this.copastorRepository,
-          computedKey: 'theirCopastor',
-          personName: 'co-pastor',
-        };
-
-      case SupervisorSearchSubType.BySupervisorFirstNames:
-      case SupervisorSearchSubType.BySupervisorLastNames:
-      case SupervisorSearchSubType.BySupervisorFullNames:
-        return {
-          personRepository: null,
-          computedKey: '',
-          personName: '',
-        };
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
-  }
-
   private async resolveSupervisorByCopastor(
     copastorId?: string,
   ): Promise<{ church: Church; pastor: Pastor; copastor: Copastor }> {

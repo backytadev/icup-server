@@ -25,7 +25,7 @@ import { Auth } from '@/common/decorators/auth.decorator';
 import { GetUser } from '@/common/decorators/get-user.decorator';
 
 import { User } from '@/modules/user/entities/user.entity';
-import { PaginationDto } from '@/common/dtos/pagination.dto';
+import { FamilyGroupPaginationDto } from '@/modules/family-group/dto/family-group-pagination.dto';
 
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 import { FamilyGroupService } from '@/modules/family-group/family-group.service';
@@ -43,7 +43,7 @@ export class FamilyGroupController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Family group created successfully' })
   create(
     @Body() body: CreateFamilyGroupDto,
@@ -56,13 +56,13 @@ export class FamilyGroupController {
   @Get()
   @Auth(
     UserRole.SuperUser,
-    UserRole.MembershipUser,
     UserRole.AdminUser,
-    UserRole.User,
+    UserRole.MembershipUser,
     UserRole.TreasurerUser,
+    UserRole.User,
   )
   @FindAllSwagger({ description: 'Family groups retrieved successfully' })
-  findAll(@Query() paginationDto: PaginationDto): Promise<FamilyGroup[]> {
+  findAll(@Query() paginationDto: FamilyGroupPaginationDto): Promise<FamilyGroup[]> {
     return this.familyGroupService.findAll(paginationDto);
   }
 
@@ -70,10 +70,10 @@ export class FamilyGroupController {
   @Get('search')
   @Auth(
     UserRole.SuperUser,
-    UserRole.MembershipUser,
     UserRole.AdminUser,
-    UserRole.User,
+    UserRole.MembershipUser,
     UserRole.TreasurerUser,
+    UserRole.User,
   )
   @SearchSwagger({ description: 'Family groups search completed successfully' })
   findByFilters(
@@ -84,7 +84,7 @@ export class FamilyGroupController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Family group updated successfully',
     paramDescription: 'Family group UUID to update',
@@ -105,7 +105,7 @@ export class FamilyGroupController {
     paramDescription: 'Family group UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() inactivateFamilyGroupDto: InactivateFamilyGroupDto,
     @GetUser() user: User,
   ): Promise<void> {

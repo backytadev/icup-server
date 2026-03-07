@@ -21,7 +21,7 @@ export enum SearchSubType {
   CopastorByPastorFirstNames = 'copastor_by_pastor_first_names',
   CopastorByPastorLastNames = 'copastor_by_pastor_last_names',
   CopastorByPastorFullNames = 'copastor_by_pastor_full_names',
-  ByCopastorFirtsNames = 'by_copastor_first_names',
+  ByCopastorFirstNames = 'by_copastor_first_names',
   ByCopastorLastNames = 'by_copastor_last_names',
   ByCopastorFullNames = 'by_copastor_full_names',
 
@@ -234,7 +234,7 @@ export const SearchSubTypeNames: Record<SearchSubType, string> = {
   [SearchSubType.CopastorByPastorLastNames]: 'Por apellidos de su pastor',
   [SearchSubType.CopastorByPastorFullNames]:
     'Por nombres y apellidos de su pastor',
-  [SearchSubType.ByCopastorFirtsNames]: 'Por sus nombres',
+  [SearchSubType.ByCopastorFirstNames]: 'Por sus nombres',
   [SearchSubType.ByCopastorLastNames]: 'Por sus apellidos',
   [SearchSubType.ByCopastorFullNames]: 'Por sus nombres y apellidos',
 

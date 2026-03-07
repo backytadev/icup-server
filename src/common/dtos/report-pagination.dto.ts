@@ -3,6 +3,7 @@ import { IsOptional, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 
+// todo: revisar esto duddosa forma de armar esto junto con lo de metrics dto
 export class ReportPaginationDto {
   @ApiProperty({
     example: '2024',

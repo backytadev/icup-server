@@ -64,7 +64,7 @@ export class MinistryController {
   @Get('search')
   @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Ministry search completed successfully' })
-  findByTerm(
+  findByFilters(
     @Query() query: MinistrySearchAndPaginationDto,
   ): Promise<Ministry[]> {
     return this.ministryService.findByFilters(query);
@@ -93,7 +93,7 @@ export class MinistryController {
     paramDescription: 'Ministry UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: InactivateMinistryDto,
     @GetUser() user: User,
   ): Promise<void> {

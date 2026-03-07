@@ -1,20 +1,17 @@
 import {
-  Logger,
   Injectable,
   NotFoundException,
   BadRequestException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { format } from 'date-fns';
-import { isUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsOrderValue, Repository } from 'typeorm';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
+import { BaseService } from '@/common/services/base.service';
 import { dateFormatterToDDMMYYYY } from '@/common/helpers/date-formatter-to-ddmmyyy.helper';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
-import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { Church } from '@/modules/church/entities/church.entity';
@@ -27,6 +24,7 @@ import { InactivateOfferingDto } from '@/modules/offering/shared/dto/inactivate-
 
 import { CreateOfferingExpenseDto } from '@/modules/offering/expense/dto/create-offering-expense.dto';
 import { UpdateOfferingExpenseDto } from '@/modules/offering/expense/dto/update-offering-expense.dto';
+import { OfferingExpenseSearchAndPaginationDto } from '@/modules/offering/expense/dto/offering-expense-search-and-pagination.dto';
 
 import {
   OfferingExpenseSearchType,
@@ -34,37 +32,32 @@ import {
 } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
 import { formatDataOfferingExpense } from '@/modules/offering/expense/helpers/format-data-offering-expense.helper';
+import { OfferingExpenseSearchStrategyFactory } from '@/modules/offering/expense/strategies/offering-expense-search-strategy.factory';
 
 @Injectable()
-export class OfferingExpenseService {
-  private readonly logger = new Logger('OfferingExpensesService');
-
+export class OfferingExpenseService extends BaseService {
   constructor(
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
 
     @InjectRepository(OfferingExpense)
     private readonly offeringExpenseRepository: Repository<OfferingExpense>,
-  ) {}
+
+    private readonly offeringExpenseSearchStrategyFactory: OfferingExpenseSearchStrategyFactory,
+  ) {
+    super();
+  }
 
   //* CREATE OFFERING EXPENSE
   async create(
     createOfferingExpenseDto: CreateOfferingExpenseDto,
     user: User,
   ): Promise<OfferingExpense> {
-    const { churchId, type, imageUrls, amount, date, currency } =
+    const { type, amount, churchId, imageUrls, date, currency } =
       createOfferingExpenseDto;
 
-    //? All Types
-    if (
-      type === OfferingExpenseSearchType.SuppliesExpenses ||
-      type === OfferingExpenseSearchType.DecorationExpenses ||
-      type === OfferingExpenseSearchType.OperationalExpenses ||
-      type === OfferingExpenseSearchType.MaintenanceAndRepairExpenses ||
-      type === OfferingExpenseSearchType.PlaningEventsExpenses ||
-      type === OfferingExpenseSearchType.EquipmentAndTechnologyExpenses ||
-      type === OfferingExpenseSearchType.OtherExpenses
-    ) {
+    //? Expense types with sub-types
+    if (type !== OfferingExpenseSearchType.ExpensesAdjustment) {
       if (!churchId) {
         throw new NotFoundException(`La iglesia es requerida.`);
       }
@@ -209,37 +202,28 @@ export class OfferingExpenseService {
           order: { createdAt: order as FindOptionsOrderValue },
         });
 
-        if (offeringExpenses.length === 0) {
-          throw new NotFoundException(
-            `No existen registros disponibles para mostrar.`,
-          );
-        }
-
-        return formatDataOfferingExpense({
-          offeringExpenses: offeringExpenses,
-        }) as any;
+        return this.validateResult(
+          offeringExpenses,
+          'No existen registros disponibles para mostrar.',
+        ) as any;
       }
 
-      if (!searchDate) {
-        const offeringExpenses = await this.offeringExpenseRepository.find({
-          where: { church: church, recordStatus: RecordStatus.Active },
-          take: limit,
-          skip: offset,
+      const offeringExpenses = await this.offeringExpenseRepository.find({
+        where: { church: church, recordStatus: RecordStatus.Active },
+        take: limit,
+        skip: offset,
+        relations: ['updatedBy', 'createdBy', 'church'],
+        order: { createdAt: order as FindOptionsOrderValue },
+      });
 
-          relations: ['updatedBy', 'createdBy', 'church'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
+      const result = this.validateResult(
+        offeringExpenses,
+        'No existen registros disponibles para mostrar.',
+      );
 
-        if (offeringExpenses.length === 0) {
-          throw new NotFoundException(
-            `No existen registros disponibles para mostrar.`,
-          );
-        }
-
-        return formatDataOfferingExpense({
-          offeringExpenses: offeringExpenses,
-        }) as any;
-      }
+      return formatDataOfferingExpense({
+        offeringExpenses: result,
+      }) as any;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -249,30 +233,18 @@ export class OfferingExpenseService {
     }
   }
 
-  //* FIND BY TERM
-  async findByTerm(
-    term: string,
-    searchTypeAndPaginationDto: SearchAndPaginationDto,
+  //* FIND BY FILTERS
+  async findByFilters(
+    searchAndPaginationDto: OfferingExpenseSearchAndPaginationDto,
   ): Promise<OfferingExpense[]> {
-    const {
-      searchType,
-      searchSubType,
-      limit,
-      offset = 0,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, term, limit, offset, order, churchId } =
+      searchAndPaginationDto;
 
     if (!term) {
       throw new BadRequestException(`El termino de búsqueda es requerido.`);
     }
 
-    if (!searchType) {
-      throw new BadRequestException(`El tipo de búsqueda es requerido.`);
-    }
-
-    //* Search Church
-    let church: Church;
+    let church: Church | undefined;
     if (churchId) {
       church = await this.churchRepository.findOne({
         where: { id: churchId, recordStatus: RecordStatus.Active },
@@ -286,128 +258,18 @@ export class OfferingExpenseService {
       }
     }
 
-    //* By date and church
-    if (
-      term &&
-      (searchType === OfferingExpenseSearchType.PlaningEventsExpenses ||
-        searchType === OfferingExpenseSearchType.DecorationExpenses ||
-        searchType ===
-          OfferingExpenseSearchType.EquipmentAndTechnologyExpenses ||
-        searchType === OfferingExpenseSearchType.MaintenanceAndRepairExpenses ||
-        searchType === OfferingExpenseSearchType.OperationalExpenses ||
-        searchType === OfferingExpenseSearchType.SuppliesExpenses ||
-        searchType === OfferingExpenseSearchType.OtherExpenses ||
-        searchType === OfferingExpenseSearchType.ExpensesAdjustment)
-    ) {
-      try {
-        const [fromTimestamp, toTimestamp] = term.split('+').map(Number);
-
-        if (isNaN(fromTimestamp)) {
-          throw new NotFoundException('Formato de marca de tiempo invalido.');
-        }
-
-        const fromDate = new Date(fromTimestamp);
-        const toDate = toTimestamp ? new Date(toTimestamp) : fromDate;
-
-        let offeringExpenses: OfferingExpense[];
-        if (searchType !== OfferingExpenseSearchType.ExpensesAdjustment) {
-          offeringExpenses = await this.offeringExpenseRepository.find({
-            where: {
-              church: church,
-              type: searchType,
-              subType: searchSubType ? searchSubType : null,
-              date: Between(fromDate, toDate),
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: ['updatedBy', 'createdBy', 'church'],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
-        }
-
-        if (searchType === OfferingExpenseSearchType.ExpensesAdjustment) {
-          offeringExpenses = await this.offeringExpenseRepository.find({
-            where: {
-              church: church,
-              type: searchType,
-              date: Between(fromDate, toDate),
-              recordStatus: RecordStatus.Active,
-            },
-            take: limit,
-            skip: offset,
-            relations: ['updatedBy', 'createdBy', 'church'],
-            order: { createdAt: order as FindOptionsOrderValue },
-          });
-        }
-
-        if (offeringExpenses.length === 0) {
-          const fromDate = dateFormatterToDDMMYYYY(fromTimestamp);
-          const toDate = dateFormatterToDDMMYYYY(toTimestamp);
-
-          throw new NotFoundException(
-            `No se encontraron salidas de ofrendas (${OfferingExpenseSearchTypeNames[searchType]}) con este rango de fechas: ${fromDate} - ${toDate} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
-          );
-        }
-
-        return formatDataOfferingExpense({
-          offeringExpenses: offeringExpenses,
-        }) as any;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
-
-    //* By record status --> Many
-    if (term && searchType === OfferingExpenseSearchType.RecordStatus) {
-      const recordStatusTerm = term.toLowerCase();
-      const validRecordStatus = ['active', 'inactive'];
-
-      try {
-        if (!validRecordStatus.includes(recordStatusTerm)) {
-          throw new BadRequestException(
-            `Estado de registro no válido: ${term}`,
-          );
-        }
-
-        const offeringExpenses = await this.offeringExpenseRepository.find({
-          where: {
-            church: church,
-            recordStatus: recordStatusTerm,
-          },
-          take: limit,
-          skip: offset,
-          relations: ['updatedBy', 'createdBy', 'church'],
-          order: { createdAt: order as FindOptionsOrderValue },
-        });
-
-        if (offeringExpenses.length === 0) {
-          const value = term === RecordStatus.Inactive ? 'Inactivo' : 'Activo';
-
-          throw new NotFoundException(
-            `No se encontraron salidas de ofrendas (${OfferingExpenseSearchTypeNames[searchType]}) con este estado de registro: ${value} y con esta iglesia: ${church ? church?.abbreviatedChurchName : 'Todas las iglesias'}`,
-          );
-        }
-
-        return formatDataOfferingExpense({
-          offeringExpenses: offeringExpenses,
-        }) as any;
-      } catch (error) {
-        if (error instanceof NotFoundException) {
-          throw error;
-        }
-
-        if (error instanceof BadRequestException) {
-          throw error;
-        }
-
-        this.handleDBExceptions(error);
-      }
-    }
+    return this.offeringExpenseSearchStrategyFactory
+      .getStrategy(searchType)
+      .execute({
+        term,
+        searchType,
+        searchSubType,
+        limit,
+        offset,
+        order,
+        church,
+        offeringExpenseRepository: this.offeringExpenseRepository,
+      });
   }
 
   //* UPDATE OFFERING EXPENSE
@@ -419,9 +281,7 @@ export class OfferingExpenseService {
     const { type, amount, subType, churchId, imageUrls, recordStatus } =
       updateOfferingExpenseDto;
 
-    if (!isUUID(id)) {
-      throw new BadRequestException(`UUID no valido.`);
-    }
+    await this.validateId(id);
 
     //* Validations
     const offeringExpense = await this.offeringExpenseRepository.findOne({
@@ -489,9 +349,7 @@ export class OfferingExpenseService {
     const { offeringInactivationReason, offeringInactivationDescription } =
       inactivateOfferingExpenseDto;
 
-    if (!isUUID(id)) {
-      throw new BadRequestException(`UUID no valido.`);
-    }
+    await this.validateId(id);
 
     const offeringExpense = await this.offeringExpenseRepository.findOne({
       where: { id: id },
@@ -528,19 +386,5 @@ export class OfferingExpenseService {
     }
 
     return;
-  }
-
-  //? PRIVATE METHODS
-  // For future index errors or constrains with code.
-  private handleDBExceptions(error: any): never {
-    if (error.code === '23505') {
-      throw new BadRequestException(`${error.message}`);
-    }
-
-    this.logger.error(error);
-
-    throw new InternalServerErrorException(
-      'Sucedió un error inesperado, hable con el administrador.',
-    );
   }
 }

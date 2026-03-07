@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, Min } from 'class-validator';
+import { IsOptional, IsString, Min } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -26,15 +26,6 @@ export class PaginationDto {
   offset?: number;
 
   @ApiProperty({
-    example: '23876342347+33498735335',
-    required: false,
-    description: 'Optional date range filter',
-  })
-  @IsOptional()
-  @IsString()
-  searchDate?: string;
-
-  @ApiProperty({
     default: 'DESC',
     example: 'DESC',
     required: false,
@@ -45,13 +36,15 @@ export class PaginationDto {
   @Type(() => String)
   order?: string;
 
-  //* For zone module when search supervisors and return supervisors with zone or not
+  //* Only offerings and member
+  @ApiProperty({
+    example: '23876342347+33498735335',
+    required: false,
+    description: 'Optional date range filter',
+  })
   @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
-  isNullZone?: boolean;
+  @IsString()
+  searchDate?: string;
 
   @IsOptional()
   @Transform(({ value }) =>

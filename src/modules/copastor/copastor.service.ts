@@ -6,8 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrderValue, Repository } from 'typeorm';
 
-import { CopastorSearchSubType } from '@/modules/copastor/enums/copastor-search-sub-type.enum';
-
 import { CreateCopastorDto } from '@/modules/copastor/dto/create-copastor.dto';
 import { UpdateCopastorDto } from '@/modules/copastor/dto/update-copastor.dto';
 import { CoPastorPaginationDto } from '@/modules/copastor/dto/copastor-pagination.dto';
@@ -16,7 +14,7 @@ import { CoPastorSearchAndPaginationDto } from '@/modules/copastor/dto/copastor-
 import { copastorDataFormatter } from '@/modules/copastor/helpers/copastor-data-formatter.helper';
 
 import { BaseService } from '@/common/services/base.service';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
@@ -82,7 +80,7 @@ export class CopastorService extends BaseService {
     @InjectRepository(OfferingIncome)
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -198,11 +196,11 @@ export class CopastorService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+      });
 
       return await searchStrategy.execute<Copastor>({
         params: query,
@@ -485,32 +483,6 @@ export class CopastorService extends BaseService {
   }
 
   //* Finders and actions
-  private resolvePersonContext(searchSubType?: CopastorSearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case CopastorSearchSubType.CopastorByPastorFirstNames:
-      case CopastorSearchSubType.CopastorByPastorLastNames:
-      case CopastorSearchSubType.CopastorByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      case CopastorSearchSubType.ByCopastorFirstNames:
-      case CopastorSearchSubType.ByCopastorLastNames:
-      case CopastorSearchSubType.ByCopastorFullNames:
-        return {
-          personRepository: null,
-          computedKey: '',
-          personName: '',
-        };
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
-  }
-
   private async resolvePastorRelation(
     copastor: Copastor,
     dto: UpdateCopastorDto,

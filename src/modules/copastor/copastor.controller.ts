@@ -46,7 +46,7 @@ export class CopastorController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Co-Pastor created successfully' })
   create(
     @Body() body: CreateCopastorDto,
@@ -57,7 +57,12 @@ export class CopastorController {
 
   //* Find all
   @Get()
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.AdminUser,
+    UserRole.MembershipUser,
+    UserRole.TreasurerUser,
+  )
   @FindAllSwagger({ description: 'Co-Pastors retrieved successfully' })
   findAll(@Query() query: CoPastorPaginationDto): Promise<Copastor[]> {
     return this.copastorService.findAll(query);
@@ -65,7 +70,7 @@ export class CopastorController {
 
   //* Find by filters
   @Get('search')
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Co-Pastor search completed successfully' })
   findByFilters(
     @Query() query: CoPastorSearchAndPaginationDto,
@@ -75,7 +80,7 @@ export class CopastorController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Co-Pastor updated successfully',
     paramDescription: 'Co-Pastor UUID to update',
@@ -96,7 +101,7 @@ export class CopastorController {
     paramDescription: 'Co-Pastor UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: InactivateMemberDto,
     @GetUser() user: User,
   ): Promise<void> {

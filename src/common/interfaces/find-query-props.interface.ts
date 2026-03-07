@@ -18,6 +18,7 @@ export interface FindDetailedQueryProps<T> {
   offset: number;
   order: FindOptionsOrderValue;
   moduleKey?: string;
-  formatterData?: any;
+  formatterData?: (data: Record<string, any>) => any[];
+  extraData?: () => Promise<Record<string, unknown>>;
   relationLoadStrategy?: 'join' | 'query';
 }

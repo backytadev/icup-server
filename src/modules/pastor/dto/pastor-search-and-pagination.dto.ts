@@ -2,19 +2,18 @@ import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty } from 'class-validator';
 
 import { BaseSearchAndPaginationDto } from '@/common/dtos/base-search-and-pagination.dto';
-
-import { PastorSearchType } from '@/modules/pastor/enums/pastor-search-type.enum';
+import { MemberSearchType } from '@/common/enums/member-search-type.enum';
 
 export class PastorSearchOptionsDto {
   @ApiProperty({
     name: 'searchType',
-    enum: PastorSearchType,
+    enum: MemberSearchType,
     description: 'Choose one of the types to perform a search.',
-    example: PastorSearchType.FirstNames,
+    example: MemberSearchType.FirstNames,
   })
-  @IsEnum(PastorSearchType)
+  @IsEnum(MemberSearchType)
   @IsNotEmpty()
-  searchType: PastorSearchType;
+  searchType: MemberSearchType;
 }
 
 export class PastorSearchAndPaginationDto extends IntersectionType(

@@ -13,7 +13,7 @@ import { UpdatePastorDto } from '@/modules/pastor/dto/update-pastor.dto';
 import { PastorPaginationDto } from '@/modules/pastor/dto/pastor-pagination.dto';
 import { PastorSearchAndPaginationDto } from '@/modules/pastor/dto/pastor-search-and-pagination.dto';
 
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 import { BaseService } from '@/common/services/base.service';
 
 import { MemberRole } from '@/common/enums/member-role.enum';
@@ -72,7 +72,7 @@ export class PastorService extends BaseService {
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -183,9 +183,7 @@ export class PastorService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
       return await searchStrategy.execute<Pastor>({
         params: query,

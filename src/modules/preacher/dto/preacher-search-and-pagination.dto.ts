@@ -1,22 +1,22 @@
 import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import { BaseSearchAndPaginationDto } from '@/common/dtos/base-search-and-pagination.dto';
+import { MemberSearchType } from '@/common/enums/member-search-type.enum';
 
-import { PreacherSearchType } from '@/modules/preacher/enums/preacher-search-type.enum';
 import { PreacherSearchSubType } from '@/modules/preacher/enums/preacher-search-sub-type.enum';
-import { Transform } from 'class-transformer';
 
 export class PreacherSearchOptionsDto {
   @ApiProperty({
     name: 'searchType',
-    enum: PreacherSearchType,
+    enum: MemberSearchType,
     description: 'Choose one of the types to perform a search.',
-    example: PreacherSearchType.FirstNames,
+    example: MemberSearchType.FirstNames,
   })
-  @IsEnum(PreacherSearchType)
+  @IsEnum(MemberSearchType)
   @IsNotEmpty()
-  searchType: PreacherSearchType;
+  searchType: MemberSearchType;
 
   @ApiProperty({
     name: 'searchSubType',
@@ -30,11 +30,11 @@ export class PreacherSearchOptionsDto {
 
   @ApiProperty({
     name: 'withNullFamilyGroup',
-    enum: PreacherSearchSubType,
+    type: 'boolean',
     description:
       'Indicates whether null family group relationships should be included in the response',
     example: true,
-    required: true,
+    required: false,
   })
   @IsOptional()
   @IsBoolean()

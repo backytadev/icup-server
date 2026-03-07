@@ -1,43 +1,17 @@
 import { ApiProperty, IntersectionType } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import { BasePaginationDto } from '@/common/dtos/base-pagination.dto';
+import { MemberPaginationOptionsDto } from '@/common/dtos/member-pagination-options.dto';
 
 export class SupervisorPaginationOptionsDto {
   @ApiProperty({
-    name: 'isSimpleQuery',
-    example: 'false',
-    required: false,
+    name: 'withNullZone',
     type: 'boolean',
     description:
-      'Specifies whether the query should be simple (without loading relations) or full (including relations).',
-  })
-  @IsOptional()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
-  isSimpleQuery?: boolean;
-
-  @ApiProperty({
-    name: 'churchId',
-    type: 'string',
-    description:
-      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
-    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  @Type(() => String)
-  churchId?: string;
-
-  @ApiProperty({
-    name: 'withNullZone',
-    type: 'string',
-    description:
       'Indicates whether null zone relationships should be included in the response.',
-    example: 'true',
+    example: true,
     required: false,
   })
   @IsOptional()
@@ -50,5 +24,6 @@ export class SupervisorPaginationOptionsDto {
 
 export class SupervisorPaginationDto extends IntersectionType(
   BasePaginationDto,
+  MemberPaginationOptionsDto,
   SupervisorPaginationOptionsDto,
 ) {}

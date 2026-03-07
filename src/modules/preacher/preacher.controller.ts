@@ -45,7 +45,7 @@ export class PreacherController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Preacher created successfully' })
   create(
     @Body() body: CreatePreacherDto,
@@ -58,9 +58,9 @@ export class PreacherController {
   @Get()
   @Auth(
     UserRole.SuperUser,
-    UserRole.MembershipUser,
     UserRole.AdminUser,
-    UserRole.User,
+    UserRole.MembershipUser,
+    UserRole.TreasurerUser,
   )
   @FindAllSwagger({ description: 'Preachers retrieved successfully' })
   findAll(@Query() query: PreacherPaginationDto): Promise<Preacher[]> {
@@ -69,13 +69,8 @@ export class PreacherController {
 
   //* Find by filters
   @Get('search')
-  @Auth(
-    UserRole.SuperUser,
-    UserRole.MembershipUser,
-    UserRole.AdminUser,
-    UserRole.User,
-  )
-  @SearchSwagger({ description: 'Co-Pastor search completed successfully' })
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
+  @SearchSwagger({ description: 'Preacher search completed successfully' })
   findByFilters(
     @Query() query: PreacherSearchAndPaginationDto,
   ): Promise<Preacher[]> {
@@ -84,7 +79,7 @@ export class PreacherController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Preacher updated successfully',
     paramDescription: 'Preacher UUID to update',
@@ -105,7 +100,7 @@ export class PreacherController {
     paramDescription: 'Preacher UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: InactivateMemberDto,
     @GetUser() user: User,
   ): Promise<void> {

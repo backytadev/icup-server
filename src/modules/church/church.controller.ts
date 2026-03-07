@@ -72,7 +72,9 @@ export class ChurchController {
   @Get('search')
   @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Church search completed successfully' })
-  findByTerm(@Query() query: ChurchSearchAndPaginationDto): Promise<Church[]> {
+  findByFilters(
+    @Query() query: ChurchSearchAndPaginationDto,
+  ): Promise<Church[]> {
     return this.churchService.findByFilters(query);
   }
 
@@ -99,7 +101,7 @@ export class ChurchController {
     paramDescription: 'Church UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: InactivateChurchDto,
     @GetUser() user: User,
   ): Promise<void> {

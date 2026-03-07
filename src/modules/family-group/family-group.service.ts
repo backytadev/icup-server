@@ -9,15 +9,13 @@ import { FindOptionsOrderValue, Repository } from 'typeorm';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 
 import { BaseService } from '@/common/services/base.service';
-import { SearchStrategyFactory } from '@/common/strategies/search/search-strategy.factory';
+import { MemberSearchStrategyFactory } from '@/common/strategies/search/member-search-strategy.factory';
 
 import { CreateFamilyGroupDto } from '@/modules/family-group/dto/create-family-group.dto';
 import { UpdateFamilyGroupDto } from '@/modules/family-group/dto/update-family-group.dto';
 import { InactivateFamilyGroupDto } from '@/modules/family-group/dto/inactivate-family-group.dto';
 import { FamilyGroupPaginationDto } from '@/modules/family-group/dto/family-group-pagination.dto';
 import { FamilyGroupSearchAndPaginationDto } from '@/modules/family-group/dto/family-group-search-and-pagination.dto';
-
-import { FamilyGroupSearchSubType } from '@/modules/family-group/enums/family-group-search-sub-type.enum';
 
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 import { familyGroupDataFormatter } from '@/modules/family-group/helpers/family-group-data-formatter.helper';
@@ -58,7 +56,7 @@ export class FamilyGroupService extends BaseService {
     @InjectRepository(Disciple)
     private readonly discipleRepository: Repository<Disciple>,
 
-    private readonly searchStrategyFactory: SearchStrategyFactory,
+    private readonly searchStrategyFactory: MemberSearchStrategyFactory,
   ) {
     super();
   }
@@ -161,11 +159,14 @@ export class FamilyGroupService extends BaseService {
         moduleName: 'iglesia',
       });
 
-      const searchStrategy = this.searchStrategyFactory.getStrategy(
-        searchType as any,
-      );
+      const searchStrategy = this.searchStrategyFactory.getStrategy(searchType);
 
-      const personContext = this.resolvePersonContext(searchSubType);
+      const personContext = this.resolvePersonContext(searchSubType as string, {
+        pastorRepository: this.pastorRepository,
+        copastorRepository: this.copastorRepository,
+        supervisorRepository: this.supervisorRepository,
+        preacherRepository: this.preacherRepository,
+      });
 
       return await searchStrategy.execute<FamilyGroup>({
         params: query,
@@ -399,51 +400,6 @@ export class FamilyGroupService extends BaseService {
     const familyGroupCode = `${zone.zoneName.toUpperCase()}-${familyGroupNumber}`;
 
     return { familyGroupNumber, familyGroupCode };
-  }
-
-  private resolvePersonContext(searchSubType?: FamilyGroupSearchSubType) {
-    if (!searchSubType) return {};
-
-    switch (searchSubType) {
-      case FamilyGroupSearchSubType.FamilyGroupByPastorFirstNames:
-      case FamilyGroupSearchSubType.FamilyGroupByPastorLastNames:
-      case FamilyGroupSearchSubType.FamilyGroupByPastorFullNames:
-        return {
-          personRepository: this.pastorRepository,
-          computedKey: 'theirPastor',
-          personName: 'pastor',
-        };
-
-      case FamilyGroupSearchSubType.FamilyGroupByCopastorFirstNames:
-      case FamilyGroupSearchSubType.FamilyGroupByCopastorLastNames:
-      case FamilyGroupSearchSubType.FamilyGroupByCopastorFullNames:
-        return {
-          personRepository: this.copastorRepository,
-          computedKey: 'theirCopastor',
-          personName: 'co-pastor',
-        };
-
-      case FamilyGroupSearchSubType.FamilyGroupBySupervisorFirstNames:
-      case FamilyGroupSearchSubType.FamilyGroupBySupervisorLastNames:
-      case FamilyGroupSearchSubType.FamilyGroupBySupervisorFullNames:
-        return {
-          personRepository: this.supervisorRepository,
-          computedKey: 'theirSupervisor',
-          personName: 'supervisor',
-        };
-
-      case FamilyGroupSearchSubType.FamilyGroupByPreacherFirstNames:
-      case FamilyGroupSearchSubType.FamilyGroupByPreacherLastNames:
-      case FamilyGroupSearchSubType.FamilyGroupByPreacherFullNames:
-        return {
-          personRepository: this.preacherRepository,
-          computedKey: 'theirPreacher',
-          personName: 'preacher',
-        };
-
-      default:
-        throw new BadRequestException('Subtipo de búsqueda no válido');
-    }
   }
 
   //* Update basic info

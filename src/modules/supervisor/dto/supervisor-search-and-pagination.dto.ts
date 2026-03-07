@@ -3,19 +3,19 @@ import { IsBoolean, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 import { BaseSearchAndPaginationDto } from '@/common/dtos/base-search-and-pagination.dto';
-import { SupervisorSearchType } from '@/modules/supervisor/enums/supervisor-search-type.enum';
-import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.num';
+import { MemberSearchType } from '@/common/enums/member-search-type.enum';
+import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.enum';
 
 export class SupervisorSearchOptionsDto {
   @ApiProperty({
     name: 'searchType',
-    enum: SupervisorSearchType,
+    enum: MemberSearchType,
     description: 'Choose one of the types to perform a search.',
-    example: SupervisorSearchType.FirstNames,
+    example: MemberSearchType.FirstNames,
   })
-  @IsEnum(SupervisorSearchType)
+  @IsEnum(MemberSearchType)
   @IsNotEmpty()
-  searchType: SupervisorSearchType;
+  searchType: MemberSearchType;
 
   @ApiProperty({
     name: 'searchSubType',

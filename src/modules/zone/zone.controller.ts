@@ -43,7 +43,7 @@ export class ZoneController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Zone created successfully' })
   create(@Body() body: CreateZoneDto, @GetUser() user: User): Promise<Zone> {
     return this.zoneService.create(body, user);
@@ -53,8 +53,8 @@ export class ZoneController {
   @Get()
   @Auth(
     UserRole.SuperUser,
-    UserRole.MembershipUser,
     UserRole.AdminUser,
+    UserRole.MembershipUser,
     UserRole.User,
   )
   @FindAllSwagger({ description: 'Zones retrieved successfully' })
@@ -66,8 +66,8 @@ export class ZoneController {
   @Get('search')
   @Auth(
     UserRole.SuperUser,
-    UserRole.MembershipUser,
     UserRole.AdminUser,
+    UserRole.MembershipUser,
     UserRole.User,
   )
   @SearchSwagger({ description: 'Zones search completed successfully' })
@@ -77,7 +77,7 @@ export class ZoneController {
 
   //* Update
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Zone updated successfully',
     paramDescription: 'Zone UUID to update',
@@ -98,7 +98,7 @@ export class ZoneController {
     paramDescription: 'Zone UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: InactivateZoneDto,
     @GetUser() user: User,
   ): Promise<void> {

@@ -4,7 +4,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 
 import {
@@ -26,16 +26,16 @@ import { UpdateMinistriesMember } from '@/common/interfaces/build-update-entity-
 import { UpdateMinistriesIfNeeded } from '@/common/interfaces/update-ministries-if-needed.interface';
 
 import { User } from '@/modules/user/entities/user.entity';
-import { Zone } from '@/modules/zone/entities/zone.entity';
-import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { Church } from '@/modules/church/entities/church.entity';
 import { Member } from '@/modules/member/entities/member.entity';
-import { Copastor } from '@/modules/copastor/entities/copastor.entity';
-import { Ministry } from '@/modules/ministry/entities/ministry.entity';
-import { Preacher } from '@/modules/preacher/entities/preacher.entity';
-import { Disciple } from '@/modules/disciple/entities/disciple.entity';
-import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
-import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
+
+interface HasRecordStatus {
+  recordStatus: string;
+}
+
+interface HasId {
+  id: string;
+}
 
 export class BaseService {
   protected readonly logger = new Logger(this.constructor.name);
@@ -83,17 +83,57 @@ export class BaseService {
     return church;
   }
 
+  protected resolvePersonContext(
+    searchSubType: string | undefined,
+    repositories: {
+      pastorRepository?: Repository<any>;
+      copastorRepository?: Repository<any>;
+      supervisorRepository?: Repository<any>;
+      preacherRepository?: Repository<any>;
+    } = {},
+  ): {
+    personRepository?: Repository<any> | null;
+    computedKey?: string;
+    personName?: string;
+  } {
+    if (!searchSubType) return {};
+
+    if (searchSubType.startsWith('by_'))
+      return { personRepository: null, computedKey: '', personName: '' };
+
+    if (searchSubType.includes('_by_pastor_'))
+      return {
+        personRepository: repositories.pastorRepository ?? null,
+        computedKey: 'theirPastor',
+        personName: 'pastor',
+      };
+
+    if (searchSubType.includes('_by_copastor_'))
+      return {
+        personRepository: repositories.copastorRepository ?? null,
+        computedKey: 'theirCopastor',
+        personName: 'co-pastor',
+      };
+
+    if (searchSubType.includes('_by_supervisor_'))
+      return {
+        personRepository: repositories.supervisorRepository ?? null,
+        computedKey: 'theirSupervisor',
+        personName: 'supervisor',
+      };
+
+    if (searchSubType.includes('_by_preacher_'))
+      return {
+        personRepository: repositories.preacherRepository ?? null,
+        computedKey: 'theirPreacher',
+        personName: 'preacher',
+      };
+
+    throw new BadRequestException('Subtipo de búsqueda no válido');
+  }
+
   protected validateRecordStatusUpdate(
-    entity:
-      | Pastor
-      | Copastor
-      | Church
-      | Supervisor
-      | Preacher
-      | Disciple
-      | Ministry
-      | Zone
-      | FamilyGroup,
+    entity: HasRecordStatus,
     newStatus: RecordStatus,
   ): void {
     if (
@@ -112,7 +152,7 @@ export class BaseService {
   ): void {
     if (!roles)
       throw new BadRequestException(
-        `Los roles son requeridos para actualizar un Co-Pastor.`,
+        `Los roles son requeridos para realizar la actualización.`,
       );
 
     if (!roles.some((role) => [...allowedRoles].includes(role))) {
@@ -185,8 +225,8 @@ export class BaseService {
       where: {
         recordStatus: RecordStatus.Active,
         ...(church && { theirChurch: church }),
-      } as any,
-      order: { createdAt: order } as any,
+      } as unknown as FindOptionsWhere<T>,
+      order: { createdAt: order } as unknown as FindOptionsOrder<T>,
       relations,
     });
 
@@ -203,6 +243,7 @@ export class BaseService {
     order,
     moduleKey,
     formatterData,
+    extraData,
     relationLoadStrategy = 'join',
   }: FindDetailedQueryProps<T>): Promise<T[]> {
     let church: Church | null = null;
@@ -214,41 +255,27 @@ export class BaseService {
       where: {
         recordStatus: RecordStatus.Active,
         ...(church && { theirChurch: church }),
-      } as any,
+      } as unknown as FindOptionsWhere<T>,
       take: limit,
       skip: offset,
       relations,
       relationLoadStrategy,
-      order: { createdAt: order } as any,
+      order: { createdAt: order } as unknown as FindOptionsOrder<T>,
     });
 
     this.validateResult(data);
 
-    let mainChurch: T | null = null;
-    if (moduleKey === 'churches') {
-      mainChurch = await mainRepository.findOne({
-        where: { isAnexe: false, recordStatus: RecordStatus.Active } as any,
-      });
-    }
+    const extra = extraData ? await extraData() : {};
 
     return formatterData({
       [moduleKey]: data,
-      ...(mainChurch && { mainChurch }),
-    });
+      ...extra,
+    }) as T[];
   }
 
   //* Cleaners and Updaters
   protected async cleanSubordinateRelations(
-    entity:
-      | Church
-      | Pastor
-      | Copastor
-      | Supervisor
-      | Preacher
-      | Disciple
-      | Zone
-      | FamilyGroup
-      | Ministry,
+    entity: HasId,
     user: User,
     relationGroups: { repo: Repository<any>; relation: string }[],
   ): Promise<void> {
@@ -370,7 +397,7 @@ export class BaseService {
     user,
     extraProps,
     member,
-  }: BuildCreateEntityData): Partial<any> {
+  }: BuildCreateEntityData): Record<string, any> {
     return {
       ...(member && { member: member }),
       createdAt: new Date(),
@@ -384,7 +411,7 @@ export class BaseService {
     user,
     savedMember,
     extraProps,
-  }: UpdateMinistriesMember): Partial<any> {
+  }: UpdateMinistriesMember): Record<string, any> {
     return {
       id: entityId,
       ...(savedMember && { member: savedMember }),

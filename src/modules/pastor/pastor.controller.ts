@@ -55,7 +55,12 @@ export class PastorController {
 
   //* Find all
   @Get()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
+  @Auth(
+    UserRole.SuperUser,
+    UserRole.AdminUser,
+    UserRole.MembershipUser,
+    UserRole.TreasurerUser,
+  )
   @FindAllSwagger({ description: 'Pastors retrieved successfully' })
   findAll(@Query() query: PastorPaginationDto): Promise<Pastor[]> {
     return this.pastorService.findAll(query);
@@ -90,11 +95,11 @@ export class PastorController {
   @Delete(':id')
   @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @DeleteSwagger({
-    description: 'Ministry deleted successfully',
-    paramDescription: 'Ministry UUID to delete',
+    description: 'Pastor deleted successfully',
+    paramDescription: 'Pastor UUID to delete',
   })
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: InactivateMemberDto,
     @GetUser() user: User,
   ): Promise<void> {

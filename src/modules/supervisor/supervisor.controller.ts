@@ -46,7 +46,7 @@ export class SupervisorController {
 
   //* Create
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @CreateSwagger({ description: 'Supervisor created successfully' })
   create(
     @Body() body: CreateSupervisorDto,
@@ -59,9 +59,9 @@ export class SupervisorController {
   @Get()
   @Auth(
     UserRole.SuperUser,
-    UserRole.MembershipUser,
     UserRole.AdminUser,
-    UserRole.User,
+    UserRole.MembershipUser,
+    UserRole.TreasurerUser,
   )
   @FindAllSwagger({ description: 'Supervisors retrieved successfully' })
   findAll(@Query() query: SupervisorPaginationDto): Promise<Supervisor[]> {
@@ -70,14 +70,9 @@ export class SupervisorController {
 
   //* Find by filters
   @Get('search')
-  @Auth(
-    UserRole.SuperUser,
-    UserRole.MembershipUser,
-    UserRole.AdminUser,
-    UserRole.User,
-  )
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @SearchSwagger({ description: 'Supervisors search completed successfully' })
-  findByTerm(
+  findByFilters(
     @Query() query: SupervisorSearchAndPaginationDto,
   ): Promise<Supervisor[]> {
     return this.supervisorService.findByFilters(query);
@@ -85,7 +80,7 @@ export class SupervisorController {
 
   //* UPDATE
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.MembershipUser, UserRole.AdminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.MembershipUser)
   @UpdateSwagger({
     description: 'Supervisor updated successfully',
     paramDescription: 'Supervisor UUID to update',

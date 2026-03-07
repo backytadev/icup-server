@@ -22,5 +22,5 @@ export interface SearchStrategyProps<T> {
   computedKey?: string;
   moduleName?: string;
   personName?: string;
-  formatterData?: any;
+  formatterData?: (data: Record<string, any>) => any[];
 }

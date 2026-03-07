@@ -55,5 +55,7 @@ export class AvailableSupervisorsSearchStrategy implements SearchStrategy {
 
       return data;
     }
+
+    return [];
   }
 }
