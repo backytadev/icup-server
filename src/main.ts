@@ -8,6 +8,7 @@ import { AppModule } from '@/app.module';
 import { SuperUserService } from '@/utils/create-super-user';
 
 import { ThrottlerExceptionFilter } from '@/common/filters/throttler-exception.filter';
+import { HttpLoggingInterceptor } from '@/common/interceptors/http-logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -40,6 +41,7 @@ async function bootstrap() {
   });
 
   app.useGlobalFilters(new ThrottlerExceptionFilter());
+  app.useGlobalInterceptors(new HttpLoggingInterceptor());
 
   // Config SuperUser
   const superUserService = app.get(SuperUserService);

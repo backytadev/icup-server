@@ -5,6 +5,11 @@ import { OfferingIncome } from '@/modules/offering/income/entities/offering-inco
 import { OfferingIncomeService } from '@/modules/offering/income/offering-income.service';
 import { OfferingIncomeController } from '@/modules/offering/income/offering-income.controller';
 
+import { OfferingIncomeCreateService } from '@/modules/offering/income/services/offering-income-create.service';
+import { OfferingIncomeUpdateService } from '@/modules/offering/income/services/offering-income-update.service';
+import { OfferingIncomeRemoveService } from '@/modules/offering/income/services/offering-income-remove.service';
+import { OfferingIncomeReadService } from '@/modules/offering/income/services/offering-income-read.service';
+
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { ChurchModule } from '@/modules/church/church.module';
@@ -41,6 +46,10 @@ import { OfferingIncomeByContributorFullNamesStrategy } from '@/modules/offering
   controllers: [OfferingIncomeController],
   providers: [
     OfferingIncomeService,
+    OfferingIncomeCreateService,
+    OfferingIncomeUpdateService,
+    OfferingIncomeRemoveService,
+    OfferingIncomeReadService,
     OfferingIncomeSearchStrategyFactory,
     OfferingIncomeByDateStrategy,
     OfferingIncomeByShiftStrategy,
