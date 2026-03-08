@@ -1,7 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common';
 
-import { ReportsService } from '@/modules/reports/reports.service';
 import { ReportsController } from '@/modules/reports/reports.controller';
+import { MembershipReportsService } from '@/modules/reports/services/membership-reports.service';
+import { OfferingReportsService } from '@/modules/reports/services/offering-reports.service';
+import { MetricsReportsService } from '@/modules/reports/services/metrics-reports.service';
 
 import { ZoneModule } from '@/modules/zone/zone.module';
 import { ChurchModule } from '@/modules/church/church.module';
@@ -24,7 +26,11 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
 
 @Module({
   controllers: [ReportsController],
-  providers: [ReportsService],
+  providers: [
+    MembershipReportsService,
+    OfferingReportsService,
+    MetricsReportsService,
+  ],
   imports: [
     AuthModule,
     MemberModule,
@@ -43,6 +49,6 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
     forwardRef(() => SupervisorModule),
     forwardRef(() => OfferingIncomeModule),
   ],
-  exports: [ReportsService],
+  exports: [OfferingReportsService],
 })
 export class ReportsModule {}

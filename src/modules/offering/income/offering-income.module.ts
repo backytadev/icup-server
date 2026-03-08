@@ -18,9 +18,48 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 import { ExternalDonorModule } from '@/modules/external-donor/external-donor.module';
 import { CloudinaryModule } from '@/modules/cloudinary/cloudinary.module';
 
+import { OfferingIncomeSearchStrategyFactory } from '@/modules/offering/income/strategies/offering-income-search-strategy.factory';
+import { OfferingIncomeByDateStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-date.strategy';
+import { OfferingIncomeByShiftStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-shift.strategy';
+import { OfferingIncomeByShiftDateStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-shift-date.strategy';
+import { OfferingIncomeByRecordStatusStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-record-status.strategy';
+import { OfferingIncomeByZoneStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-zone.strategy';
+import { OfferingIncomeByZoneDateStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-zone-date.strategy';
+import { OfferingIncomeByGroupCodeStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-group-code.strategy';
+import { OfferingIncomeByGroupCodeDateStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-group-code-date.strategy';
+import { OfferingIncomeByPreacherFirstNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-preacher-first-names.strategy';
+import { OfferingIncomeByPreacherLastNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-preacher-last-names.strategy';
+import { OfferingIncomeByPreacherFullNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-preacher-full-names.strategy';
+import { OfferingIncomeByZoneSupervisorFirstNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-supervisor-first-names.strategy';
+import { OfferingIncomeByZoneSupervisorLastNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-supervisor-last-names.strategy';
+import { OfferingIncomeByZoneSupervisorFullNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-supervisor-full-names.strategy';
+import { OfferingIncomeByContributorFirstNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-contributor-first-names.strategy';
+import { OfferingIncomeByContributorLastNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-contributor-last-names.strategy';
+import { OfferingIncomeByContributorFullNamesStrategy } from '@/modules/offering/income/strategies/options/offering-income-by-contributor-full-names.strategy';
+
 @Module({
   controllers: [OfferingIncomeController],
-  providers: [OfferingIncomeService],
+  providers: [
+    OfferingIncomeService,
+    OfferingIncomeSearchStrategyFactory,
+    OfferingIncomeByDateStrategy,
+    OfferingIncomeByShiftStrategy,
+    OfferingIncomeByShiftDateStrategy,
+    OfferingIncomeByRecordStatusStrategy,
+    OfferingIncomeByZoneStrategy,
+    OfferingIncomeByZoneDateStrategy,
+    OfferingIncomeByGroupCodeStrategy,
+    OfferingIncomeByGroupCodeDateStrategy,
+    OfferingIncomeByPreacherFirstNamesStrategy,
+    OfferingIncomeByPreacherLastNamesStrategy,
+    OfferingIncomeByPreacherFullNamesStrategy,
+    OfferingIncomeByZoneSupervisorFirstNamesStrategy,
+    OfferingIncomeByZoneSupervisorLastNamesStrategy,
+    OfferingIncomeByZoneSupervisorFullNamesStrategy,
+    OfferingIncomeByContributorFirstNamesStrategy,
+    OfferingIncomeByContributorLastNamesStrategy,
+    OfferingIncomeByContributorFullNamesStrategy,
+  ],
   imports: [
     TypeOrmModule.forFeature([OfferingIncome]),
     forwardRef(() => ZoneModule),
