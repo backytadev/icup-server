@@ -4,6 +4,7 @@ import { normalizeMonth } from '@/common/helpers/normalize-name-months';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
+import { Church } from '@/modules/church/entities/church.entity';
 
 interface DataResultOptions {
   currentYearOfferingIncome: OfferingIncome[];
@@ -12,6 +13,7 @@ interface DataResultOptions {
   previousYearOfferingExpenses: OfferingExpense[];
   startMonth?: string;
   endMonth?: string;
+  church: Church;
 }
 
 export interface YearlyIncomeExpenseComparativeDataResult {
@@ -49,6 +51,7 @@ export const IncomeAndExpensesComparativeFormatter = ({
   previousYearOfferingExpenses,
   startMonth = null,
   endMonth = null,
+  church,
 }: DataResultOptions): YearlyIncomeExpenseComparativeDataResult[] => {
   const startEs = normalizeMonth(startMonth) ?? null;
   const endEs = normalizeMonth(endMonth) ?? null;
@@ -111,9 +114,12 @@ export const IncomeAndExpensesComparativeFormatter = ({
         totalExpenses,
         netResult: totalIncome + previousNetResult - totalExpenses,
         church: {
-          isAnexe: previousYearData[0]?.church?.isAnexe,
-          abbreviatedChurchName:
-            previousYearData[0]?.church?.abbreviatedChurchName,
+          isAnexe: church
+            ? church.isAnexe
+            : previousYearData[0]?.church?.isAnexe,
+          abbreviatedChurchName: church
+            ? church.abbreviatedChurchName
+            : previousYearData[0]?.church?.abbreviatedChurchName,
         },
       };
 
@@ -151,9 +157,12 @@ export const IncomeAndExpensesComparativeFormatter = ({
             ? totalIncome + previousYearResults.at(-1).netResult - totalExpenses
             : totalIncome + currentNetResult - totalExpenses,
         church: {
-          isAnexe: currentYearData[0]?.church?.isAnexe,
-          abbreviatedChurchName:
-            currentYearData[0]?.church?.abbreviatedChurchName,
+          isAnexe: church
+            ? church.isAnexe
+            : currentYearData[0]?.church?.isAnexe,
+          abbreviatedChurchName: church
+            ? church.abbreviatedChurchName
+            : currentYearData[0]?.church?.abbreviatedChurchName,
         },
       };
 

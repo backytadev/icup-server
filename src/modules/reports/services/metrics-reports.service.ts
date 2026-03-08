@@ -106,6 +106,7 @@ export class MetricsReportsService {
           });
       }
 
+      console.log(membersFluctuationByYearDataResult);
       let membersByBirthMonthDataResult: MonthlyMemberDataResult[];
       if (metricsTypesArray.includes(MetricSearchType.MembersByBirthMonth)) {
         membersByBirthMonthDataResult = await this.metricsService.findByTerm(

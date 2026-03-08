@@ -1,8 +1,10 @@
+import { Church } from '@/modules/church/entities/church.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 
 interface Options {
   activeFamilyGroups: FamilyGroup[];
   inactiveFamilyGroups: FamilyGroup[];
+  church: Church;
 }
 
 const monthNames = [
@@ -35,6 +37,7 @@ export interface MonthlyFamilyGroupsFluctuationDataResult {
 export const familyGroupFluctuationFormatter = ({
   activeFamilyGroups,
   inactiveFamilyGroups,
+  church,
 }: Options): MonthlyFamilyGroupsFluctuationDataResult[] => {
   const filterFamilyGroupsByMonth = (
     familyGroups: FamilyGroup[],
@@ -55,9 +58,12 @@ export const familyGroupFluctuationFormatter = ({
           index,
         ).length,
         church: {
-          isAnexe: activeFamilyGroups[0]?.theirChurch?.isAnexe,
-          abbreviatedChurchName:
-            activeFamilyGroups[0]?.theirChurch?.abbreviatedChurchName,
+          isAnexe: church
+            ? church.isAnexe
+            : activeFamilyGroups[0]?.theirChurch?.isAnexe,
+          abbreviatedChurchName: church
+            ? church.abbreviatedChurchName
+            : activeFamilyGroups[0]?.theirChurch?.abbreviatedChurchName,
         },
       };
     },

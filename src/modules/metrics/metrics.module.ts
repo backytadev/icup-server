@@ -3,6 +3,13 @@ import { forwardRef, Module } from '@nestjs/common';
 import { MetricsService } from '@/modules/metrics/metrics.service';
 import { MetricsController } from '@/modules/metrics/metrics.controller';
 
+import { DashboardMetricsService } from '@/modules/metrics/services/dashboard-metrics.service';
+import { MemberMetricsService } from '@/modules/metrics/services/member-metrics.service';
+import { FamilyGroupMetricsService } from '@/modules/metrics/services/family-group-metrics.service';
+import { OfferingIncomeMetricsService } from '@/modules/metrics/services/offering-income-metrics.service';
+import { OfferingExpenseMetricsService } from '@/modules/metrics/services/offering-expense-metrics.service';
+import { OfferingComparativeMetricsService } from '@/modules/metrics/services/offering-comparative-metrics.service';
+
 import { AuthModule } from '@/modules/auth/auth.module';
 
 import { ZoneModule } from '@/modules/zone/zone.module';
@@ -17,7 +24,15 @@ import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 
 @Module({
-  providers: [MetricsService],
+  providers: [
+    MetricsService,
+    DashboardMetricsService,
+    MemberMetricsService,
+    FamilyGroupMetricsService,
+    OfferingIncomeMetricsService,
+    OfferingExpenseMetricsService,
+    OfferingComparativeMetricsService,
+  ],
   controllers: [MetricsController],
   imports: [
     AuthModule,
@@ -32,6 +47,14 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
     forwardRef(() => SupervisorModule),
     forwardRef(() => OfferingIncomeModule),
   ],
-  exports: [MetricsService],
+  exports: [
+    MetricsService,
+    DashboardMetricsService,
+    MemberMetricsService,
+    FamilyGroupMetricsService,
+    OfferingIncomeMetricsService,
+    OfferingExpenseMetricsService,
+    OfferingComparativeMetricsService,
+  ],
 })
 export class MetricsModule {}

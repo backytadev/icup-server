@@ -3,6 +3,7 @@ import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
+import { Church } from '@/modules/church/entities/church.entity';
 
 const monthNames = [
   'Enero',
@@ -22,6 +23,7 @@ const monthNames = [
 interface Options {
   newMembers: [Pastor[], Copastor[], Supervisor[], Preacher[], Disciple[]];
   inactiveMembers: [Pastor[], Copastor[], Supervisor[], Preacher[], Disciple[]];
+  church: Church;
 }
 
 interface ChurchInfo {
@@ -39,6 +41,7 @@ export interface MonthlyMemberFluctuationDataResult {
 export const memberFluctuationFormatter = ({
   newMembers,
   inactiveMembers,
+  church,
 }: Options): MonthlyMemberFluctuationDataResult[] => {
   const flattenMembers = (
     members: [Pastor[], Copastor[], Supervisor[], Preacher[], Disciple[]],
@@ -62,9 +65,12 @@ export const memberFluctuationFormatter = ({
         newMembers: filterMembersByMonth(allNewMembers, index).length,
         inactiveMembers: filterMembersByMonth(allInactiveMembers, index).length,
         church: {
-          isAnexe: allNewMembers[0]?.theirChurch?.isAnexe,
-          abbreviatedChurchName:
-            allNewMembers[0]?.theirChurch?.abbreviatedChurchName,
+          isAnexe: church
+            ? church.isAnexe
+            : allNewMembers[0]?.theirChurch?.isAnexe,
+          abbreviatedChurchName: church
+            ? church.abbreviatedChurchName
+            : allNewMembers[0]?.theirChurch?.abbreviatedChurchName,
         },
       };
     },
