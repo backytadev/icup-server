@@ -27,7 +27,7 @@ import {
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
+import { FileFolder } from '@/common/enums/file-folder.enum';
 
 import { dateFormatterToDDMMYYYY } from '@/common/helpers/date-formatter-to-ddmmyyy.helper';
 
@@ -248,7 +248,7 @@ export class OfferingIncomeCreateService extends BaseService {
             {
               pdfDoc,
               fileName: receiptCode,
-              fileType: OfferingFileType.Income,
+              fileFolder: FileFolder.Income,
               offeringType: type,
               offeringSubType: subType,
             },
@@ -364,7 +364,7 @@ export class OfferingIncomeCreateService extends BaseService {
             {
               pdfDoc,
               fileName: receiptCode,
-              fileType: OfferingFileType.Income,
+              fileFolder: FileFolder.Income,
               offeringType: type,
               offeringSubType: subType,
             },
@@ -742,7 +742,7 @@ export class OfferingIncomeCreateService extends BaseService {
               await this.cloudinaryService.uploadPdfAsWebp({
                 pdfDoc,
                 fileName: receiptCode,
-                fileType: OfferingFileType.Income,
+                fileFolder: FileFolder.Income,
                 offeringType: type,
                 offeringSubType: subType,
               });
@@ -809,7 +809,7 @@ export class OfferingIncomeCreateService extends BaseService {
             {
               pdfDoc,
               fileName: receiptCode,
-              fileType: OfferingFileType.Income,
+              fileFolder: FileFolder.Income,
               offeringType: type,
               offeringSubType: subType,
             },
@@ -942,7 +942,7 @@ export class OfferingIncomeCreateService extends BaseService {
             {
               pdfDoc,
               fileName: receiptCode,
-              fileType: OfferingFileType.Income,
+              fileFolder: FileFolder.Income,
               offeringType: type,
               offeringSubType: subType,
             },
@@ -1049,7 +1049,7 @@ export class OfferingIncomeCreateService extends BaseService {
             {
               pdfDoc,
               fileName: receiptCode,
-              fileType: OfferingFileType.Income,
+              fileFolder: FileFolder.Income,
               offeringType: type,
               offeringSubType: subType,
             },
@@ -1149,7 +1149,7 @@ export class OfferingIncomeCreateService extends BaseService {
         const uploadedImageUrl = await this.cloudinaryService.uploadPdfAsWebp({
           pdfDoc,
           fileName: receiptCode,
-          fileType: OfferingFileType.Income,
+          fileFolder: FileFolder.Income,
           offeringType: type,
           offeringSubType: subType,
         });

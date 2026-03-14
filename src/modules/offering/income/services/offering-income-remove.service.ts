@@ -18,7 +18,7 @@ import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offe
 import { OfferingIncomeCreationCategory } from '@/modules/offering/income/enums/offering-income-creation-category.enum';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
+import { FileFolder } from '@/common/enums/file-folder.enum';
 
 import {
   extractPath,
@@ -300,7 +300,7 @@ export class OfferingIncomeRemoveService extends BaseService {
           const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
             pdfDoc,
             fileName: savedOffering.receiptCode,
-            fileType: OfferingFileType.Income,
+            fileFolder: FileFolder.Income,
             offeringType: offeringIncome.type,
             offeringSubType: offeringIncome.subType,
           });
@@ -389,7 +389,7 @@ export class OfferingIncomeRemoveService extends BaseService {
           const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
             pdfDoc,
             fileName: savedOffering.receiptCode,
-            fileType: OfferingFileType.Income,
+            fileFolder: FileFolder.Income,
             offeringType: offeringIncome.type,
             offeringSubType: offeringIncome.subType,
           });
@@ -466,7 +466,7 @@ export class OfferingIncomeRemoveService extends BaseService {
       const imageUrl = await this.cloudinaryService.uploadPdfAsWebp({
         pdfDoc,
         fileName: savedDeletedOffering.receiptCode,
-        fileType: OfferingFileType.Income,
+        fileFolder: FileFolder.Income,
         offeringType: offeringIncome.type,
         offeringSubType: offeringIncome.subType,
       });

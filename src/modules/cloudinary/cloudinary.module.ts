@@ -5,12 +5,14 @@ import { CloudinaryProvider } from '@/modules/cloudinary/providers/cloudinary.pr
 
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
+import { CalendarEventsModule } from '../calendar-events/calendar-events.module';
 
 @Module({
   providers: [CloudinaryProvider, CloudinaryService],
   imports: [
     forwardRef(() => OfferingIncomeModule),
     forwardRef(() => OfferingExpenseModule),
+    forwardRef(() => CalendarEventsModule),
   ],
   exports: [CloudinaryProvider, CloudinaryService],
 })

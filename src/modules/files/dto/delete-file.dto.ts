@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
+import { FileFolder } from '@/common/enums/file-folder.enum';
 
 export class DeleteFileDto {
   @ApiProperty({
@@ -24,11 +24,11 @@ export class DeleteFileDto {
   secureUrl: string;
 
   @ApiProperty({
-    example: OfferingFileType.Expense,
+    example: FileFolder.Expense,
     description: 'Type of file to be used for the image path.',
   })
-  @IsEnum(OfferingFileType)
+  @IsEnum(FileFolder)
   @IsNotEmpty()
   @MinLength(1)
-  fileType: string;
+  fileFolder: string;
 }

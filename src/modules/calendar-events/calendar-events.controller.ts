@@ -21,6 +21,7 @@ import {
   DeleteSwagger,
   FindAllSwagger,
   FindOneSwagger,
+  SearchSwagger,
   UpdateSwagger,
 } from '@/common/swagger/swagger.decorator';
 
@@ -30,6 +31,7 @@ import { CalendarEventsService } from './calendar-events.service';
 import { CreateCalendarEventDto } from './dto/create-calendar-event.dto';
 import { UpdateCalendarEventDto } from './dto/update-calendar-event.dto';
 import { CalendarEventPaginationDto } from './dto/calendar-event-pagination.dto';
+import { CalendarEventSearchAndPaginationDto } from './dto/calendar-event-search-and-pagination.dto';
 import { CalendarEvent } from './entities/calendar-event.entity';
 
 @Controller('calendar-events')
@@ -48,6 +50,16 @@ export class CalendarEventsController {
     @GetUser() user: User,
   ): Promise<CalendarEvent> {
     return this.calendarEventsService.create(createCalendarEventDto, user);
+  }
+
+  //* Search (Private - Auth required)
+  @Get('search')
+  @Auth(UserRole.SuperUser, UserRole.MembershipUser)
+  @SearchSwagger({ description: 'Events search completed successfully' })
+  findByFilters(
+    @Query() searchAndPaginationDto: CalendarEventSearchAndPaginationDto,
+  ): Promise<CalendarEvent[]> {
+    return this.calendarEventsService.findByFilters(searchAndPaginationDto);
   }
 
   //* Find all (Public with API key OR Private with Auth)

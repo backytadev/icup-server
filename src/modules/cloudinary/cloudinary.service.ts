@@ -14,7 +14,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { sanitizeFileName } from '@/common/helpers/sanitize-file-name';
-import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
+import { FileFolder } from '@/common/enums/file-folder.enum';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { CloudinaryResponse } from '@/modules/cloudinary/types/cloudinary-response.type';
@@ -23,6 +23,7 @@ import { DeleteFileDto } from '@/modules/files/dto/delete-file.dto';
 
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
+import { CalendarEvent } from '../calendar-events/entities/calendar-event.entity';
 
 @Injectable()
 export class CloudinaryService {
@@ -34,6 +35,9 @@ export class CloudinaryService {
 
     @InjectRepository(OfferingExpense)
     private readonly offeringExpenseRepository: Repository<OfferingExpense>,
+
+    @InjectRepository(CalendarEvent)
+    private readonly calendarEventRepository: Repository<CalendarEvent>,
   ) {}
 
   //* Upload files
@@ -42,14 +46,18 @@ export class CloudinaryService {
     createFileDto: CreateFileDto,
   ): Promise<CloudinaryResponse> {
     return new Promise<CloudinaryResponse>((resolve, reject) => {
-      const { fileType, offeringType, offeringSubType } = createFileDto;
+      const { fileFolder, offeringType, offeringSubType } = createFileDto;
+
+      const folder = offeringSubType
+        ? `${fileFolder}/${offeringType}/${offeringSubType}`
+        : offeringType
+          ? `${fileFolder}/${offeringType}`
+          : `${fileFolder}`;
 
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           public_id: sanitizeFileName(file.originalname),
-          folder: offeringSubType
-            ? `${fileType}/${offeringType}/${offeringSubType}`
-            : `${fileType}/${offeringType}`,
+          folder,
           format: 'webp',
           quality: 'auto',
         },
@@ -64,17 +72,17 @@ export class CloudinaryService {
     });
   }
 
-  //! Delete file
+  //* Delete file (only offerings)
   async deleteFile(
     publicId: string,
     deleteFileDto: DeleteFileDto,
     user: User,
   ): Promise<void> {
-    const { fileType, path, secureUrl } = deleteFileDto;
+    const { fileFolder, path, secureUrl } = deleteFileDto;
 
     //? Validation if income or expense
     //* Income
-    if (fileType === OfferingFileType.Income) {
+    if (fileFolder === FileFolder.Income) {
       try {
         const offeringIncome = await this.offeringIncomeRepository.findOne({
           where: {
@@ -128,7 +136,7 @@ export class CloudinaryService {
     }
 
     //* Expense
-    if (fileType === OfferingFileType.Expense) {
+    if (fileFolder === FileFolder.Expense) {
       try {
         const offeringExpense = await this.offeringExpenseRepository.findOne({
           where: {
@@ -173,19 +181,65 @@ export class CloudinaryService {
         this.handleCloudServiceExceptions(error);
       }
     }
+
+    if (fileFolder === FileFolder.CalendarEvent) {
+      try {
+        const calendarEvent = await this.calendarEventRepository.findOne({
+          where: {
+            imageUrls: Raw((alias) => `:secureUrl = ANY(${alias})`, {
+              secureUrl: secureUrl,
+            }),
+          },
+          relations: ['church'],
+        });
+
+        if (calendarEvent) {
+          const newSecureUrls = calendarEvent.imageUrls.filter(
+            (imageUrl) => imageUrl !== secureUrl,
+          );
+
+          const updatedCalendarEvent =
+            await this.calendarEventRepository.preload({
+              id: calendarEvent?.id,
+              ...calendarEvent,
+              imageUrls: [...newSecureUrls],
+              updatedAt: new Date(),
+              updatedBy: user,
+            });
+
+          await this.calendarEventRepository.save(updatedCalendarEvent);
+        }
+
+        const result = await cloudinary.uploader.destroy(
+          `${deleteFileDto.path}${publicId}`,
+        );
+
+        if (result.result !== 'ok') {
+          throw new Error(
+            `Fallo borrar la imagen, Cloudinary respuesta: ${result.result}`,
+          );
+        }
+      } catch (error) {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
+
+        this.handleCloudServiceExceptions(error);
+      }
+    }
   }
 
-  //* Standalone methods for internal use
+  //* Transform PdftoWebp and upload
   async uploadPdfAsWebp({
     fileName,
     pdfDoc,
-    fileType,
+    fileFolder,
     offeringType,
     offeringSubType,
   }: {
     pdfDoc: PDFKit.PDFDocument;
     fileName?: string;
-    fileType: string;
+    fileFolder: string;
     offeringType: string;
     offeringSubType: string;
   }): Promise<string> {
@@ -200,8 +254,8 @@ export class CloudinaryService {
           {
             public_id: fileName,
             folder: offeringSubType
-              ? `${fileType}/${offeringType}/${offeringSubType}`
-              : `${fileType}/${offeringType}`,
+              ? `${fileFolder}/${offeringType}/${offeringSubType}`
+              : `${fileFolder}/${offeringType}`,
             resource_type: 'image',
             format: 'webp',
             pages: 1,
@@ -225,6 +279,7 @@ export class CloudinaryService {
     });
   }
 
+  //* Delete direct (general)
   async deleteDirectFileFromCloudinary(
     publicId: string,
     path: string,
@@ -246,8 +301,7 @@ export class CloudinaryService {
     }
   }
 
-  //? PRIVATE METHODS
-  // For future index errors or constrains with code.
+  //* Private methods
   private handleCloudServiceExceptions(error: any): never {
     if (error.code === '23505') {
       throw new BadRequestException(`${error.message}`);

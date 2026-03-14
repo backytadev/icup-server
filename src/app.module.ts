@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -30,12 +31,14 @@ import { ExternalDonorModule } from '@/modules/external-donor/external-donor.mod
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 import { CalendarEventsModule } from '@/modules/calendar-events/calendar-events.module';
+import { WhatsappModule } from '@/modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -89,6 +92,7 @@ import { CalendarEventsModule } from '@/modules/calendar-events/calendar-events.
     OfferingIncomeModule,
     OfferingExpenseModule,
     CalendarEventsModule,
+    WhatsappModule,
   ],
   providers: [
     SuperUserService,
