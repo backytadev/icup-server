@@ -19,7 +19,7 @@ export class WhatsappService {
   constructor(private readonly configService: ConfigService) {
     this.baseUrl = this.configService.get<string>('EVOLUTION_API_URL');
     this.instance = this.configService.get<string>('EVOLUTION_API_INSTANCE');
-    this.apiKey = this.configService.get<string>('EVOLUTION_AUTH_KEY');
+    this.apiKey = this.configService.get<string>('EVOLUTION_API_KEY');
   }
 
   //* Envía un mensaje de texto a un número o JID de grupo
@@ -35,9 +35,9 @@ export class WhatsappService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          apikey: this.apiKey,
+          apiKey: this.apiKey,
         },
-        body: JSON.stringify({ number, text, mentionsEveryOne }),
+        body: JSON.stringify({ number, text, mentionsEveryOne, delay: 1500 }),
       });
 
       if (!response.ok) {
@@ -54,6 +54,85 @@ export class WhatsappService {
     }
   }
 
+  //* Envía una imagen desde URL a un número o JID de grupo
+  async sendMedia(
+    number: string,
+    mediaUrl: string,
+    caption?: string,
+  ): Promise<void> {
+    const url = `${this.baseUrl}/message/sendMedia/${this.instance}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apiKey: this.apiKey,
+        },
+        body: JSON.stringify({
+          number,
+          mediatype: 'image',
+          media: mediaUrl,
+          delay: 2000,
+          ...(caption ? { caption } : {}),
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Evolution API error ${response.status}: ${body}`);
+      }
+
+      this.logger.log(`Media sent to ${number}`);
+    } catch (error) {
+      this.logger.error('Failed to send WhatsApp media', error?.message);
+      throw new InternalServerErrorException(
+        `No se pudo enviar la imagen de WhatsApp: ${error?.message}`,
+      );
+    }
+  }
+
+  //* Envía un pin de ubicación a un número o JID de grupo
+  async sendLocation(
+    number: string,
+    latitude: number,
+    longitude: number,
+    name?: string,
+    address?: string,
+  ): Promise<void> {
+    const url = `${this.baseUrl}/message/sendLocation/${this.instance}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apiKey: this.apiKey,
+        },
+        body: JSON.stringify({
+          number,
+          latitude,
+          longitude,
+          name: '',
+          address: [name, address].filter(Boolean).join(' · ') || '',
+          delay: 2000,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Evolution API error ${response.status}: ${body}`);
+      }
+
+      this.logger.log(`Location sent to ${number}`);
+    } catch (error) {
+      this.logger.error('Failed to send WhatsApp location', error?.message);
+      throw new InternalServerErrorException(
+        `No se pudo enviar la ubicación de WhatsApp: ${error?.message}`,
+      );
+    }
+  }
+
   //* Lista todos los grupos donde está conectada la instancia
   async fetchGroups(): Promise<EvolutionGroup[]> {
     const url = `${this.baseUrl}/group/fetchAllGroups/${this.instance}?getParticipants=false`;
@@ -61,7 +140,7 @@ export class WhatsappService {
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: { apikey: this.apiKey },
+        headers: { apiKey: this.apiKey },
       });
 
       if (!response.ok) {
@@ -85,7 +164,7 @@ export class WhatsappService {
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: { apikey: this.apiKey },
+        headers: { apiKey: this.apiKey },
       });
 
       if (!response.ok) {

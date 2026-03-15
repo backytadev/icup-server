@@ -19,5 +19,11 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.color": "#832561",
-  "cSpell.words": ["cloudinary", "copastor", "jerarquicamente", "Whatsapp"]
+  "cSpell.words": [
+    "cloudinary",
+    "copastor",
+    "jerarquicamente",
+    "Jids",
+    "Whatsapp"
+  ]
 }

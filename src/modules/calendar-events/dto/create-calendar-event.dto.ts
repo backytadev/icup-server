@@ -40,13 +40,7 @@ export class CreateCalendarEventDto {
     description: 'Descripción del evento',
   })
   @IsString({ message: 'La descripción debe ser un texto válido.' })
-  @IsNotEmpty({ message: 'La descripción es obligatoria.' })
-  @MinLength(10, {
-    message: 'La descripción debe tener al menos 10 caracteres.',
-  })
-  @MaxLength(500, {
-    message: 'La descripción no puede superar los 500 caracteres.',
-  })
+  @IsOptional()
   description: string;
 
   @ApiProperty({

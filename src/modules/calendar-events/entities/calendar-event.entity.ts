@@ -21,7 +21,7 @@ export class CalendarEvent {
   @Column('text')
   title: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   description: string;
 
   @Column('timestamptz', { name: 'start_date' })
